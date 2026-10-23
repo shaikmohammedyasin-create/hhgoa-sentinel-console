@@ -53,7 +53,9 @@ COPY tigergraph ./tigergraph
 COPY data/README.md data/README.md
 COPY data/synthetic ./data/synthetic
 
-# Built Next.js console: standalone server + static assets + public dir.
+# Built Next.js console: standalone server + required static assets + public dir.
+# (Next.js standalone does not auto-copy .next/static or public/; docs say to
+# place them manually in the standalone tree for the server to find them.)
 COPY --from=ui-build /ui/.next/standalone/ /app/ui/standalone/
 COPY --from=ui-build /ui/.next/static /app/ui/standalone/.next/static/
 COPY --from=ui-build /ui/public /app/ui/standalone/public/
