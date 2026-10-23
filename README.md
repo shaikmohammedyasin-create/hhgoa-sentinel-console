@@ -172,6 +172,55 @@ Every evidence item is cataloged with an immutable evidence identifier, claim cl
 
 The system consists of five decoupled layers designed for modularity, observability, and testability:
 
+```mermaid
+graph TD
+    subgraph UI["Analyst Console (Next.js / sentinel-ui)"]
+        UI1["Case queue · case panel · graph · monitor"]
+    end
+    subgraph API["FastAPI Gateway (backend/main.py)"]
+        API1["/investigations"]
+        API2["/api/cases"]
+        API3["/api/approvals"]
+        API4["/benchmark"]
+        API5["/health"]
+        UI_PROXY["UI proxy catch-all when UI_PORT set"]
+    end
+    subgraph ENGINE["Agentic Investigation Engine"]
+        ORCH["Orchestrator"]
+        PLANNER["Planner"]
+        ROUTER["Query Router"]
+        PATTERN["Pattern Reasoning"]
+        GAP["Evidence Gap"]
+        RISK["Noisy-OR Risk"]
+        POLICY["Policy Engine / NBA"]
+    end
+    subgraph LLM["NVIDIA Nemotron via Nebius Token Factory"]
+        NANO["Nano - pattern / verification drafts"]
+        ULTRA["Ultra - SAR narrative / analyst QA"]
+    end
+    subgraph STORE["Persistence"]
+        TG["TigerGraph / SQLite graph"]
+        APP_DB["SQLite app state, audit, idempotency"]
+    end
+    UI1 -->|"same-origin / API_BASE"| API1
+    API1 --> ORCH
+    API2 --> ORCH
+    API3 --> ORCH
+    API4 --> ORCH
+    API5 -.-> UI_PROXY
+    UI_PROXY -->|"non-API paths to Node 3000"| UI1
+    ORCH --> PLANNER --> ROUTER
+    ROUTER --> PATTERN --> GAP
+    GAP --> RISK --> POLICY --> ORCH
+    ORCH -->|"propose/decide advisory"| NANO
+    ORCH -->|"propose/decide advisory"| ULTRA
+    NANO --> ORCH
+    ULTRA --> ORCH
+    ROUTER --> TG
+    ORCH --> APP_DB
+```
+
+<!-- Legacy ASCII architecture (kept as reference):
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                   Analyst Command Center (Web UI)                      │
@@ -201,6 +250,7 @@ The system consists of five decoupled layers designed for modularity, observabil
 │   Edges: OWNS, MADE, FROM_DEVICE...  │ │    Idempotency, Audit Trail   │
 └──────────────────────────────────────┘ └───────────────────────────────┘
 ```
+-->
 
 ![Architecture Diagram](./docs/images/archi.png)
 
@@ -273,10 +323,10 @@ The autonomous investigation engine executes through an iterative, evidence-grou
 │   │   └── graph.js                # HTML5 canvas interactive knowledge graph
 │   └── index.html                  # Main command center interface
 │
-├── sentinel-ui/                     # Vendored Sentinel v2 analyst console (Next.js, separate app)
+├── sentinel-ui/                     # Sentinel console (Next.js + React + Tailwind, this backend's UI)
 │   ├── src/app/                     # Console, Monitor, Ring, approvals, benchmark views
-│   ├── src/components/              # Console shell, role switcher, UI primitives
-│   ├── src/lib/                     # API client, SSE hooks, generated backend contract
+│   ├── src/components/console/      # CasePanel, QueueRail, GraphCanvasView, MonitorView, etc.
+│   ├── src/lib/                     # hhgoa.ts contract, api.ts, hooks.ts, providers.tsx
 │   └── NOTICE.md                    # Upstream attribution, license status, known issues
 │
 ├── tigergraph/                     # TigerGraph database assets
@@ -327,8 +377,10 @@ The autonomous investigation engine executes through an iterative, evidence-grou
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/shaikmohammedyasin-create/HHGoa26-Agentic-Fraud-Investigation.git agentic-fraud-investigation
-cd agentic-fraud-investigation
+# Replace with your new repo URL before pushing (see the note at the top
+# of this file — the original upstream repo must not be pushed to).
+git clone <your-repo-url> HHGOA
+cd HHGOA
 ```
 
 ### 2. Set up a virtual environment
@@ -411,23 +463,23 @@ live Nemotron review happens in the Nemotron Advisory tab when a key is set.
 
 ---
 
-### Optional: Vendored Sentinel Console (`sentinel-ui/`)
+### Optional: Sentinel Console (`sentinel-ui/`)
 
-The repository also ships a vendored copy of Team CollabUp's "Sentinel v2" analyst
-console (Next.js + React + Tailwind) as a standalone second UI. It does **not**
-replace the primary Analyst Command Center and does not talk to this repository's
-backend — it speaks its own contract against the upstream team's deployed API.
+The repository also ships the **Sentinel console** (`sentinel-ui/`) — a
+Next.js + React + Tailwind analyst console built for this repository's HHGOA
+backend. It talks to the FastAPI endpoints directly (same-origin in the
+demo container, configurable via `NEXT_PUBLIC_API_BASE` locally).
 
 ```bash
 cd sentinel-ui
 npm install
-# PowerShell: point it at the upstream deployed API (CORS-allowlisted for localhost:3000)
-$env:NEXT_PUBLIC_API_BASE = "https://apihacker.collabup.co.in"
+# Point it at the local API (default; unset means same-origin):
+# NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000
 npm run dev            # → http://localhost:3000
 ```
 
-Upstream source, attribution, license status (upstream is unlicensed), and known
-issues are documented in `sentinel-ui/NOTICE.md`.
+Upstream source, attribution, license status (upstream is unlicensed), and
+known issues are documented in `sentinel-ui/NOTICE.md`.
 
 ---
 
