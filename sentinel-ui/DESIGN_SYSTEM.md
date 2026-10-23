@@ -1,5 +1,11 @@
 # Sentinel Design System
 
+> **Superseded by `tokens.css` / `tailwind.config.ts`.** This document describes the
+> original upstream design system. The current console uses the token system in
+> `src/app/tokens.css` (warm-paper palette, `--motion-*`, `--z-*`). The design
+> principles and contrast-ratio methodology remain valid; the component API
+> and token names have changed. See `NOTICE.md` for the full change log.
+
 The visual and interaction contract for the Sentinel analyst console. It is built **before** any
 feature screen, and it is complete enough that an engineer implements every component without
 making an aesthetic decision.
