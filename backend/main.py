@@ -1025,6 +1025,9 @@ if _UI_PORT:
                 body = resp.read()
                 return Response(content=body, status_code=resp.status,
                                 media_type=resp.headers.get("content-type", "text/html"))
+        except urllib.error.HTTPError as exc:
+            # The UI server has a real answer (404, etc.) — forward it, not 502.
+            raise HTTPException(exc.code, "Not found" if exc.code == 404 else f"UI returned {exc.code}")
         except Exception:
             raise HTTPException(502, "UI server not reachable")
 

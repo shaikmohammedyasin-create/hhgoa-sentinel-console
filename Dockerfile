@@ -59,7 +59,6 @@ COPY data/synthetic ./data/synthetic
 COPY --from=ui-build /ui/.next/standalone/ /app/ui/standalone/
 COPY --from=ui-build /ui/.next/static /app/ui/standalone/.next/static/
 COPY --from=ui-build /ui/public /app/ui/standalone/public/
-
 # Synthetic CSVs are the data source inside the container.
 ENV TRANSACTIONS_CSV=data/synthetic/transactions.csv \
     IDENTITY_CSV=data/synthetic/identity.csv \

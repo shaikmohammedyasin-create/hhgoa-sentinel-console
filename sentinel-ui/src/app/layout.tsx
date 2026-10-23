@@ -13,6 +13,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", displ
 export const metadata: Metadata = {
   title: "Sentinel — Fraud Investigation Console",
   description: "Agentic fraud investigation on TigerGraph: evidence, uncertainty and next best action.",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
