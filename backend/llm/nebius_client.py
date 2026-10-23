@@ -129,8 +129,11 @@ def chat(role: str, system: str, user: str, model: str | None = None,
     if cached:
         log.info("nebius.cache_hit", role=role)
         latency = round((time.perf_counter() - started) * 1000, 1)
+        # `model` and `cached` travel with the usage dict so a persisted case
+        # records which model served a role and whether it was a cache replay.
         usage_out = {"prompt_tokens": cached["usage"].get("prompt_tokens", 0),
-                     "completion_tokens": cached["usage"].get("completion_tokens", 0)}
+                     "completion_tokens": cached["usage"].get("completion_tokens", 0),
+                     "model": "cache-replay", "latency_ms": latency, "cached": True}
         _append_log({"role": role, "model": "cache-replay", "latency_ms": latency,
                      "prompt_tokens": 0, "completion_tokens": 0,
                      "success": True, "attempt": 0, "cached": True,
@@ -169,6 +172,9 @@ def chat(role: str, system: str, user: str, model: str | None = None,
             usage_out = {
                 "prompt_tokens": getattr(usage, "prompt_tokens", 0) or 0,
                 "completion_tokens": getattr(usage, "completion_tokens", 0) or 0,
+                "model": chosen_model,
+                "latency_ms": latency_ms,
+                "cached": False,
             }
             latency_ms = round((time.perf_counter() - started) * 1000, 1)
             _append_log({
