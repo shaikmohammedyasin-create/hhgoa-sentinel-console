@@ -12,11 +12,11 @@
 
 import type {
   Action,
+  ApprovalRoute,
   EvidenceSource,
-  Route,
   TriggerType,
   Verdict,
-} from "@/lib/generated/contract";
+} from "@/lib/hhgoa";
 
 import type { IconName } from "@/components/console/icons";
 
@@ -48,7 +48,7 @@ export function verdictTone(verdict: Verdict | "investigating" | "queued" | null
 }
 
 /** auto executes itself; L1 waits for a team lead; L2 for a fraud manager. */
-export function routeTone(route: Route): Tone {
+export function routeTone(route: ApprovalRoute): Tone {
   return route === "auto" ? "success" : route === "L1" ? "warning" : "danger";
 }
 

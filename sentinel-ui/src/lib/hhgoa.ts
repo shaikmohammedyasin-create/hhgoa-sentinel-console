@@ -40,6 +40,35 @@ export interface CaseTrigger {
 
 export type Verdict = "fraud" | "legitimate" | "uncertain";
 
+export type CaseStatus = "open" | "closed_fraud" | "closed_legitimate" | "escalated";
+
+export type ApprovalRoute = "auto" | "L1" | "L2";
+
+export type FraudPattern =
+  | "card_testing"
+  | "card_not_present_fraud"
+  | "card_not_present_new_device"
+  | "out_of_region_use"
+  | "account_takeover"
+  | "undocumented"
+  | "none";
+
+export type Action =
+  | "ALLOW_TRANSACTION"
+  | "DECLINE_TRANSACTION"
+  | "MONITOR_CARD"
+  | "MONITOR_CONNECTED_CARDS"
+  | "WARN_CUSTOMER"
+  | "VERIFY_WITH_CUSTOMER"
+  | "STEP_UP_AUTH"
+  | "BLOCK_CARD"
+  | "BLOCK_ALL_CARDS"
+  | "GENERATE_REPORT"
+  | "CREATE_CASE"
+  | "FILE_REPORT"
+  | "ESCALATE_TO_ANALYST"
+  | "CLOSE_NO_FRAUD";
+
 export interface InvestigationSummaryOut {
   case_id: string;
   status: string;
@@ -50,6 +79,19 @@ export interface InvestigationSummaryOut {
   exposure_usd: number | null;
   sar_required: boolean | null;
   updated_at: string | null;
+}
+
+/**
+ * One queue row: the trigger the pipeline was opened on, plus whatever the
+ * engine has concluded about it (or explicit nulls when not yet run).
+ */
+export interface QueueRow extends CaseTrigger {
+  investigated: boolean;
+  verdict: Verdict | null;
+  fraud_probability: number | null;
+  pattern: FraudPattern | null;
+  exposure_usd: number | null;
+  sar_required: boolean | null;
 }
 
 // ── Answer file (case_to_answer) ─────────────────────────────────────────────
