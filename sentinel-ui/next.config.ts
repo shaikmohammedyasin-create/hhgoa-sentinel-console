@@ -11,6 +11,8 @@ const config: NextConfig = {
   reactStrictMode: true,
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: false },
+  output: "standalone",
+  outputFileTracingRoot: process.cwd(),
   async rewrites(): Promise<Rewrite[] | Array<Rewrite>> {
     if (!API_TARGET) return [];
     return [

@@ -1,13 +1,16 @@
-# HHGOA demo deployment.
+# HHGOA demo — single-URL deployment.
 #
 #   docker compose up --build
-#   open http://localhost:8008
+#   open http://localhost:8008        (API + console on the same port)
 #
-# Demo mode (default): DEMO_MODE=1 keeps Token Factory usage at zero -
-# Nemotron answers replay from the local answer cache and the daily call
-# cap protects against any direct web calls. Live mode: uncomment
-# NEBIUS_API_KEY and set DEMO_MODE=0 to enable real Token Factory calls
-# (still rate-limited per IP and by the global daily cap).
+# One container, one port. The FastAPI backend and the Next.js console are
+# co-hosted inside it; the FastAPI app proxies every non-API path to the
+# Node UI server, so everything is reachable from a single URL.
+#
+# Demo mode (default): DEMO_MODE=1 — Nemotron answers replay from the
+# committed answer files and Token Factory costs zero. Live mode:
+# uncomment NEBIUS_API_KEY and set DEMO_MODE=0.
+
 services:
   app:
     build: .

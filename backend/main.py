@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import json
+import os
+import urllib.request
 from datetime import datetime
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from backend.config import settings
@@ -988,4 +991,40 @@ def _reconstruct(payload: dict) -> Any:
     """Reconstruct an InvestigationCase from stored JSON."""
     from backend.models import InvestigationCase
     return InvestigationCase(**payload)
+
+
+# ─── UI co-hosting (single-URL demo) ─────────────────────────────────────────
+#
+# When the UI server is running alongside this app (UI_PORT env var set, as
+# in the Docker demo entrypoint), proxy every non-API path to it. API routes
+# match first (they are registered above); anything that falls through to
+# this catch-all is a UI request.
+#
+# Without UI_PORT set (plain dev, tests, bare API deploy) this route does
+# not register and the app serves only the API.
+
+_UI_PORT = os.environ.get("UI_PORT")
+
+if _UI_PORT:
+    _API_PREFIXES = (
+        "/api/", "/investigations", "/benchmark/", "/graph/",
+        "/health", "/cases/",
+    )
+
+    @app.get("/{path:path}")
+    async def _ui_catchall(path: str, request: Request):
+        """Proxy any non-API GET path to the co-hosted UI server."""
+        if any(path.startswith(p) or path == p.lstrip("/") for p in _API_PREFIXES):
+            raise HTTPException(404, f"Not found: /{path}")
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{_UI_PORT}/{path}",
+                headers={"Accept": request.headers.get("accept", "*/*")},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                body = resp.read()
+                return Response(content=body, status_code=resp.status,
+                                media_type=resp.headers.get("content-type", "text/html"))
+        except Exception:
+            raise HTTPException(502, "UI server not reachable")
 
