@@ -107,40 +107,20 @@ class TestFrontendAPI:
         assert res["status"] == "approved"
         assert res["approver"] == "TestAnalyst-L1"
 
-    def test_static_frontend_mount(self, client):
-        """Root and static assets must be accessible."""
+    def test_no_vanilla_static_frontend_mount(self, client):
+        """The vanilla frontend/ dashboard was removed; the API is frontend-free.
+
+        The Analyst Command Center was deleted (Sentinel UI in sentinel-ui/ is
+        the main interface, served separately). The backend must therefore NOT
+        serve the old root page or its /css and /js assets - it is API-only.
+        """
         r_root = client.get("/")
-        assert r_root.status_code == 200
-        assert "Agentic Fraud Investigation" in r_root.text
+        # FastAPI returns a 404 JSON problem when no static mount is present.
+        assert r_root.status_code == 404
+        assert r_root.json()["detail"] == "Not Found"
 
-        r_css = client.get("/css/style.css")
-        assert r_css.status_code == 200
-
-        r_api = client.get("/js/api.js")
-        assert r_api.status_code == 200
-
-        r_graph = client.get("/js/graph.js")
-        assert r_graph.status_code == 200
-
-        r_app = client.get("/js/app.js")
-        assert r_app.status_code == 200
-
-        # Verify key analyst workspace DOM anchors exist
-        for element_id in [
-            "commandBar", "caseSelect", "btnInvestigate", "tgStatusDot", "dbStatusDot",
-            "triggerCard", "timelineStepper", "assessmentBanner", "verdictBadge",
-            "probBar", "probVal", "patternVal", "exposureVal", "graphCanvas",
-            "graphInspector", "tabEvidence", "tabUncertainty", "tabNba", "tabPersistence",
-            "tabBenchmark", "toastContainer", "healthModal"
-        ]:
-            assert f'id="{element_id}"' in r_root.text
-
-        # Verify enterprise accessibility structure
-        assert 'role="banner"' in r_root.text
-        assert 'role="main"' in r_root.text
-        assert 'role="tablist"' in r_root.text
-        assert 'role="tab"' in r_root.text
-        assert 'role="tabpanel"' in r_root.text
+        for path in ("/css/style.css", "/js/api.js", "/js/graph.js", "/js/app.js"):
+            assert client.get(path).status_code in (404, 405)
 
     def test_get_all_approvals_endpoint(self, client):
         """GET /api/approvals returns list of approvals across cases."""

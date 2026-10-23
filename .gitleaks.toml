@@ -1,0 +1,12 @@
+# Gitleaks configuration for the Sentinel Graph repository.
+# Keeps the default rule set and allowlists one known false positive: the
+# token-accounting field name "completion_tokens_total" in the eval script.
+
+[extend]
+useDefault = true
+
+# Allowlist: metric field names that look like API keys to the generic rule.
+[[allowlists]]
+description = "Token accounting field names, not credentials"
+regexTarget = "match"
+regexes = ['''completion_tokens_total''']
