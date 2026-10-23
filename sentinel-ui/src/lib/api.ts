@@ -1,134 +1,37 @@
 /**
- * The one place this app talks to the backend.
+ * The one place this app talks to the HHGOA backend.
  *
- * Three things are centralised here because getting any of them wrong in one
- * component and right in another is worse than getting them wrong everywhere.
+ * Same-origin by default: `API_BASE` is empty on a hosted build so `/api/*`
+ * is answered by the deployment's own Next proxy (see next.config.ts), and
+ * defaults to `http://127.0.0.1:8000` locally. No role headers, no
+ * third-party origin — this console talks only to the repository's own API.
  *
- * **The role header.** Every request carries `X-Sentinel-Role`, read from the
- * role switcher. The server recomputes the permission from it; the client
- * never decides what it may do, it only says who it is.
- *
- * **The problem envelope.** Every deliberate failure comes back as
- * `application/problem+json`, and a 403 on an action carries the approval it
- * just enqueued. `ApiProblem` keeps that structured so the action panel can
- * link straight to the inbox instead of showing a string.
- *
- * **Types.** Nothing here declares a shape. Everything is imported from
- * `generated/contract.ts`, which the backend emits from its own models — see
- * HLD ADR-7. A hand-typed `"BLOCK_ALL_CARDS"` anywhere in this app is how the
- * third copy drifts.
+ * Types are imported from `@/lib/hhgoa` (hand-typed from the real backend);
+ * the vendored upstream `generated/contract.ts` described a different API
+ * and is no longer used.
  */
 
 import type {
-  ActionPlan,
-  ApprovalDecisionResult,
-  ApprovalPage,
-  AuditPage,
-  BenchmarkAccepted,
-  BenchmarkReport,
-  CaseDetail,
-  CasePage,
-  ExecuteRequest,
-  ExecutionRecord,
-  GraphCanvas,
-  MemoryBody,
-  Meta,
-  Role,
-  RunAccepted,
-  RingReport,
-  RunDetail,
-  SarBody,
-  TraceBody,
-  ValidationBody,
-} from "@/lib/generated/contract";
+  AnalystAnswer,
+  AnswerFile,
+  ApprovalOut,
+  AuditEventOut,
+  CaseGraph,
+  CaseTrigger,
+  HealthOut,
+  InvestigationSummaryOut,
+  LlmStatus,
+  RiskAnalysisResponse,
+} from "@/lib/hhgoa";
 
-/**
- * `""` (or unset to empty) keeps the API same-origin: `/api/*` is then answered
- * by the deployment's own proxy (see next.config.ts and NOTICE.md), which is
- * how the hosted build reaches a CORS-allowlisted upstream. Unset locally still
- * defaults to the companion backend on 127.0.0.1:8000.
- */
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE !== undefined
     ? process.env.NEXT_PUBLIC_API_BASE.replace(/\/$/, "")
     : "http://127.0.0.1:8000";
 
-/** Where the role lives between reloads. Per-viewer convenience, nothing more. */
-const ROLE_KEY = "sentinel.role";
-
-export const DEFAULT_ROLE: Role = "analyst";
-
-export function readRole(): Role {
-  // Storage throws in a private window and on a blocked site; a console that
-  // cannot remember the role still has to render.
-  try {
-    const stored = window.localStorage.getItem(ROLE_KEY);
-    if (stored === "analyst" || stored === "team_lead" || stored === "fraud_manager") {
-      return stored;
-    }
-  } catch {
-    /* no storage; the default is correct */
-  }
-  return DEFAULT_ROLE;
-}
-
-export function writeRole(role: Role): void {
-  try {
-    window.localStorage.setItem(ROLE_KEY, role);
-  } catch {
-    /* no storage; the role still applies for this page's lifetime */
-  }
-}
-
-/**
- * A deliberate failure from the API, with its problem body intact.
- *
- * The body is the useful part. A 403 on an action names the route, the roles
- * that can approve it, and the approval it enqueued — everything the panel
- * needs to offer the next step without asking again.
- */
-export class ApiProblem extends Error {
-  readonly status: number;
-  readonly code: string;
-  readonly title: string;
-  readonly detail: string;
-  readonly body: Record<string, unknown>;
-
-  constructor(status: number, body: Record<string, unknown>) {
-    const detail = typeof body.detail === "string" ? body.detail : `HTTP ${status}`;
-    super(detail);
-    this.name = "ApiProblem";
-    this.status = status;
-    this.code = typeof body.code === "string" ? body.code : "error";
-    this.title = typeof body.title === "string" ? body.title : "Something went wrong";
-    this.detail = detail;
-    this.body = body;
-  }
-
-  /** The approval a denied action enqueued, when there is one. */
-  get approval(): { approval_id: string; status: string; href: string } | null {
-    const value = this.body.approval;
-    return value && typeof value === "object"
-      ? (value as { approval_id: string; status: string; href: string })
-      : null;
-  }
-
-  get approvers(): string[] {
-    const value = this.body.roles_that_can_approve;
-    return Array.isArray(value) ? (value as string[]) : [];
-  }
-
-  get requiredRoute(): string {
-    return typeof this.body.required_route === "string" ? this.body.required_route : "";
-  }
-}
-
 type Query = Record<string, string | number | boolean | null | undefined>;
 
 function url(path: string, query?: Query): string {
-  // The second argument lets an empty API_BASE resolve host-relative. With an
-  // absolute API_BASE it is ignored — the string starts with a scheme, so the
-  // window origin is never consulted.
   const target = new URL(`${API_BASE}${path}`, window.location.origin);
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== null && value !== undefined && value !== "") {
@@ -138,19 +41,27 @@ function url(path: string, query?: Query): string {
   return target.toString();
 }
 
+export class ApiProblem extends Error {
+  readonly status: number;
+  readonly detail: string;
+  readonly body: Record<string, unknown>;
+
+  constructor(status: number, body: Record<string, unknown>) {
+    const detail = typeof body.detail === "string" ? body.detail : `HTTP ${status}`;
+    super(detail);
+    this.name = "ApiProblem";
+    this.status = status;
+    this.detail = detail;
+    this.body = body;
+  }
+}
+
 async function request<T>(
   path: string,
-  { query, method = "GET", body, role, idempotencyKey }: {
-    query?: Query;
-    method?: "GET" | "POST";
-    body?: unknown;
-    role?: Role;
-    idempotencyKey?: string;
-  } = {},
+  { query, method = "GET", body }: { query?: Query; method?: "GET" | "POST"; body?: unknown } = {},
 ): Promise<T> {
-  const headers: Record<string, string> = { "X-Sentinel-Role": role ?? DEFAULT_ROLE };
+  const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
 
   const response = await fetch(url(path, query), {
     method,
@@ -172,68 +83,36 @@ async function request<T>(
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-/** Every endpoint the console uses, typed from the generated contract. */
+/** Every endpoint the console uses, typed from the HHGOA contract. */
 export const api = {
-  meta: () => request<Meta>("/api/meta"),
-  health: () => request<{ status: string; uptime_s: number }>("/api/health"),
+  health: () => request<HealthOut>("/health"),
+  llmStatus: () => request<LlmStatus>("/api/llm/status"),
 
-  cases: (query: Query, role: Role) => request<CasePage>("/api/cases", { query, role }),
-  case: (id: string, role: Role) => request<CaseDetail>(`/api/cases/${id}`, { role }),
-  answer: (id: string, role: Role) => request<unknown>(`/api/cases/${id}/answer`, { role }),
-  trace: (id: string, role: Role) => request<TraceBody>(`/api/cases/${id}/trace`, { role }),
-  validation: (id: string, graph: boolean, role: Role) =>
-    request<ValidationBody>(`/api/cases/${id}/validation`, { query: { graph }, role }),
-  sar: (id: string, role: Role) => request<SarBody>(`/api/cases/${id}/sar`, { role }),
-  memory: (id: string, role: Role) => request<MemoryBody>(`/api/cases/${id}/memory`, { role }),
-  actions: (id: string, role: Role) => request<ActionPlan>(`/api/cases/${id}/actions`, { role }),
-  canvas: (id: string, role: Role) =>
-    request<GraphCanvas>(`/api/graph/cases/${id}`, { role }),
-  rings: (role: Role) => request<RingReport>("/api/graph/rings", { role }),
+  cases: (query: Query) => request<CaseTrigger[]>("/api/cases", { query }),
+  investigations: (query: Query) =>
+    request<InvestigationSummaryOut[]>("/api/investigations", { query }),
 
-  startInvestigation: (caseId: string, role: Role) =>
-    request<RunAccepted>("/api/investigations", {
+  /** Full answer for a case. Demo mode falls back to the committed answer file. */
+  answer: (id: string) => request<AnswerFile>(`/api/investigations/${id}`),
+  full: (id: string) => request<AnswerFile>(`/api/investigations/${id}/full`),
+
+  ask: (id: string, question: string) =>
+    request<AnalystAnswer>(`/api/cases/${id}/ask`, {
       method: "POST",
-      body: { case_id: caseId, mode: "live", force: true },
-      role,
-    }),
-  run: (runId: string, role: Role) => request<RunDetail>(`/api/investigations/${runId}`, { role }),
-
-  execute: (body: ExecuteRequest, role: Role, idempotencyKey?: string) =>
-    request<ExecutionRecord>("/api/actions/execute", {
-      method: "POST",
-      body,
-      role,
-      idempotencyKey,
+      body: { question },
     }),
 
-  approvals: (query: Query, role: Role) =>
-    request<ApprovalPage>("/api/approvals", { query, role }),
-  approve: (approvalId: string, note: string, role: Role) =>
-    request<ApprovalDecisionResult>(`/api/approvals/${approvalId}/decision`, {
+  approvals: (query: Query) => request<ApprovalOut[]>("/api/approvals", { query }),
+  timeline: (id: string) => request<AuditEventOut[]>(`/investigations/${id}/timeline`),
+  canvas: (id: string) => request<CaseGraph>(`/api/investigations/${id}/graph`),
+  risk: (id: string) => request<RiskAnalysisResponse>(`/api/investigations/${id}/risk`),
+
+  startInvestigation: (caseId: string, force = false) =>
+    request<AnswerFile>(`/investigations/${caseId}/run`, {
       method: "POST",
-      body: { decision: "approve", note },
-      role,
-    }),
-  reject: (approvalId: string, note: string, role: Role) =>
-    request<ApprovalDecisionResult>(`/api/approvals/${approvalId}/decision`, {
-      method: "POST",
-      body: { decision: "reject", note },
-      role,
+      query: { force },
     }),
 
-  audit: (query: Query, role: Role) => request<AuditPage>("/api/audit", { query, role }),
-  runAll: (role: Role) =>
-    request<BenchmarkAccepted>("/api/benchmark/runs", {
-      method: "POST",
-      body: { case_ids: [], order: "chronological", concurrency: 1, mode: "live" },
-      role,
-    }),
-  benchmark: (role: Role) => request<BenchmarkReport>("/api/benchmark/report", { role }),
+  benchmark: () => request<Record<string, unknown>>("/benchmark/report"),
+  runAll: () => request<Record<string, unknown>>("/benchmark/run", { method: "POST" }),
 };
-
-/** The SSE URL for a run. Used by `useInvestigationStream`. */
-export const streamUrl = (runId: string, lastEventId: number, role: Role) =>
-  url(`/api/investigations/${runId}/events`, {
-    last_event_id: lastEventId > 0 ? lastEventId : undefined,
-    role,
-  });

@@ -157,7 +157,23 @@ def list_investigations(limit: int = Query(50, ge=1, le=200), offset: int = Quer
 
 @app.get("/investigations/{case_id}", tags=["Investigations"])
 def get_investigation(case_id: str):
+    """Full answer for a case.
+
+    Live mode returns a stored investigation. In `DEMO_MODE=1` (the hosted
+    demo default) a case that has not been investigated in this session is
+    served from the committed precomputed answer file (`cases/<id>.json`),
+    the same deterministic output a fresh run would produce — without
+    spending any Nemotron calls.
+    """
     payload = app_db.load_investigation(case_id)
+    if payload is None and settings.demo_mode:
+        case_file = settings.cases_dir / f"{case_id}.json"
+        if case_id.isascii() and case_file.exists():
+            try:
+                return json.loads(case_file.read_text(encoding="utf-8"))
+            except ValueError as exc:
+                log.warning("api.investigation.answer_file_unreadable",
+                            case_id=case_id, error=str(exc))
     if payload is None:
         raise HTTPException(404, f"Case {case_id} not found")
     return case_to_answer(_reconstruct(payload))
