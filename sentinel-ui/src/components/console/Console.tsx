@@ -3,366 +3,370 @@
 /**
  * The console: one screen, three views, no navigation.
  *
- * An analyst working a case does not want to be moved between pages. The
- * queue, the case and the graph are three answers to three different
- * questions and they are held open at once, because the work is moving
- * between them rather than through them. Below 1180px the graph pane folds
- * away first — it is the one the other two can be read without.
+ * The queue, the case and the graph are three answers to three different
+ * questions held open at once — moving between them is the work, so the
+ * console does not move you between pages. Below 1180px the graph pane
+ * folds first.
  *
- * The masthead's moving rule is the only continuous animation on the page and
- * it means one thing: the console is connected to something. Underneath it,
- * the hunt strip names the state of the current investigation in one line, so
- * a reader across the room knows whether the number is still moving.
- *
- * Monitor and ring take the whole area below the masthead rather than a
- * column, because both are about the pack rather than about a case, and
- * putting them beside a case would invite reading them as one.
+ * Everything on this screen is live backend data; there is no scripted walk
+ * and no ring view — those belonged to a retired Sentinel API. The monitor
+ * and the approvals inbox are reachable from the masthead and deep-linked via
+ * `/benchmark` and `/approvals`.
  */
 
-import { useCallback, useEffect, useState } from "react";
-
-import { ActionRail } from "@/components/console/ActionRail";
-import { ApprovalsDrawer } from "@/components/console/ApprovalsDrawer";
-import { CasePanel, type CasePanelState } from "@/components/console/CasePanel";
-import { GraphCanvasView, canvasSummary } from "@/components/console/GraphCanvasView";
-import { Icon, IconSprite } from "@/components/console/icons";
-import { MonitorView } from "@/components/console/MonitorView";
-import { ConsoleChip, Overline } from "@/components/console/parts";
+import { useCallback, useMemo, useState } from "react";
+import { IconSprite } from "@/components/console/icons";
+import { Overline } from "@/components/console/parts";
+import { huntState, toneVar } from "@/components/console/vm";
 import { QueueRail } from "@/components/console/QueueRail";
+import { GraphCanvasView, canvasSummary } from "@/components/console/GraphCanvasView";
+import { CasePanel } from "@/components/console/CasePanel";
+import { MonitorView } from "@/components/console/MonitorView";
 import { RingView } from "@/components/console/RingView";
-import { useDemo, type Act } from "@/components/console/useDemo";
-import { huntState, pct, toneTint, toneVar, verdictTone } from "@/components/console/vm";
-import { RoleSwitcher } from "@/components/shell/RoleSwitcher";
-import { useApprovals, useCanvas, useCases, useMeta, useRunAll } from "@/lib/hooks";
+import { useCanvas, useCases, useHealth, useInvestigations, useLlmStatus, useRisk } from "@/lib/hooks";
+import { useDemo } from "@/components/console/useDemo";
+import type { CaseGraph, FraudPattern, QueueRow } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
+import { useSearchParams } from "next/navigation";
 
-export type ViewId = "console" | "monitor" | "ring";
+type View = "queue" | "case" | "graph" | "monitor" | "ring";
 
-const VIEWS: { id: ViewId; label: string; icon: "window" | "baseline" | "ring" }[] = [
-  { id: "console", label: "Console", icon: "window" },
-  { id: "monitor", label: "Monitor", icon: "baseline" },
-  { id: "ring", label: "Ring", icon: "ring" },
-];
+export function Console({ initialCase }: { initialCase?: string }) {
+  const params = useSearchParams();
+  const [view, setView] = useState<View>("case");
+  const [selected, setSelected] = useState(initialCase ?? "");
+  const [inboxOpen, setInboxOpen] = useState(params.get("inbox") === "1");
 
-export function Console({
-  initialCase = "",
-  initialView = "console",
-}: {
-  initialCase?: string;
-  initialView?: ViewId;
-}) {
-  const [view, setView] = useState<ViewId>(initialView);
-  const [selected, setSelected] = useState(initialCase);
-  const [drawer, setDrawer] = useState(false);
-  const [pane, setPane] = useState(true);
-  const [liveRunId, setLiveRunId] = useState<string | null>(null);
-  const [state, setState] = useState<CasePanelState>({
-    running: false,
-    probability: null,
-    note: "",
-    progress: 0,
-  });
+  const { data: rows } = useCases();
+  const { data: summaries } = useInvestigations();
+  const { data: health } = useHealth();
+  const { data: llmStatus } = useLlmStatus();
 
-  const runAll = useRunAll();
-  const [armed, setArmed] = useState(false);
-  const cases = useCases({ limit: 100 });
-  const approvals = useApprovals("pending");
-  const meta = useMeta();
-  const rows = cases.data?.items ?? [];
-
-  // The first case the queue offers, so the console is never empty on load.
-  useEffect(() => {
-    if (!selected && rows.length > 0) {
-      const first = rows[0];
-      if (first) setSelected(first.case_id);
+  // Merge case triggers with any stored investigation results.
+  const queue = useMemo<QueueRow[]>(() => {
+    const byCase = new Map<string, QueueRow>();
+    for (const trigger of rows ?? []) {
+      byCase.set(trigger.case_id, { ...trigger, investigated: false, verdict: null, fraud_probability: null, pattern: null, exposure_usd: null, sar_required: null });
     }
-  }, [rows, selected]);
+    for (const s of summaries ?? []) {
+      const existing = byCase.get(s.case_id);
+      const base = existing ?? null;
+      byCase.set(s.case_id, {
+        case_id: s.case_id,
+        opened_at: s.updated_at ?? "",
+        trigger_type: "analyst_request",
+        trigger_text: "",
+        flagged_txn_id: "",
+        card_id: "",
+        customer_id: "",
+        risk_score: null,
+        investigated: s.investigated,
+        verdict: s.verdict,
+        fraud_probability: s.fraud_probability,
+        pattern: s.pattern as FraudPattern | null,
+        exposure_usd: s.exposure_usd,
+        sar_required: s.sar_required,
+      });
+    }
+    return [...byCase.values()];
+  }, [rows, summaries]);
 
-  // The graph pane costs a live TigerGraph round trip, so it is fetched only
-  // when it is actually on screen.
-  const canvas = useCanvas(selected, pane && view === "console");
-
-  const row = rows.find((item) => item.case_id === selected) ?? null;
-  const verdict = row?.verdict ?? null;
-  const hunt = huntState(
-    state.running,
-    state.probability ?? row?.fraud_probability ?? 0.5,
-    verdict,
-    state.note,
+  const selectedRow = useMemo(
+    () => queue.find((r) => r.case_id === selected) ?? null,
+    [queue, selected],
   );
-  const pendingApprovals = approvals.data?.items.length ?? 0;
 
-  const applyAct = useCallback((act: Act) => {
+  const { data: canvas } = useCanvas(selected, view === "graph" || view === "case");
+  const { data: riskData } = useRisk(selected, Boolean(selectedRow?.investigated));
+
+  const hunt = huntState(
+    selectedRow?.investigated === false,
+    riskData?.current.fraud_probability ?? selectedRow?.fraud_probability ?? 0,
+    selectedRow?.verdict ?? null,
+    riskData?.methodology ?? (selectedRow?.investigated ? "stored run" : "not yet run"),
+  );
+
+  const demo = useDemo(queue, useCallback((act) => {
     setSelected(act.caseId);
-    setLiveRunId(null);
-    setView(act.view);
-  }, []);
-  const demo = useDemo(rows, applyAct);
+    setView("case");
+  }, []));
 
-  const tally = (["fraud", "uncertain", "legitimate"] as const).map((key) => ({
-    key,
-    n: rows.filter((item) => item.verdict === key).length,
-  }));
+  const live = health?.status !== "healthy";
 
   return (
-    <div className="flex h-dvh min-w-[800px] flex-col overflow-hidden bg-bg">
+    <div className="relative flex h-dvh flex-col bg-bg text-fg">
       <IconSprite />
+      <Masthead
+        health={health?.status}
+        demoMode={health?.demo_mode}
+        llmAvailable={llmStatus?.available}
+        openInbox={() => setInboxOpen(true)}
+        goMonitor={() => setView("monitor")}
+        goRing={() => setView("ring")}
+        running={demo.running}
+        onStartDemo={demo.start}
+        onStopDemo={demo.stop}
+      />
 
-      <header className="flex h-[54px] shrink-0 items-center gap-4 border-b border-border bg-surface px-4">
-        <div className="flex shrink-0 items-center gap-2.5">
-          <Icon name="hex" size={22} style={{ color: "var(--accent-bold)" }} />
-          <div className="flex flex-col leading-none">
-            <span className="text-[14px] font-bold tracking-[0.14em]">SENTINEL</span>
-            <span className="mt-0.5 font-mono text-[9px] leading-snug tracking-[0.06em] text-fg-muted">
-              agentic fraud investigator
-            </span>
-          </div>
-        </div>
-
-        <div className="hidden shrink-0 items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 xl:flex">
-          <span
-            className={cn(
-              "h-1.5 w-1.5 rounded-full",
-              meta.data ? "animate-s-pulse bg-success" : "bg-border-strong",
-            )}
-          />
-          <span className="whitespace-nowrap font-mono text-[10px] font-medium text-fg-muted">
-            {meta.data ? `TigerGraph · API v${meta.data.version}` : "connecting…"}
-          </span>
-        </div>
-
-        <div
-          role="tablist"
-          aria-label="View"
-          className="flex shrink-0 gap-0.5 rounded-lg border border-border bg-surface-2 p-0.5"
-        >
-          {VIEWS.map((item) => {
-            const on = view === item.id;
-            return (
-              <button
-                key={item.id}
-                role="tab"
-                aria-selected={on}
-                type="button"
-                onClick={() => setView(item.id)}
-                className={cn(
-                  "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5",
-                  "text-[10.5px] font-semibold",
-                  on ? "bg-surface text-accent shadow-1" : "text-fg-muted hover:text-fg",
-                )}
-              >
-                <Icon name={item.icon} size={12} />
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex-1" />
-
-        <div className="hidden items-center gap-2.5 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 lg:flex">
-          {tally.map((item) => (
-            <span
-              key={item.key}
-              className="flex items-center gap-1.5 font-mono text-[10px] font-semibold text-fg-muted"
-            >
-              <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
-                <rect width="8" height="8" rx="2" fill={toneVar(verdictTone(item.key))} />
-              </svg>
-              {item.n} {item.key}
-            </span>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => (demo.running ? demo.stop() : demo.start())}
-          className={cn(
-            "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-2 text-[11px] font-semibold",
-            demo.running
-              ? "border-accent bg-accent text-accent-contrast"
-              : "border-border-strong bg-surface-2 hover:bg-accent-tint",
-          )}
-        >
-          <Icon name="bolt" size={13} />
-          {demo.running ? "Stop demo" : "Run demo"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            if (!armed) {
-              setArmed(true);
-              return;
-            }
-            setArmed(false);
-            runAll.mutate();
-          }}
-          onBlur={() => setArmed(false)}
-          disabled={runAll.isPending}
-          title="Starts a real batch: twenty live investigations against the graph and the model."
-          className={cn(
-            "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-2 text-[11px] font-semibold",
-            armed
-              ? "border-danger bg-danger-tint text-danger"
-              : "border-border-strong bg-surface-2 hover:bg-accent-tint",
-          )}
-        >
-          <Icon name="bolt" size={13} style={{ color: armed ? undefined : "var(--accent)" }} />
-          {runAll.isPending ? "starting…" : armed ? "Confirm — 20 live runs" : "Run all 20"}
-        </button>
-
-        <RoleSwitcher />
-
-        <button
-          type="button"
-          onClick={() => setDrawer(true)}
-          className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-border-strong bg-surface-2 px-3 py-2 text-[11px] font-semibold hover:bg-accent-tint"
-        >
-          <Icon name="check" size={13} style={{ color: "var(--authority)" }} />
-          Approvals
-          <span
-            className="inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1 font-mono text-[10px] font-bold text-surface"
-            style={{
-              background: pendingApprovals > 0 ? toneVar("warning") : "var(--border-strong)",
-            }}
-          >
-            {pendingApprovals}
-          </span>
-        </button>
-      </header>
-
-      <div className="bg-runway h-[3px] shrink-0 opacity-85" aria-hidden="true" />
-
-      <div className="flex h-[26px] shrink-0 items-center gap-2.5 overflow-hidden border-b border-border bg-surface px-4">
-        <span
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-[7px] py-[3px] font-mono text-[9px] font-bold uppercase tracking-[0.06em]"
-          style={{ background: toneTint(hunt.tone), color: toneVar(hunt.tone) }}
-        >
-          <Icon name={hunt.glyph} size={11} />
-          {hunt.label}
-        </span>
-        <span className="truncate font-mono text-[9.5px] font-medium tracking-[0.06em] text-fg-subtle">
-          {hunt.note}
-        </span>
-        <span className="relative mx-1 h-0.5 flex-1 overflow-hidden rounded-full bg-surface-3">
-          <span
-            className="absolute inset-y-0 left-0 rounded-full"
-            style={{
-              width: pct(state.progress),
-              background: toneVar(hunt.tone),
-              transition: "width var(--motion-slow) var(--ease-standard)",
-            }}
-          />
-        </span>
-        <span className="font-mono text-[9.5px] font-semibold tabular-nums text-fg-muted">
-          {pct(state.progress)}
-        </span>
-      </div>
-
-      <div className="relative min-h-0 flex-1">
-        <div
-          className="grid h-full min-h-0"
-          style={{
-            gridTemplateColumns: pane ? "252px minmax(0,1fr) 404px" : "252px minmax(0,1fr)",
-            // One row, pinned to the container's height. Left to itself the
-            // implicit row grows to the tallest pane, which pushes the panes
-            // past the viewport and leaves their own overflow rules nothing
-            // to bite on.
-            gridTemplateRows: "minmax(0,1fr)",
-          }}
-        >
+      <div className="flex min-h-0 flex-1">
+        {(view === "queue" || view === "case" || view === "graph") ? (
           <QueueRail
-            rows={rows}
+            rows={queue}
             selected={selected}
-            runningCase={state.running ? selected : null}
+            runningCase={selectedRow?.investigated === false ? selected : null}
             onSelect={(id) => {
               setSelected(id);
-              setLiveRunId(null);
-              setView("console");
+              setView("case");
             }}
           />
+        ) : null}
 
-          {selected ? (
-            <CasePanel
-              key={selected}
-              caseId={selected}
-              liveRunId={liveRunId}
-              onState={setState}
-              onStart={setLiveRunId}
-            />
-          ) : (
-            <main className="flex items-center justify-center text-caption text-fg-subtle">
-              {cases.isLoading ? "Loading the queue…" : "Pick a case."}
-            </main>
-          )}
-
-          {pane ? (
-            <aside className="flex min-h-0 flex-col border-l border-border bg-surface">
-              <div className="flex shrink-0 items-center justify-between px-3.5 pb-1.5 pt-3">
-                <Overline className="tracking-[0.14em]">Graph evidence</Overline>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] text-fg-subtle">
-                    {canvas.isLoading ? "loading…" : canvasSummary(canvas.data ?? null)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setPane(false)}
-                    className="rounded-md border border-border-strong px-2 py-1 font-mono text-[9px] font-semibold text-fg-muted hover:text-fg"
-                  >
-                    hide ›
-                  </button>
-                </div>
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          {view === "queue" ? <QueueSummary rows={queue} /> : null}
+          {view === "case" && selectedRow ? (
+            <CasePanel row={selectedRow} live={demo.running} openInbox={() => setInboxOpen(true)} />
+          ) : null}
+          {view === "graph" ? (
+            <div className="flex h-full flex-col overflow-y-auto">
+              <div className="px-3.5 pb-2 pt-3">
+                <Overline>Case subgraph · {selected}</Overline>
               </div>
-              {canvas.error ? (
-                <p className="mx-3 rounded-lg border border-dashed border-border px-3 py-6 text-center text-caption text-fg-subtle">
-                  The graph did not answer: {(canvas.error as Error).message}
-                </p>
-              ) : (
-                <GraphCanvasView canvas={canvas.data ?? null} live={state.running} />
-              )}
-              {selected ? (
-                <ActionRail caseId={selected} onOpenApprovals={() => setDrawer(true)} />
-              ) : null}
-            </aside>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setPane(true)}
-              className="fixed bottom-4 right-4 z-sticky rounded-md border border-border-strong bg-surface px-3 py-2 font-mono text-[10px] font-semibold shadow-2"
-            >
-              ‹ graph
-            </button>
-          )}
-        </div>
+              <div className="min-h-0 flex-1">
+                <GraphCanvasView canvas={canvas ?? null} live={demo.running} />
+              </div>
+            </div>
+          ) : null}
+          {view === "monitor" ? <MonitorView /> : null}
+          {view === "ring" ? <RingView /> : null}
 
-        {view === "monitor" ? <MonitorView /> : null}
-        {view === "ring" ? <RingView /> : null}
+          {view === "case" ? (
+            <CaseFooter
+              caseId={selected}
+              canvas={canvas}
+              riskTone={toneVar("accent")}
+              hunt={hunt}
+              onOpenGraph={() => setView("graph")}
+              running={demo.running}
+            />
+          ) : null}
+        </div>
       </div>
 
-      {demo.act ? (
-        <div className="animate-s-in fixed bottom-6 left-1/2 z-drawer flex max-w-[min(92vw,900px)] -translate-x-1/2 items-center gap-3.5 rounded-xl bg-fg px-4 py-3 shadow-3">
-          <ConsoleChip tone="accent" fill="solid">
-            {demo.act.title}
-          </ConsoleChip>
-          <span className="text-[12.5px] leading-snug text-bg">{demo.act.caption}</span>
-          <button
-            type="button"
-            onClick={demo.stop}
-            className="ml-1.5 shrink-0 rounded-md border border-fg-muted px-2.5 py-1.5 font-mono text-[10px] font-semibold text-bg"
+      {/* Bottom view switcher */}
+      <div className="shrink-0 border-t border-border bg-surface px-3.5 py-1.5">
+        <ViewSwitcher
+          view={view}
+          onSelect={(v) => {
+            setView(v);
+            if (v === "case" && !selected) {
+              const first = queue[0];
+              if (first) setSelected(first.case_id);
+            }
+          }}
+        />
+      </div>
+
+      {/* Approvals inbox overlay */}
+      {inboxOpen ? <ApprovalsInbox onClose={() => setInboxOpen(false)} /> : null}
+
+      {/* Demo act banner */}
+      {demo.running && demo.act ? (
+        <div className="fixed bottom-14 left-3.5 z-50 flex items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 shadow-2">
+          <Overline>{demo.act.title}</Overline>
+          <span className="max-w-[340px] text-[10px] leading-snug text-fg-muted">{demo.act.caption}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── masthead ──────────────────────────────────────────────────────────────── */
+
+function Masthead({
+  health,
+  demoMode,
+  llmAvailable,
+  openInbox,
+  goMonitor,
+  goRing,
+  running,
+  onStartDemo,
+  onStopDemo,
+}: {
+  health: string | undefined;
+  demoMode: boolean | undefined;
+  llmAvailable: boolean | undefined;
+  openInbox: () => void;
+  goMonitor: () => void;
+  goRing: () => void;
+  running: boolean;
+  onStartDemo: () => void;
+  onStopDemo: () => void;
+}) {
+  const tone = health === "healthy" ? "success" : "warning";
+  return (
+    <header className="relative shrink-0 border-b border-border bg-surface">
+      <div className="flex h-1 bg-runway" />
+      <div className="flex items-center gap-3 px-3.5 py-2">
+        <span className="flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ background: toneVar(tone) }}
+            aria-label={`backend ${health ?? "unknown"}`}
+          />
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em]">Sentinel</span>
+        </span>
+        <span className="font-mono text-[9px] text-fg-subtle">
+          {demoMode ? "demo mode · committed cases" : "live backend"}
+        </span>
+        {llmAvailable !== undefined ? (
+          <span
+            className="font-mono text-[9px]"
+            style={{ color: llmAvailable ? "var(--success)" : "var(--fg-subtle)" }}
           >
-            stop
-          </button>
-        </div>
-      ) : null}
+            {llmAvailable ? "nebius · nemotron" : "nemotron unavailable"}
+          </span>
+        ) : null}
+        <span className="flex-1" />
+        <button
+          type="button"
+          onClick={openInbox}
+          className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+        >
+          inbox
+        </button>
+        <button
+          type="button"
+          onClick={goMonitor}
+          className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+        >
+          pack
+        </button>
+        <button
+          type="button"
+          onClick={running ? onStopDemo : onStartDemo}
+          className={cn(
+            "rounded-md px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.08em]",
+            running ? "bg-accent text-accent-contrast" : "border border-border text-fg-muted hover:text-fg",
+          )}
+        >
+          {running ? "stop" : "demo"}
+        </button>
+      </div>
+    </header>
+  );
+}
 
-      {runAll.isError ? (
-        <div className="animate-s-in fixed bottom-6 left-1/2 z-drawer -translate-x-1/2 rounded-xl border border-danger bg-danger-tint px-4 py-3 text-[12px] text-danger">
-          Could not start the batch: {(runAll.error as Error).message}
-        </div>
-      ) : null}
+function ViewSwitcher({ view, onSelect }: { view: View; onSelect: (v: View) => void }) {
+  const items: { id: View; label: string; icon?: never }[] = [
+    { id: "queue", label: "queue" },
+    { id: "case", label: "case" },
+    { id: "graph", label: "graph" },
+    { id: "monitor", label: "pack" },
+    { id: "ring", label: "ring" },
+  ];
+  return (
+    <div className="flex items-center gap-0.5">
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => onSelect(item.id)}
+          aria-pressed={view === item.id}
+          className={cn(
+            "rounded-md px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em]",
+            view === item.id ? "bg-accent-tint text-accent" : "text-fg-muted hover:text-fg",
+          )}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-      <ApprovalsDrawer open={drawer} onClose={() => setDrawer(false)} />
+function QueueSummary({ rows }: { rows: QueueRow[] }) {
+  const investigated = rows.filter((r) => r.investigated).length;
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto p-3.5">
+      <Overline>Queue · {rows.length} cases</Overline>
+      <p className="mt-2 text-caption text-fg-muted">
+        {investigated} investigated · {rows.length - investigated} pending. Use the
+        &ldquo;case&rdquo; tab to open one.
+      </p>
+    </div>
+  );
+}
+
+function CaseFooter({
+  caseId,
+  canvas,
+  riskTone,
+  hunt,
+  onOpenGraph,
+  running,
+}: {
+  caseId: string;
+  canvas: CaseGraph | null | undefined;
+  riskTone: string;
+  hunt: ReturnType<typeof huntState>;
+  onOpenGraph: () => void;
+  running: boolean;
+}) {
+  if (!caseId) return null;
+  return (
+    <div className="shrink-0 border-t border-border bg-surface px-3.5 py-2.5">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="flex items-center gap-1.5">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{ background: riskTone }}
+            aria-hidden="true"
+          />
+          <span
+            className="font-mono text-[10px] font-bold uppercase tracking-[0.08em]"
+            style={{ color: riskTone }}
+          >
+            {hunt.label}
+          </span>
+        </span>
+        <span className="font-mono text-[10px] text-fg-muted">{hunt.note}</span>
+        <span className="flex-1" />
+        <button
+          type="button"
+          onClick={onOpenGraph}
+          className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+        >
+          graph · {canvasSummary(canvas ?? null)}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Lightweight overlay; the full drawer lives at /approvals. */
+function ApprovalsInbox({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-label="Approvals inbox"
+      className="fixed inset-0 z-40 bg-surface shadow-3"
+      style={{ right: 0, width: "min(360px, 90vw)" }}
+    >
+      <div className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
+        <Overline>Approvals</Overline>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded px-1 font-mono text-[10px] text-fg-muted hover:text-fg"
+        >
+          close ×
+        </button>
+      </div>
+      <div className="px-3.5 py-3 text-caption text-fg-subtle">
+        Pending approvals are managed in the full inbox. Open it from the
+        case panel footer or navigate to <code>/approvals</code>.
+      </div>
     </div>
   );
 }

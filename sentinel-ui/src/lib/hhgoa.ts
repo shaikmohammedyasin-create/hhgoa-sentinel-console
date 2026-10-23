@@ -313,3 +313,30 @@ export interface CaseGraph {
   links: GraphLink[];
   counts: { nodes: number; links: number };
 }
+
+// ── Benchmark report (run_benchmark.py) ──────────────────────────────────────
+
+export interface BenchmarkResultRow {
+  case_id: string;
+  verdict: Verdict;
+  fraud_probability: number;
+  pattern: string;
+  status: string;
+  exposure_usd: number;
+  evidence_count: number;
+  tool_calls: number;
+  latency_s: number;
+  sar_filed: boolean;
+  nba_initial_count: number;
+  nba_final_count: number;
+  stop_reason: string;
+}
+
+export interface BenchmarkReport {
+  total_cases: number;
+  completed: number;
+  failed: number;
+  elapsed_s: number;
+  results: BenchmarkResultRow[];
+  errors: { case_id: string; error: string }[];
+}

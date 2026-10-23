@@ -3,413 +3,326 @@
 /**
  * One case: its header, and the five ways of reading it.
  *
- * The tabs are ordered by how much interpretation each one carries, least
- * first. The timeline is what happened; the case file is what was concluded;
- * the SAR is what gets filed; memory is what it was compared against; and the
- * answer file is the bytes a judge is actually graded on. A reader who
- * distrusts the prose can walk right and end at the JSON.
+ * The answer file is `case_to_answer` honest bytes: what the graph said, what
+ * the policy engine decided, whether Nemotron agreed, and the optional SAR.
+ * The tabs are ordered by how much interpretation each carries, least first —
+ * timeline (what happened), case file (what was concluded), SAR (what gets
+ * filed), Nemotron (the advisory block) — and a reader who distrusts the
+ * prose can walk right and end at the JSON.
+ *
+ * Q&A posts to `POST /api/cases/{id}/ask`; the footer lists per-role model
+ * usage from the answer (model, latency, cache flag when the run was live).
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { Icon, type IconName } from "@/components/console/icons";
-import { ConsoleChip, Dial, Overline } from "@/components/console/parts";
+import { Icon } from "@/components/console/icons";
+import { ConsoleChip, Dial, Overline, Panel } from "@/components/console/parts";
 import { Timeline } from "@/components/console/Timeline";
 import {
   humanise,
   money,
   sourceIcon,
   sourceTone,
-  toneTint,
   toneVar,
   verdictTone,
 } from "@/components/console/vm";
-import {
-  useCase,
-  useMemoryTab,
-  useSar,
-  useStartInvestigation,
-  useTrace,
-} from "@/lib/hooks";
-import { useReplay } from "@/lib/replay";
-import type { CaseDetail, MemoryBody, SarBody, TraceBody } from "@/lib/generated/contract";
+import { useAnswer, useAsk, useCopy, useStartInvestigation, useTimeline } from "@/lib/hooks";
+import type { AnswerCase, AnswerFile, AnswerEvidence, NemotronBlock, QueueRow, SarOut } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
 
-export type TabId = "timeline" | "case" | "sar" | "memory" | "json";
+type Tab = "timeline" | "file" | "sar" | "nemotron" | "json";
 
-const TABS: { id: TabId; label: string; icon: IconName }[] = [
-  { id: "timeline", label: "Timeline", icon: "window" },
-  { id: "case", label: "Case file", icon: "doc" },
-  { id: "sar", label: "SAR", icon: "alert" },
-  { id: "memory", label: "Memory", icon: "memory" },
-  { id: "json", label: "Answer file", icon: "doc" },
+const TABS: { id: Tab; label: string }[] = [
+  { id: "timeline", label: "Timeline" },
+  { id: "file", label: "Case file" },
+  { id: "sar", label: "SAR" },
+  { id: "nemotron", label: "Nemotron" },
+  { id: "json", label: "JSON" },
 ];
 
-export interface CasePanelState {
-  running: boolean;
-  probability: number | null;
-  note: string;
-  progress: number;
-}
-
 export function CasePanel({
-  caseId,
-  liveRunId,
-  onState,
-  onStart,
+  row,
+  live,
+  openInbox,
 }: {
-  caseId: string;
-  liveRunId: string | null;
-  onState: (state: CasePanelState) => void;
-  onStart: (runId: string) => void;
+  row: QueueRow;
+  live: boolean;
+  openInbox: () => void;
 }) {
-  const [tab, setTab] = useState<TabId>("timeline");
-  const detail = useCase(caseId);
-  const trace = useTrace(caseId, true);
+  const [tab, setTab] = useState<Tab>("file");
+  const [question, setQuestion] = useState("");
+  const [copied, copy] = useCopy();
+
+  const { data: answer, isLoading } = useAnswer(row.case_id);
+  const { data: timeline } = useTimeline(row.case_id, Boolean(answer));
   const start = useStartInvestigation();
+  const ask = useAsk();
 
-  // Replay only a recorded run. While a run is genuinely streaming the events
-  // are already paced by the server and re-pacing them would be a lie.
-  const postings = useMemo(() => trace.data?.postings ?? [], [trace.data]);
-  const replay = useReplay(postings, liveRunId === null);
+  const hasAnswer = Boolean(answer);
+  const caseBody = answer?.case;
+  const nemotron = answer?.nemotron;
+  // Nemotron is the only tab worth guarding on: everything else is engine output.
+  const showNemotron = Boolean(nemotron?.model_proposal || nemotron?.policy_decision);
 
-  const answer = detail.data?.answer ?? null;
-  const verdict = answer?.case.verdict ?? null;
-  const settled = answer?.case.fraud_probability ?? null;
-  const head = replay.shown.at(-1);
-  const current = replay.running ? (head?.p_after ?? null) : settled;
-
-  useEffect(() => {
-    onState({
-      running: replay.running,
-      probability: current,
-      note: replay.running
-        ? `posting ${replay.revealed} of ${replay.total}${head ? ` · ${humanise(head.feature)}` : ""}`
-        : (answer?.stop_reason?.split(/\.\s/)[0] ?? "").concat(answer?.stop_reason ? "." : ""),
-      progress: replay.total === 0 ? 0 : replay.revealed / replay.total,
-    });
-    // `onState` is a setter from the shell and stable enough; including it
-    // would loop, since setting state re-renders the shell.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [replay.running, replay.revealed, replay.total, current, answer, head]);
-
-  useEffect(() => {
-    setTab("timeline");
-  }, [caseId]);
-
-  if (detail.error) {
-    return (
-      <main className="flex min-w-0 items-center justify-center p-8 text-caption text-fg-subtle">
-        Could not load {caseId}: {(detail.error as Error).message}
-      </main>
-    );
-  }
-  if (detail.isLoading || !detail.data) {
-    return (
-      <main className="flex min-w-0 items-center justify-center p-8 text-caption text-fg-subtle">
-        Loading {caseId}…
-      </main>
-    );
-  }
-
-  const { alert } = detail.data;
-  const tone = replay.running ? "accent" : verdictTone(verdict);
-
-  const counts: Record<TabId, number> = {
-    timeline: postings.length,
-    case: answer?.case.evidence.length ?? 0,
-    sar: answer?.sar.file ? 1 : 0,
-    memory: answer?.case.similar_prior_cases.length ?? 0,
-    json: answer ? 1 : 0,
-  };
+  const p = caseBody?.fraud_probability ?? row.fraud_probability ?? 0;
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-col bg-bg">
-      <header className="shrink-0 border-b border-border px-5 pt-3.5">
-        <div className="flex items-start gap-3.5">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="whitespace-nowrap text-[17px] font-bold leading-tight">
-                {alert.alert_id}
-              </h1>
-              <ConsoleChip>{humanise(alert.trigger_type)}</ConsoleChip>
-              <ConsoleChip tone={tone}>
-                {replay.running ? "investigating" : (verdict ?? "not run")}
-              </ConsoleChip>
-              {answer?.case.pattern && answer.case.pattern !== "none" ? (
-                <ConsoleChip tone="info">{humanise(answer.case.pattern)}</ConsoleChip>
-              ) : null}
-              {trace.data ? (
-                <span className="font-mono text-[9px] text-fg-subtle">
-                  replay of {trace.data.run_id}
-                </span>
-              ) : null}
-            </div>
-            <p className="mt-1.5 max-w-[70ch] text-[12px] leading-relaxed text-fg-muted">
-              {alert.trigger_text}
-            </p>
-          </div>
+    <div className="flex min-h-0 flex-1 flex-col bg-bg">
+      {/* header */}
+      <div className="shrink-0 border-b border-border bg-surface px-3.5 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[13px] font-bold tracking-[0.02em]">{row.case_id}</span>
+          <ConsoleChip tone={verdictTone(row.verdict)}>{row.verdict ?? "not run"}</ConsoleChip>
+          {caseBody?.pattern ? (
+            <ConsoleChip tone="neutral">{humanise(caseBody.pattern)}</ConsoleChip>
+          ) : null}
+          <span className="flex-1" />
+          <Dial p={hasAnswer ? p : null} size={56} stroke={5} label="fraud" />
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] text-fg-muted">
+          <span className="flex items-center gap-1">
+            <Icon name="alert" size={10} style={{ color: toneVar(sourceTone("graph")) }} />
+            {humanise(row.trigger_type)}
+          </span>
+          <span>{money(row.exposure_usd)}</span>
+          <span className="flex items-center gap-1">
+            <Icon name="card" size={10} />
+            {row.card_id}
+          </span>
+          <span className="flex-1" />
+          {live ? <ConsoleChip tone="accent" fill="solid">investigating</ConsoleChip> : null}
+          <button
+            type="button"
+            onClick={() => start.mutate({ caseId: row.case_id, force: true })}
+            disabled={start.isPending}
+            className="rounded-md border border-border bg-surface-2 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg disabled:opacity-50"
+          >
+            {start.isPending ? "running…" : hasAnswer ? "re-run" : "run"}
+          </button>
+        </div>
+        {caseBody?.summary ? (
+          <p className="mt-2 border-t border-border pt-2 text-[11.5px] leading-[1.5] text-fg-muted">
+            {caseBody.summary}
+          </p>
+        ) : null}
+      </div>
 
-          <div className="flex shrink-0 items-center gap-3.5 pt-0.5">
-            {replay.running ? (
-              <button
-                type="button"
-                onClick={replay.finish}
-                className="rounded-md border border-border-strong bg-surface px-2.5 py-1.5 font-mono text-[9.5px] font-semibold text-fg-muted hover:text-fg"
-              >
-                skip replay
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() =>
-                  postings.length > 0
-                    ? replay.restart()
-                    : start.mutate(caseId, { onSuccess: (a) => onStart(a.run_id) })
-                }
-                className="rounded-md border border-border-strong bg-surface px-2.5 py-1.5 font-mono text-[9.5px] font-semibold text-fg-muted hover:text-fg"
-              >
-                {postings.length > 0 ? "replay" : "investigate"}
-              </button>
+      {/* tabs */}
+      <div className="flex shrink-0 items-center gap-0.5 border-b border-border bg-surface px-2 pt-1.5">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            aria-pressed={tab === t.id}
+            className={cn(
+              "rounded-t-md px-2.5 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em]",
+              tab === t.id
+                ? "border border-b-0 border-border bg-bg text-fg"
+                : "border border-transparent text-fg-muted hover:text-fg",
             )}
-            <div className="text-right">
-              <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-fg-muted">
-                Exposure
-              </div>
-              <div className="mt-1 font-mono text-[17px] font-bold tabular-nums">
-                {money(answer?.case.exposure_usd ?? null)}
-              </div>
-            </div>
-            <Dial p={current} size={62} label="P(fraud)" />
-          </div>
-        </div>
-
-        <div
-          role="tablist"
-          aria-label="Case views"
-          className="mt-3 flex min-w-0 items-center gap-0.5 overflow-x-auto"
-        >
-          {TABS.map((item) => {
-            const on = tab === item.id;
-            return (
-              <button
-                key={item.id}
-                role="tab"
-                aria-selected={on}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={cn(
-                  "flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3.5 py-2.5",
-                  "text-[11.5px] font-semibold",
-                  on
-                    ? "border-accent text-fg"
-                    : "border-transparent text-fg-muted hover:text-fg",
-                )}
-              >
-                <Icon name={item.icon} size={13} />
-                {item.label}
-                <span
-                  className={cn(
-                    "rounded-sm px-1.5 font-mono text-[9px] font-semibold leading-[1.5]",
-                    on ? "bg-accent-tint text-accent" : "bg-surface-3 text-fg-subtle",
-                  )}
-                >
-                  {counts[item.id]}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </header>
-
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-7 pt-4">
-        {tab === "timeline" ? (
-          <Timeline
-            postings={postings}
-            trajectory={trace.data?.trajectory ?? []}
-            revealed={replay.revealed}
-            running={replay.running}
-            stopReason={answer?.stop_reason ?? ""}
-          />
-        ) : null}
-        {tab === "case" ? <CaseFile detail={detail.data} trace={trace.data ?? null} /> : null}
-        {tab === "sar" ? <SarTab caseId={caseId} /> : null}
-        {tab === "memory" ? <MemoryTab caseId={caseId} /> : null}
-        {tab === "json" ? <AnswerFileTab detail={detail.data} /> : null}
-      </div>
-    </main>
-  );
-}
-
-// ── the case file ────────────────────────────────────────────────────────────
-
-function CaseFile({ detail, trace }: { detail: CaseDetail; trace: TraceBody | null }) {
-  const answer = detail.answer;
-  if (!answer) {
-    return <p className="text-caption text-fg-subtle">This case has no answer file yet.</p>;
-  }
-  const body = answer.case;
-  const facts = [
-    { k: "Verdict", v: body.verdict, tone: verdictTone(body.verdict) },
-    { k: "Pattern", v: humanise(body.pattern), tone: "neutral" as const },
-    {
-      k: "Exposure",
-      v: money(body.exposure_usd),
-      tone: body.exposure_usd > 2500 ? ("danger" as const) : ("neutral" as const),
-    },
-    {
-      k: "Graph write",
-      v: body.written_to_graph ? body.graph_case_id : "not written",
-      tone: body.written_to_graph ? ("success" as const) : ("neutral" as const),
-    },
-  ];
-
-  return (
-    <div className="flex flex-col gap-3.5">
-      <section className="rounded-lg border border-border bg-surface p-3.5">
-        <Overline>Summary</Overline>
-        <p className="mt-2 text-[13px] leading-relaxed text-fg">{body.summary}</p>
-        <div className="mt-3.5 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-4">
-          {facts.map((fact) => (
-            <div key={fact.k} className="bg-surface px-3 py-2.5">
-              <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-fg-muted">
-                {fact.k}
-              </div>
-              <div
-                className="mt-1.5 font-mono text-[14px] font-bold leading-tight"
-                style={{ color: toneVar(fact.tone) }}
-              >
-                {fact.v}
-              </div>
-            </div>
-          ))}
-        </div>
-        {trace ? (
-          <p className="mt-3 font-mono text-[9.5px] text-fg-subtle">
-            {trace.tool_calls} tool calls · {trace.tokens.toLocaleString()} tokens ·{" "}
-            {trace.latency_s.toFixed(1)}s
-          </p>
-        ) : null}
-      </section>
-
-      <section className="overflow-hidden rounded-lg border border-border bg-surface">
-        <header className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
-          <Overline>Evidence ledger</Overline>
-          <span className="font-mono text-[9px] text-fg-subtle">every row re-runnable</span>
-        </header>
-        <ul>
-          {body.evidence.map((item, index) => {
-            const tone = sourceTone(item.source);
-            return (
-              <li
-                key={`${item.ref}-${index}`}
-                className="flex gap-2.5 border-b border-border px-3.5 py-3 last:border-b-0"
-              >
-                <Icon
-                  name={sourceIcon(item.source)}
-                  size={14}
-                  className="mt-0.5 shrink-0"
-                  style={{ color: toneVar(tone) }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] leading-relaxed text-fg">{item.claim}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <code
-                      className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] leading-relaxed"
-                      style={{ background: toneTint(tone), color: toneVar(tone) }}
-                    >
-                      {item.ref}
-                    </code>
-                    {item.entity_ids.map((id) => (
-                      <code
-                        key={id}
-                        className="rounded-sm bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] leading-relaxed text-fg-muted"
-                      >
-                        {id}
-                      </code>
-                    ))}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    </div>
-  );
-}
-
-// ── SAR ──────────────────────────────────────────────────────────────────────
-
-function SarTab({ caseId }: { caseId: string }) {
-  const { data, isLoading, error } = useSar(caseId, true);
-  if (isLoading) return <p className="text-caption text-fg-subtle">Loading…</p>;
-  if (error || !data) {
-    return <p className="text-caption text-fg-subtle">No report for this case.</p>;
-  }
-  return <SarBodyView body={data} />;
-}
-
-function SarBodyView({ body }: { body: SarBody }) {
-  const sar = body.sar;
-  if (!sar.file) {
-    return (
-      <div className="flex items-start gap-3 rounded-lg border border-border bg-surface p-4">
-        <Icon name="check" size={18} className="mt-px shrink-0" style={{ color: "var(--success)" }} />
-        <div>
-          <div className="text-[13px] font-semibold">No report filed</div>
-          <p className="mt-1.5 max-w-[64ch] text-[12.5px] leading-relaxed text-fg-muted">
-            {sar.reason}
-          </p>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <header className="flex items-center gap-2.5 border-b border-border bg-surface-2 px-4 py-3">
-        <Icon name="doc" size={16} style={{ color: "var(--warning)" }} />
-        <span className="text-[12px] font-bold tracking-[0.06em]">
-          SUSPICIOUS ACTIVITY REPORT
-        </span>
-        <span className="flex-1" />
-        <ConsoleChip tone="danger" fill="solid">
-          L2 required
-        </ConsoleChip>
-      </header>
-      <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
-        {[
-          { k: "Total amount", v: money(sar.total_amount_usd) },
-          {
-            k: "Activity dates",
-            v: sar.activity_dates.length > 0 ? sar.activity_dates.join(" → ") : "—",
-          },
-          { k: "Subjects", v: `${sar.subjects.length} entities` },
-        ].map((meta) => (
-          <div key={meta.k} className="bg-surface px-3.5 py-3">
-            <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-fg-muted">
-              {meta.k}
-            </div>
-            <div className="mt-1.5 font-mono text-[12.5px] font-semibold leading-tight">
-              {meta.v}
-            </div>
-          </div>
+          >
+            {t.label}
+          </button>
         ))}
       </div>
-      <div className="p-4">
-        <div className="mb-2 font-mono text-[9px] uppercase tracking-[0.1em] text-fg-muted">
-          Narrative — who · what · when · where · how · why
+
+      {/* body */}
+      <div className="min-h-0 flex-1 overflow-y-auto p-3.5">
+        {tab === "timeline" ? (
+          <Timeline caseId={row.case_id} events={timeline} isLoading={!hasAnswer} />
+        ) : tab === "file" ? (
+          <CaseFile answer={caseBody} loading={isLoading} />
+        ) : tab === "sar" ? (
+          <SarPanel sar={answer?.sar} />
+        ) : tab === "nemotron" ? (
+          showNemotron ? (
+            <NemotronPanel nemotron={nemotron} />
+          ) : (
+            <EmptyNote text="No Nemotron advisory block on this answer (model unavailable for this run)." />
+          )
+        ) : (
+          <JsonPanel
+            text={answer ? JSON.stringify(answer, null, 2) : "No answer file yet."}
+            copied={copied}
+            onCopy={() => copy(JSON.stringify(answer, null, 2))}
+          />
+        )}
+      </div>
+
+      {/* Q&A */}
+      <div className="shrink-0 border-t border-border bg-surface p-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (question.trim().length < 3 || !hasAnswer) return;
+            void ask.mutateAsync({ caseId: row.case_id, question: question.trim() });
+            setQuestion("");
+          }}
+          className="flex gap-2"
+        >
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder={hasAnswer ? "Ask the analyst a question about this case…" : "Run the case first."}
+            disabled={!hasAnswer}
+            className="min-w-0 flex-1 rounded-md border border-border bg-surface-2 px-2.5 py-2 font-mono text-[11px] outline-none placeholder:text-fg-subtle focus:border-accent"
+          />
+          <button
+            type="submit"
+            disabled={!hasAnswer || question.trim().length < 3 || ask.isPending}
+            className="rounded-md bg-accent px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-accent-contrast disabled:opacity-40"
+          >
+            {ask.isPending ? "…" : "Ask"}
+          </button>
+        </form>
+        {ask.data ? (
+          <div className="mt-2.5 rounded-md border border-border bg-surface-2 px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <Overline>Analyst answer</Overline>
+              <span className="font-mono text-[9px] text-fg-subtle">
+                {ask.data.served_by ?? "rules"}
+                {ask.data.llm_used ? " · llm" : ""}
+              </span>
+            </div>
+            <p className="mt-1.5 text-[11.5px] leading-[1.5] text-fg">
+              {ask.data.answer ?? "No answer was produced."}
+            </p>
+          </div>
+        ) : null}
+        {ask.isError ? (
+          <p className="mt-2 font-mono text-[10px] text-danger">
+            {(ask.error as Error | null)?.message ?? "Ask failed."}
+          </p>
+        ) : null}
+      </div>
+
+      {/* footer */}
+      {nemotron?.model_usage ? (
+        <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border bg-surface-2 px-3.5 py-1.5 font-mono text-[9px] text-fg-subtle">
+          {Object.entries(nemotron.model_usage).map(([role, usage]) => (
+            <span key={role} className="flex items-center gap-1.5">
+              <span className="font-semibold uppercase text-fg-muted">{humanise(role)}</span>
+              <span className="tabular-nums">
+                {usage.prompt_tokens + usage.completion_tokens} tok
+              </span>
+              {usage.model ? (
+                <span className="max-w-[150px] truncate" title={usage.model}>
+                  {usage.model}
+                </span>
+              ) : null}
+              {usage.latency_ms !== undefined ? (
+                <span className="tabular-nums">{usage.latency_ms}ms</span>
+              ) : null}
+              {usage.cached ? <ConsoleChip tone="success">cached</ConsoleChip> : null}
+            </span>
+          ))}
+          <span className="flex-1" />
+          <button
+            type="button"
+            onClick={openInbox}
+            className="flex items-center gap-1 text-fg-muted hover:text-fg"
+          >
+            <Icon name="doc" size={10} />
+            approvals
+          </button>
         </div>
-        <p className="text-[13px] leading-[1.75] text-fg">{sar.narrative}</p>
-        <div className="mt-3.5 flex flex-wrap gap-1.5">
-          {sar.subjects.map((subject) => (
-            <code
-              key={subject}
-              className="rounded-sm px-2 py-0.5 font-mono text-[10px] leading-relaxed"
-              style={{ background: "var(--info-tint)", color: "var(--info)" }}
-            >
-              {subject}
-            </code>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── tab bodies ────────────────────────────────────────────────────────────── */
+
+function EmptyNote({ text }: { text: string }) {
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-surface px-4 py-10 text-center text-caption text-fg-subtle">
+      {text}
+    </div>
+  );
+}
+
+function CaseFile({ answer, loading }: { answer: AnswerCase | undefined; loading: boolean }) {
+  if (loading) return <EmptyNote text="Loading the answer file…" />;
+  if (!answer) return <EmptyNote text="No answer file for this case yet." />;
+  const body = answer;
+  return (
+    <div className="space-y-3">
+      <Panel title="Case file">
+        <WhyGrid
+          verdict={body.verdict}
+          fraudProbability={body.fraud_probability}
+          pattern={body.pattern}
+          exposureUsd={body.exposure_usd}
+          connectedCards={body.connected_card_ids.length}
+          affectedTxns={body.affected_txn_ids.length}
+        />
+      </Panel>
+      <Panel title={`Evidence · ${body.evidence.length}`} bodyClassName="p-3 space-y-2">
+        {body.evidence.length === 0 ? (
+          <div className="py-6 text-center text-caption text-fg-subtle">No evidence on file.</div>
+        ) : (
+          body.evidence.map((ev, i) => <EvidenceRow key={ev.ref || i} ev={ev} />)
+        )}
+      </Panel>
+    </div>
+  );
+}
+
+function WhyGrid({
+  verdict,
+  fraudProbability,
+  pattern,
+  exposureUsd,
+  connectedCards,
+  affectedTxns,
+}: {
+  verdict: AnswerCase["verdict"];
+  fraudProbability: number;
+  pattern: string;
+  exposureUsd: number;
+  connectedCards: number;
+  affectedTxns: number;
+}) {
+  const paired: [string, string][] = [
+    ["Verdict", verdict],
+    ["P(fraud)", fraudProbability.toFixed(3)],
+    ["Pattern", humanise(pattern)],
+    ["Exposure", money(exposureUsd)],
+    ["Connected cards", String(connectedCards)],
+    ["Affected txns", String(affectedTxns)],
+  ];
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+      {paired.map(([k, v]) => (
+        <div key={k}>
+          <div className="font-mono text-[9px] uppercase tracking-[0.09em] text-fg-muted">{k}</div>
+          <div className="mt-0.5 truncate font-mono text-[11px] font-semibold" title={v}>
+            {v}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EvidenceRow({ ev }: { ev: AnswerEvidence }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-3 py-2.5">
+      <Icon
+        name={sourceIcon(ev.source)}
+        size={13}
+        className="mt-0.5 shrink-0"
+        style={{ color: toneVar(sourceTone(ev.source)) }}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] leading-[1.45] text-fg">{ev.claim}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[9px] text-fg-subtle">
+          <span className="uppercase">{ev.source}</span>
+          <span>{ev.ref}</span>
+          {ev.entity_ids.slice(0, 4).map((id) => (
+            <span key={id} className="rounded-sm bg-surface-3 px-1 py-px">{id}</span>
           ))}
         </div>
       </div>
@@ -417,112 +330,118 @@ function SarBodyView({ body }: { body: SarBody }) {
   );
 }
 
-// ── memory ───────────────────────────────────────────────────────────────────
-
-function MemoryTab({ caseId }: { caseId: string }) {
-  const { data, isLoading, error } = useMemoryTab(caseId, true);
-  if (isLoading) return <p className="text-caption text-fg-subtle">Loading…</p>;
-  if (error || !data) {
-    return <p className="text-caption text-fg-subtle">No retrieval recorded for this case.</p>;
-  }
-  return <MemoryBodyView body={data} />;
+function SarPanel({ sar }: { sar: SarOut | undefined }) {
+  if (!sar) return <EmptyNote text="No SAR on this case." />;
+  return (
+    <Panel title={`SAR · ${sar.file ? "filed" : "not filed"}`}>
+      {sar.file ? (
+        <div className="space-y-2.5">
+          <p className="text-[11.5px] leading-[1.5] text-fg-muted">{sar.narrative}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-fg-subtle">
+            <span>subjects: {sar.subjects.join(", ")}</span>
+            <span>total: {money(sar.total_amount_usd)}</span>
+            {sar.activity_dates.length > 0 ? (
+              <span>dates: {sar.activity_dates.join(", ")}</span>
+            ) : null}
+          </div>
+          <div className="rounded-md border border-border bg-surface-2 px-3 py-2 text-[10px] leading-[1.5] text-fg-muted">
+            {sar.reason}
+          </div>
+        </div>
+      ) : (
+        <p className="text-caption text-fg-muted">{sar.reason}</p>
+      )}
+    </Panel>
+  );
 }
 
-function MemoryBodyView({ body }: { body: MemoryBody }) {
-  const cited = new Set(body.cited);
-  const hits = [...body.prior_closed_cases, ...body.sentinel_cases];
+function NemotronPanel({ nemotron }: { nemotron: NemotronBlock | undefined }) {
+  const proposal = nemotron?.model_proposal;
+  const policy = nemotron?.policy_decision;
   return (
-    <div className="flex flex-col gap-2.5">
-      <div className="flex items-center justify-between">
-        <Overline>Retrieved memory</Overline>
-        <span className="font-mono text-[9px] text-fg-subtle">
-          vector + structural, fused by RRF
-        </span>
-      </div>
-      {hits.map((hit) => {
-        const isCited = cited.has(hit.id);
-        const tone = isCited ? "info" : "neutral";
-        return (
-          <div
-            key={hit.id}
-            className="flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3"
-            style={{ borderColor: isCited ? toneVar("info") : "var(--border)" }}
-          >
-            <Icon
-              name={hit.kind === "sentinel_case" ? "hex" : "memory"}
-              size={16}
-              className="shrink-0"
-              style={{ color: toneVar(tone) }}
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[11.5px] font-semibold">{hit.id}</span>
-                <ConsoleChip tone={tone}>{humanise(hit.kind)}</ConsoleChip>
-                {isCited ? <ConsoleChip tone="accent">cited</ConsoleChip> : null}
-              </div>
-              <p className="mt-1.5 text-[12px] leading-snug text-fg-muted">
-                {hit.snippet || hit.title}
-              </p>
-            </div>
-            <div className="w-[92px] shrink-0">
-              <div className="text-right font-mono text-[10px] font-semibold tabular-nums text-fg-muted">
-                {hit.score.toFixed(3)}
-              </div>
-              <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-meter-track">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.min(Math.max(hit.score, 0), 1) * 100}%`,
-                    background: toneVar(tone),
-                  }}
-                />
-              </div>
-            </div>
+    <div className="space-y-3">
+      {proposal ? (
+        <Panel
+          title="Nemotron proposal"
+          aside={proposal.confidence === null || proposal.confidence === undefined ? undefined : `conf ${(proposal.confidence * 100).toFixed(0)}%`}
+        >
+          <div className="flex flex-wrap items-center gap-1.5">
+            {proposal.pattern ? (
+              <ConsoleChip tone="accent">{humanise(proposal.pattern)}</ConsoleChip>
+            ) : null}
+            {proposal.evidence_ids.map((id) => (
+              <span key={id} className="rounded-sm bg-surface-3 px-1.5 py-0.5 font-mono text-[9px] text-fg-muted">
+                {id}
+              </span>
+            ))}
           </div>
-        );
-      })}
-      {hits.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border px-3.5 py-6 text-center text-caption text-fg-subtle">
-          This run retrieved nothing.
-        </p>
+          <p className="mt-2.5 text-[11.5px] leading-[1.5] text-fg-muted">{proposal.rationale}</p>
+        </Panel>
+      ) : null}
+
+      {policy ? (
+        <Panel
+          title="Policy decision"
+          aside={`decided by ${policy.decided_by}`}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <ConsoleChip tone={verdictTone(policy.verdict)}>{policy.verdict}</ConsoleChip>
+            <span className="font-mono text-[11px] font-bold tabular-nums">
+              {policy.fraud_probability.toFixed(3)}
+            </span>
+            {policy.pattern ? (
+              <ConsoleChip tone="neutral">{humanise(policy.pattern)}</ConsoleChip>
+            ) : null}
+          </div>
+          {policy.actions.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {policy.actions.map((a) => (
+                <span key={a} className="rounded-sm bg-surface-3 px-1.5 py-0.5 font-mono text-[9px] text-fg-muted">
+                  {humanise(a)}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {nemotron?.model_agreed === false ? (
+            <div className="mt-2.5 rounded-md border border-warning bg-warning-tint px-3 py-2 text-[10.5px] leading-[1.5] text-warning">
+              Nemotron disagreed with the policy: {nemotron.model_override_reason || "no reason given."}
+            </div>
+          ) : null}
+        </Panel>
+      ) : null}
+
+      {nemotron?.verification_draft ? (
+        <Panel title="Verification draft">
+          <p className="whitespace-pre-wrap text-[10.5px] leading-[1.5] text-fg-muted">
+            {nemotron.verification_draft}
+          </p>
+        </Panel>
       ) : null}
     </div>
   );
 }
 
-// ── the graded bytes ─────────────────────────────────────────────────────────
-
-function AnswerFileTab({ detail }: { detail: CaseDetail }) {
-  const answer = detail.answer;
-  const validation = detail.validation;
-  if (!answer) {
-    return <p className="text-caption text-fg-subtle">No answer file on disk for this case.</p>;
-  }
-  const ok = validation?.ok ?? false;
+function JsonPanel({ text, copied, onCopy }: { text: string; copied: boolean; onCopy: () => void }) {
+  const lines = useMemo(() => text.split("\n"), [text]);
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <header className="flex flex-wrap items-center gap-2.5 border-b border-border bg-surface-2 px-3.5 py-2.5">
-        <Icon name="doc" size={14} style={{ color: "var(--info)" }} />
-        <span className="font-mono text-[11px] font-semibold">cases/{answer.case_id}.json</span>
-        <ConsoleChip tone={ok ? "success" : "danger"}>
-          {ok ? "schema-valid" : `${validation?.errors.length ?? 0} errors`}
-        </ConsoleChip>
-        <span className="flex-1" />
-        <span className="font-mono text-[9.5px] text-fg-subtle">
-          every id verified against the graph before write
-        </span>
-      </header>
-      {validation && !ok ? (
-        <ul className="border-b border-border bg-danger-tint px-3.5 py-2.5">
-          {validation.errors.map((finding, index) => (
-            <li key={index} className="font-mono text-[10.5px] text-danger">
-              {finding.path}: {finding.message}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <pre className="m-0 overflow-x-auto whitespace-pre-wrap break-words px-4 py-4 font-mono text-[11.5px] leading-[1.65] text-fg">
-        {JSON.stringify(answer, null, 2)}
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+        <Overline>answer.json</Overline>
+        <button
+          type="button"
+          onClick={onCopy}
+          className="font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+        >
+          {copied ? "copied" : "copy"}
+        </button>
+      </div>
+      <pre className="max-h-[440px] overflow-auto p-3 font-mono text-[10px] leading-[1.55] text-fg-muted">
+        {lines.map((line, i) => (
+          <div key={i} className="flex">
+            <span className="w-7 shrink-0 select-none pr-2 text-right text-fg-subtle/60">{i + 1}</span>
+            <span className="whitespace-pre-wrap">{line}</span>
+          </div>
+        ))}
       </pre>
     </div>
   );

@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { Console } from "@/components/console/Console";
 
 export default function BenchmarkPage() {
-  return <Console initialView="monitor" />;
+  return (
+    <Suspense>
+      <Console />
+    </Suspense>
+  );
 }

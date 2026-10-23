@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Console } from "@/components/console/Console";
 
 /**
@@ -9,5 +10,9 @@ import { Console } from "@/components/console/Console";
  */
 export default async function CasePage({ params }: { params: Promise<{ caseId: string }> }) {
   const { caseId } = await params;
-  return <Console initialCase={caseId} />;
+  return (
+    <Suspense>
+      <Console initialCase={caseId} />
+    </Suspense>
+  );
 }

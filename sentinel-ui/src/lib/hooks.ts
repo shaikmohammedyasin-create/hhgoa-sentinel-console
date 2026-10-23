@@ -12,6 +12,7 @@ import { useCallback, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, type ApiProblem } from "@/lib/api";
+import type { AnalystAnswer } from "@/lib/hhgoa";
 
 const STALE = 5_000;
 
@@ -100,6 +101,23 @@ export function useApprovals(status?: string) {
   });
 }
 
+/** Decide one pending approval (approved / rejected) and refresh the list. */
+export function useDecideApproval() {
+  const client = useQueryClient();
+  return useMutation<
+    unknown,
+    ApiProblem,
+    { caseId: string; approvalId: string; decision: "approved" | "rejected"; approver: string }
+  >({
+    mutationFn: ({ caseId, approvalId, decision, approver }) =>
+      api.decideApproval(caseId, approvalId, decision, approver),
+    onSettled: () => {
+      void client.invalidateQueries({ queryKey: ["approvals"] });
+      void client.invalidateQueries({ queryKey: ["investigations"] });
+    },
+  });
+}
+
 /** Start (or force-restart) one investigation and return its answer. */
 export function useStartInvestigation() {
   const client = useQueryClient();
@@ -116,7 +134,7 @@ export function useStartInvestigation() {
 }
 
 export function useAsk() {
-  return useMutation<unknown, ApiProblem, { caseId: string; question: string }>({
+  return useMutation<AnalystAnswer, ApiProblem, { caseId: string; question: string }>({
     mutationFn: ({ caseId, question }) => api.ask(caseId, question),
   });
 }

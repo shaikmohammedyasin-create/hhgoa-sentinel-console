@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { ApprovalsDrawer } from "@/components/console/ApprovalsDrawer";
 import { Console } from "@/components/console/Console";
@@ -16,7 +16,9 @@ export default function ApprovalsPage() {
   const [open, setOpen] = useState(true);
   return (
     <>
-      <Console />
+      <Suspense>
+        <Console />
+      </Suspense>
       <ApprovalsDrawer open={open} onClose={() => setOpen(false)} />
     </>
   );

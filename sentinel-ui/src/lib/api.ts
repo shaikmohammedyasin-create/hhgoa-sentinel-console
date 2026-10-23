@@ -16,6 +16,7 @@ import type {
   AnswerFile,
   ApprovalOut,
   AuditEventOut,
+  BenchmarkReport,
   CaseGraph,
   CaseTrigger,
   HealthOut,
@@ -24,15 +25,24 @@ import type {
   RiskAnalysisResponse,
 } from "@/lib/hhgoa";
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE !== undefined
-    ? process.env.NEXT_PUBLIC_API_BASE.replace(/\/$/, "")
-    : "http://127.0.0.1:8000";
+/**
+ * Base for the HHGOA API.
+ *
+ * - Empty string → same-origin; the Next server rewrites `/api/*`,
+ *   `/investigations/*`, `/benchmark/*`, `/health` to the backend.
+ * - Local dev (`NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000`) → direct
+ *   fetch to the FastAPI process, no proxy.
+ */
+const NEXT_PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "");
+export const API_BASE = NEXT_PUBLIC_API_BASE !== undefined ? NEXT_PUBLIC_API_BASE : "";
 
 type Query = Record<string, string | number | boolean | null | undefined>;
 
 function url(path: string, query?: Query): string {
-  const target = new URL(`${API_BASE}${path}`, window.location.origin);
+  const target = new URL(
+    `${API_BASE}${path}`,
+    API_BASE ? API_BASE : window.location.origin,
+  );
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== null && value !== undefined && value !== "") {
       target.searchParams.set(key, String(value));
@@ -103,6 +113,11 @@ export const api = {
     }),
 
   approvals: (query: Query) => request<ApprovalOut[]>("/api/approvals", { query }),
+  decideApproval: (caseId: string, approvalId: string, decision: "approved" | "rejected", approver: string) =>
+    request<Record<string, unknown>>(`/investigations/${caseId}/approvals/${approvalId}`, {
+      method: "POST",
+      body: { decision, approver },
+    }),
   timeline: (id: string) => request<AuditEventOut[]>(`/investigations/${id}/timeline`),
   canvas: (id: string) => request<CaseGraph>(`/api/investigations/${id}/graph`),
   risk: (id: string) => request<RiskAnalysisResponse>(`/api/investigations/${id}/risk`),
@@ -113,6 +128,6 @@ export const api = {
       query: { force },
     }),
 
-  benchmark: () => request<Record<string, unknown>>("/benchmark/report"),
+  benchmark: () => request<BenchmarkReport>("/benchmark/report"),
   runAll: () => request<Record<string, unknown>>("/benchmark/run", { method: "POST" }),
 };

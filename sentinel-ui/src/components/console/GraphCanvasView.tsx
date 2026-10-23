@@ -3,27 +3,28 @@
 /**
  * The case as a subgraph.
  *
- * This is the one claim the whole project rests on — that the answer came out
- * of a graph — and until now it was the one claim the console asked you to
- * take on trust. The endpoint was built and tested; nothing drew it.
+ * Drawn from `GET /api/investigations/{id}/graph` — the real backend builds
+ * a case-scoped graph: the customer, the card, the flagged transaction,
+ * connected devices and cards, prior closed cases and the durable graph case
+ * record. BFS rings from the card under review; the same case always draws
+ * the same picture.
  *
- * It is drawn rather than laid out by a physics engine. The payloads are
- * small (three to twelve nodes) and a force simulation on twelve nodes is
- * both slower and less legible than a breadth-first ring: the alerted card in
- * the middle, everything it touches on the first ring, everything one hop
- * further on the second. The same case always draws the same picture, which
- * matters when two people are looking at it on a call.
+ * Node `type` is a string from the backend. The mapping to a tone is
+ * exhaustive over the eight types the subgraph builder emits, so a new type
+ * fails loudly here rather than silently defaulting. `affected` lives in a
+ * node's metadata (the flagged + burst transactions), and those nodes are
+ * ringed in danger.
  *
- * Colour is kind, not judgement, with one exception: a node on
- * `affected_txn_ids` is ringed in danger, because "which of these is the
- * agent actually accusing" is the first question anyone asks.
+ * Colour is kind, not judgement, with one exception: affected transactions
+ * are the nodes the answer actually accuses, and that is the first question
+ * anyone asks.
  */
 
 import { useMemo } from "react";
 
 import { Icon } from "@/components/console/icons";
 import { toneVar, type Tone } from "@/components/console/vm";
-import type { GraphCanvas, GraphNode, GraphNodeKind } from "@/lib/generated/contract";
+import type { CaseGraph, GraphNode } from "@/lib/hhgoa";
 
 const W = 560;
 const H = 236;
@@ -32,45 +33,30 @@ const CY = H / 2;
 /** Ring radii by hop distance from the focus. Two hops is all the API returns. */
 const RADII = [0, 74, 128];
 
-/** Kind is hue. Exhaustive over the contract, so a new kind fails the build. */
-const KIND_TONE: Record<GraphNodeKind, Tone> = {
+/** Every node type the subgraph builder emits, mapped to a tone. */
+const TYPE_TONE: Record<string, Tone> = {
   Customer: "accent",
   Card: "accent",
+  FlaggedTransaction: "danger",
   Transaction: "neutral",
-  DeviceProfile: "danger",
-  BillingRegion: "neutral",
-  EmailDomain: "neutral",
-  ProductCode: "neutral",
+  DeviceProfile: "warning",
+  ConnectedCard: "warning",
   ClosedCase: "info",
-  FraudCase: "info",
-  Alert: "warning",
-  PolicyDoc: "info",
+  InvestigationCase: "info",
 };
 
-/** Kind is also size: the things a case is about are drawn bigger. */
-const KIND_RADIUS: Record<GraphNodeKind, number> = {
+/** The same table for radius: the things a case is about are drawn bigger. */
+const TYPE_RADIUS: Record<string, number> = {
   Customer: 12,
   Card: 15,
+  FlaggedTransaction: 14,
   Transaction: 8,
-  DeviceProfile: 15,
-  BillingRegion: 11,
-  EmailDomain: 11,
-  ProductCode: 10,
+  DeviceProfile: 12,
+  ConnectedCard: 11,
   ClosedCase: 11,
-  FraudCase: 13,
-  Alert: 12,
-  PolicyDoc: 11,
+  InvestigationCase: 12,
 };
 
-/**
- * What fits under a node.
- *
- * A device profile's label is its whole fingerprint — `iOS Device | iOS
- * 11.2.1 | mobile safari 11.0 | 2208x1242` — which is 56 characters and runs
- * off both sides of a 560-unit canvas. The first segment is the part that
- * identifies it; the rest is in the tooltip, where it can be read without
- * destroying the drawing.
- */
 const MAX_LABEL = 16;
 
 function shortLabel(label: string): string {
@@ -79,8 +65,12 @@ function shortLabel(label: string): string {
 }
 
 function toneFor(node: GraphNode): Tone {
-  if (node.affected) return "danger";
-  return KIND_TONE[node.kind];
+  if (node.metadata?.affected) return "danger";
+  return TYPE_TONE[node.type] ?? "neutral";
+}
+
+function radiusFor(node: GraphNode): number {
+  return TYPE_RADIUS[node.type] ?? 9;
 }
 
 interface Placed {
@@ -93,21 +83,21 @@ interface Placed {
 }
 
 /**
- * Breadth-first rings from the focus node.
+ * Breadth-first rings from the card under review.
  *
- * Ordering within a ring is by kind then id so the layout is a pure function
+ * Ordering within a ring is by type then id so the layout is a pure function
  * of the payload: the same case never rearranges itself between two loads.
  */
-function layout(canvas: GraphCanvas): { placed: Placed[]; index: Map<string, Placed> } {
+function layout(canvas: CaseGraph): { placed: Placed[]; index: Map<string, Placed> } {
   const nodes = canvas.nodes;
   const neighbours = new Map<string, string[]>();
   for (const node of nodes) neighbours.set(node.id, []);
-  for (const edge of canvas.edges) {
-    neighbours.get(edge.source)?.push(edge.target);
-    neighbours.get(edge.target)?.push(edge.source);
+  for (const link of canvas.links) {
+    neighbours.get(link.source)?.push(link.target);
+    neighbours.get(link.target)?.push(link.source);
   }
 
-  const root = nodes.find((node) => node.focus) ?? nodes[0];
+  const root = nodes.find((node) => node.type === "Card") ?? nodes[0];
   const hop = new Map<string, number>();
   if (root) {
     hop.set(root.id, 0);
@@ -127,8 +117,7 @@ function layout(canvas: GraphCanvas): { placed: Placed[]; index: Map<string, Pla
       frontier = next;
     }
   }
-  // Anything the walk never reached — the API can return a node whose edge was
-  // truncated — sits on the outer ring rather than vanishing.
+  // Anything the walk never reached sits on the outer ring rather than vanishing.
   const outer = RADII.length - 1;
   for (const node of nodes) if (!hop.has(node.id)) hop.set(node.id, outer);
 
@@ -143,7 +132,7 @@ function layout(canvas: GraphCanvas): { placed: Placed[]; index: Map<string, Pla
   const placed: Placed[] = [];
   for (const [depth, bucket] of [...byHop.entries()].sort((a, b) => a[0] - b[0])) {
     const sorted = [...bucket].sort(
-      (a, b) => a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id),
+      (a, b) => a.type.localeCompare(b.type) || a.id.localeCompare(b.id),
     );
     const radius = RADII[Math.min(depth, RADII.length - 1)] ?? 0;
     sorted.forEach((node, index) => {
@@ -155,7 +144,7 @@ function layout(canvas: GraphCanvas): { placed: Placed[]; index: Map<string, Pla
         node,
         x: radius === 0 ? CX : CX + Math.cos(angle) * radius * 1.55,
         y: radius === 0 ? CY : CY + Math.sin(angle) * radius * 0.78,
-        r: KIND_RADIUS[node.kind],
+        r: radiusFor(node),
         tone: toneFor(node),
         hop: depth,
       });
@@ -165,13 +154,20 @@ function layout(canvas: GraphCanvas): { placed: Placed[]; index: Map<string, Pla
   return { placed, index: new Map(placed.map((item) => [item.node.id, item])) };
 }
 
-export function GraphCanvasView({
-  canvas,
-  live,
-}: {
-  canvas: GraphCanvas | null;
-  live: boolean;
-}) {
+function nodeMeta(node: GraphNode): string[] {
+  const meta: string[] = [];
+  if (node.metadata?.affected) meta.push("named in the answer");
+  if (node.metadata?.verdict) meta.push(`verdict ${node.metadata.verdict}`);
+  if (node.metadata?.probability !== undefined) {
+    meta.push(`p=${Number(node.metadata.probability).toFixed(2)}`);
+  }
+  if (node.metadata?.risk_score !== undefined) {
+    meta.push(`risk ${Number(node.metadata.risk_score).toFixed(0)}`);
+  }
+  return meta;
+}
+
+export function GraphCanvasView({ canvas, live }: { canvas: CaseGraph | null; live: boolean }) {
   const model = useMemo(() => (canvas ? layout(canvas) : null), [canvas]);
 
   if (!canvas || !model || canvas.nodes.length === 0) {
@@ -182,33 +178,33 @@ export function GraphCanvasView({
     );
   }
 
-  const focus = model.placed.find((item) => item.node.focus) ?? model.placed[0];
+  const focus = model.placed.find((item) => item.node.type === "Card") ?? model.placed[0];
 
   return (
     <div className="mx-3 overflow-hidden rounded-lg border border-border bg-surface">
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="block h-[172px] w-full"
+        className="block h-[172px] w-full bg-dotgrid"
         role="img"
-        aria-label={`Case subgraph: ${canvas.shown} of ${canvas.total} nodes`}
+        aria-label={`Case subgraph: ${canvas.counts.nodes} nodes, ${canvas.counts.links} links`}
       >
-        {canvas.edges.map((edge) => {
-          const a = model.index.get(edge.source);
-          const b = model.index.get(edge.target);
+        {canvas.links.map((link, i) => {
+          const a = model.index.get(link.source);
+          const b = model.index.get(link.target);
           if (!a || !b) return null;
           return (
             <line
-              key={edge.id}
+              key={`${link.source}-${link.target}-${i}`}
               x1={a.x}
               y1={a.y}
               x2={b.x}
               y2={b.y}
-              stroke={edge.affected ? "var(--danger)" : live ? "var(--accent-bold)" : "var(--border)"}
-              strokeWidth={edge.affected ? 2 : 1.6}
+              stroke={live ? "var(--accent-bold)" : "var(--border)"}
+              strokeWidth={1.6}
               strokeDasharray={live ? "6 6" : undefined}
               className={live ? "animate-trace" : undefined}
             >
-              <title>{edge.label || edge.type}</title>
+              <title>{link.type}</title>
             </line>
           );
         })}
@@ -238,60 +234,75 @@ export function GraphCanvasView({
           </>
         ) : null}
 
-        {model.placed.map((item) => (
-          <g key={item.node.id} className="animate-s-pop">
-            <circle
-              cx={item.x}
-              cy={item.y}
-              r={item.r}
-              fill={`color-mix(in srgb, ${toneVar(item.tone)} 20%, transparent)`}
-              stroke={toneVar(item.tone)}
-              strokeWidth="2"
-            />
-            <text
-              x={item.x}
-              y={item.y + item.r + 12}
-              fill="var(--fg-muted)"
-              fontFamily="var(--font-mono)"
-              fontSize="9"
-              fontWeight="600"
-              textAnchor="middle"
-            >
-              {shortLabel(item.node.label)}
-            </text>
-            <title>
-              {item.node.kind} {item.node.id}
-              {item.node.affected ? " · named in the answer" : ""}
-            </title>
-          </g>
-        ))}
+        {model.placed.map((item) => {
+          const affected = Boolean(item.node.metadata?.affected);
+          return (
+            <g key={item.node.id} className="animate-s-pop">
+              {affected ? (
+                <circle
+                  cx={item.x}
+                  cy={item.y}
+                  r={item.r + 5}
+                  fill="none"
+                  stroke="var(--danger)"
+                  strokeWidth="1.4"
+                  strokeDasharray="4 4"
+                />
+              ) : null}
+              <circle
+                cx={item.x}
+                cy={item.y}
+                r={item.r}
+                fill={`color-mix(in srgb, ${toneVar(item.tone)} 20%, transparent)`}
+                stroke={toneVar(item.tone)}
+                strokeWidth="2"
+              />
+              <text
+                x={item.x}
+                y={item.y + item.r + 12}
+                fill="var(--fg-muted)"
+                fontFamily="var(--font-mono)"
+                fontSize="9"
+                fontWeight="600"
+                textAnchor="middle"
+              >
+                {shortLabel(item.node.label)}
+              </text>
+              <title>
+                {item.node.type} {item.node.id}
+                {nodeMeta(item.node).map((m) => ` · ${m}`).join("")}
+              </title>
+            </g>
+          );
+        })}
       </svg>
 
       <div className="flex flex-wrap items-center gap-2.5 border-t border-border px-3 py-2">
-        {canvas.legend.map((entry) => (
-          <span
-            key={entry.kind}
-            className="flex items-center gap-1.5 font-mono text-[9px] font-medium text-fg-muted"
-          >
-            <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
-              <circle cx="4" cy="4" r="4" fill={toneVar(KIND_TONE[entry.kind])} />
-            </svg>
-            {shortLabel(entry.label.split("(")[0] ?? entry.label)} {entry.count}
-          </span>
-        ))}
-        {canvas.truncated ? (
-          <span className="ml-auto flex items-center gap-1 font-mono text-[9px] text-fg-subtle">
-            <Icon name="alert" size={9} />
-            {canvas.shown} of {canvas.total} shown
-          </span>
-        ) : null}
+        {Object.entries(TYPE_TONE)
+          .map(([type, tone]) => ({ type, tone, count: canvas.nodes.filter((n) => n.type === type).length }))
+          .filter((entry) => entry.count > 0)
+          .map((entry) => (
+            <span
+              key={entry.type}
+              className="flex items-center gap-1.5 font-mono text-[9px] font-medium text-fg-muted"
+            >
+              <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
+                <circle cx="4" cy="4" r="4" fill={toneVar(entry.tone)} />
+              </svg>
+              {entry.type} {entry.count}
+            </span>
+          ))}
+        <span className="ml-auto flex items-center gap-1 font-mono text-[9px] text-fg-subtle">
+          <Icon name="doc" size={9} />
+          {canvas.counts.nodes} nodes · {canvas.counts.links} links
+        </span>
       </div>
     </div>
   );
 }
 
 /** The one-line count the pane's header shows. */
-export function canvasSummary(canvas: GraphCanvas | null): string {
+export function canvasSummary(canvas: CaseGraph | null): string {
   if (!canvas) return "—";
-  return `${canvas.nodes.length} nodes · ${canvas.edges.length} edges`;
+  return `${canvas.counts.nodes} nodes · ${canvas.counts.links} links`;
 }
