@@ -1,5 +1,6 @@
 # Never bake local datasets, secrets, or development junk into the image.
 .git
+.gitleaks.toml
 .venv/
 venv/
 __pycache__/
@@ -8,6 +9,19 @@ __pycache__/
 .env
 .env.*
 !.env.example
+# Round data (root copies), secrets & keys
+transactions.csv
+identity.csv
+case_pack.csv
+closed_cases_history.csv
+*.pem
+*.key
+*.pfx
+*.p12
+# Frontend build state and deps
+node_modules/
+.next/
+out/
 docs/
 tests/
 logs/
@@ -15,6 +29,7 @@ artifacts/
 data/prepared/
 data/prepared/*
 data/full_load_staging/
+data/llm_calls/
 data/logs/
 data/app/
 data/raw/

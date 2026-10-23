@@ -27,10 +27,16 @@ data/*
 !data/README.md
 !data/synthetic/
 
+# Explicitly never publish prepared stores, staging loads, or call logs
+data/prepared/
+data/full_load_staging/
+data/llm_calls/
+
 # Environment, secrets and keys
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!sentinel-ui/.env.example
 *.pem
 *.key
 *.pfx

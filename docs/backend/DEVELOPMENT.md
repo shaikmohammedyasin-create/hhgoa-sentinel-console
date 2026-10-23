@@ -5,7 +5,7 @@
 - Python 3.11+
 - The four CSVs and `README.md` at the repository root
 - Optional: TigerGraph Savanna or Community Edition
-- Optional: `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` for narrative synthesis
+- Optional: `NEBIUS_API_KEY` for live NVIDIA Nemotron calls (via Nebius Token Factory); deterministic fallbacks run without it
 
 ## Setup
 

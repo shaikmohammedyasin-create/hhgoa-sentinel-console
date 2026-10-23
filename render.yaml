@@ -4,9 +4,10 @@ services:
     runtime: python
     plan: free
     region: oregon
-    # Fetches the prepared SQLite graph store (174 MB, published as a release
-    # asset because it exceeds GitHub's 100 MB blob limit) into the runtime FS.
-    buildCommand: "pip install -r requirements.txt && mkdir -p data/prepared && curl -sL https://github.com/shaikmohammedyasin-create/HHGoa26-Agentic-Fraud-Investigation/releases/download/data-v1/investigation.db -o data/prepared/investigation.db"
+    # Builds the prepared SQLite graph store from the committed synthetic
+    # CSVs at deploy time. No data is fetched from an external release;
+    # the round's real dataset is never redistributed.
+    buildCommand: "pip install -r requirements.txt && TRANSACTIONS_CSV=data/synthetic/transactions.csv IDENTITY_CSV=data/synthetic/identity.csv CLOSED_CASES_CSV=data/synthetic/closed_cases_history.csv CASE_PACK_CSV=data/synthetic/case_pack.csv python -m backend.scripts.prepare_data"
     startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     autoDeploy: true
@@ -14,27 +15,36 @@ services:
       # Pins Python 3.12 for the Render runtime (no blueprint-level field).
       - key: PYTHON_VERSION
         value: "3.12"
-      # The bundled prepared-graph SQLite store means GRAPH_BACKEND=local works
-      # with zero secret configuration — safe free-tier default.
+      # Hosted demo defaults: demo mode on, local synthetic graph, no
+      # external LLM calls unless a separate NEBIUS_API_KEY is supplied.
       - key: APP_ENV
         value: development
+      - key: DEMO_MODE
+        value: "1"
       - key: GRAPH_BACKEND
         value: local
-      # To run against the live TigerGraph instance instead, GRAPH_BACKEND=tigergraph
-      # and fill in the three variables below in the Render dashboard.
+      # The only LLM vendor in this submission is Nebius Token Factory with
+      # NVIDIA Nemotron (LLM_PROVIDER stays at its "none" default; the legacy
+      # groq/anthropic/openai path was removed from the submission).
+      #
+      # To enable live Nemotron calls in the hosted demo, add a host secret
+      # named NEBIUS_API_KEY (a separate demo key) and lower the caps below.
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: NEBIUS_DAILY_CALL_CAP
+        value: "40"
+      - key: NEBIUS_PER_IP_HOURLY_LIMIT
+        value: "10"
+      - key: NEBIUS_CACHE_DIR
+        value: /tmp/nebius_cache
+      # To run against the live TigerGraph instance instead, set
+      # GRAPH_BACKEND=tigergraph and fill in the three variables below in the
+      # Render dashboard.
       - key: TG_HOST
         sync: false
       - key: TG_GRAPH
         value: fraud_investigation
       - key: TG_SECRET
-        sync: false
-      - key: LLM_PROVIDER
-        sync: false
-      - key: GROQ_API_KEY
-        sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
         sync: false
       - key: EVIDENCE_REQUEST_MODE
         value: simulated

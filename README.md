@@ -590,7 +590,7 @@ This validates 30 discrete checkpoints per case (600 total checkpoints) covering
 | `MAX_EVIDENCE_REQUESTS` | `3` | Maximum number of evidence inquiries per case |
 | `FRAUD_PROB_STOP_HIGH` | `0.85` | High-confidence fraud threshold for early stopping |
 | `FRAUD_PROB_STOP_LOW` | `0.15` | High-confidence legitimate threshold for early stopping |
-| `LLM_PROVIDER` | `none` | Legacy narrative formatter (`anthropic`/`openai`/`groq`/`none`); the Nemotron advisory path uses the `NEBIUS_*` variables below instead |
+| `LLM_PROVIDER` | `none` | Always `none` in this submission; the legacy `anthropic`/`openai`/`groq` path was removed — Nemotron via `NEBIUS_*` is the only vendor |
 | `NEBIUS_API_KEY` | `""` | Nebius Token Factory key; empty = demo mode with cached answers |
 | `NEBIUS_BASE_URL` | `https://api.tokenfactory.nebius.com/v1` | OpenAI-compatible endpoint |
 | `NEBIUS_MODEL_NANO` | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` | Roles 1–2 tier |

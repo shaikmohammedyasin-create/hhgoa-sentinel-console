@@ -30,9 +30,10 @@ in the README, tests, or `docs/BENCHMARK.md`, treat it as not implemented.
   `artifacts/`-style answer files under `cases/` on every benchmark run
   (keeps the pack in sync; acceptable for the synthetic data contract).
 - Legacy `LLM_PROVIDER` (anthropic/openai/groq) narrative path still
-  exists (`backend/llm/client.py`-equivalent) alongside the Nemotron
-  path; it is unused by the Nemotron advisory flow and should be retired
-  or abstracted behind `roles.py` in a next version.
+  exists dormant in code (`backend/llm/client.py`); it is unused by the
+  Nemotron advisory flow. It has been removed from the hosted config
+  (`render.yaml`), docs, and `.env.example`, and `LLM_PROVIDER` is pinned
+  to `none`. The code should be fully retired in a next version.
 - Windows console shows mojibake for some Unicode box-drawing chars in
   docs; the repository text itself is UTF-8.
 - The per-IP limiter keys on the request's client host; behind a shared
