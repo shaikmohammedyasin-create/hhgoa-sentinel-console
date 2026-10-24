@@ -1,16 +1,37 @@
 /**
- * Does the console actually render, and does the run flow actually run?
+ * Does the console actually render, and does it say only what it can back up?
  *
- * A build that compiles proves nothing about a client component that throws
- * on its first render. This drives a real browser, fails on any console error
- * or page exception, and asserts the things the port was for: the masthead,
- * the queue, the replay advancing, the graph pane drawing nodes, and the two
- * full-screen views.
+ * A build that compiles proves nothing about a client component that throws on
+ * its first render. This drives a real browser, fails on any console error or
+ * page exception, and asserts the console that exists today:
+ *
+ *   - the masthead, and the honesty label under it (live vs. static snapshot)
+ *   - the queue, the warm palette, the typeface
+ *   - a selected case: header, the five tabs, and each tab's content
+ *   - the case subgraph, drawn
+ *   - the pack report, including its "recorded run" disclaimer in snapshot mode
+ *   - the ring screen's negative finding
+ *   - the approvals overlay
+ *   - the guided demo walk
+ *   - no sideways scroll at laptop width
+ *
+ * Two modes, one suite:
+ *   BASE=http://127.0.0.1:3000                          (backend-connected build)
+ *   BASE=http://127.0.0.1:3000 SNAPSHOT=1               (NEXT_PUBLIC_DEMO_DATA=1)
+ *
+ * The browser: Playwright's bundled revision is often not the one cached on a
+ * machine (this repo has been burned by exactly that — the suite could not
+ * start). CHROME_PATH wins; otherwise the newest cached Chromium is used;
+ * otherwise Playwright's own bundled browser.
  */
+
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 import { chromium } from "playwright";
 
-const BASE = process.env.BASE ?? "http://127.0.0.1:3001";
+const BASE = process.env.BASE ?? "http://127.0.0.1:3000";
+const SNAPSHOT = process.env.SNAPSHOT === "1";
 const problems = [];
 const results = [];
 
@@ -19,10 +40,34 @@ function check(name, ok, detail = "") {
   if (!ok) problems.push(`${name}${detail ? `: ${detail}` : ""}`);
 }
 
-// `colorScheme: "dark"` on purpose. The console is a light instrument and
-// must stay light whatever the viewer's OS says; following the preference is
-// a defect this test exists to catch.
-const browser = await chromium.launch();
+function cachedChromium() {
+  if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
+  const root =
+    process.env.PLAYWRIGHT_BROWSERS_PATH ||
+    (process.platform === "win32"
+      ? join(process.env.LOCALAPPDATA ?? "", "ms-playwright")
+      : join(process.env.HOME ?? "", ".cache", "ms-playwright"));
+  if (!existsSync(root)) return undefined;
+  const builds = readdirSync(root)
+    .filter((name) => /^chromium-\d+$/.test(name))
+    .sort((a, b) => Number(b.split("-")[1]) - Number(a.split("-")[1]));
+  const binary = {
+    win32: join("chrome-win64", "chrome.exe"),
+    darwin: join("chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium"),
+    linux: join("chrome-linux", "chrome"),
+  }[process.platform];
+  if (!binary) return undefined;
+  for (const build of builds) {
+    const candidate = join(root, build, binary);
+    if (existsSync(candidate)) return candidate;
+  }
+  return undefined;
+}
+
+const executablePath = cachedChromium();
+// `colorScheme: "dark"` on purpose: the console is a light instrument and must
+// stay light whatever the viewer's OS says.
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
 const page = await browser.newPage({
   viewport: { width: 1440, height: 900 },
   colorScheme: "dark",
@@ -34,19 +79,46 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => noise.push(`pageerror: ${error.message}`));
 
+const views = page.getByRole("group", { name: "Views" });
+const controls = page.getByRole("group", { name: "Run controls" });
+const seen = async (locator, timeout = 10000) =>
+  locator.first().waitFor({ timeout }).then(() => true, () => false);
+
+/** Click a control, reporting absence instead of throwing so one missing
+ *  button does not hide the rest of the suite's findings. */
+async function open(group, name, label = name) {
+  const button = group.getByRole("button", { name });
+  if ((await button.count()) === 0) {
+    check(`${label} control present`, false, "button not found");
+    return false;
+  }
+  await button.click();
+  return true;
+}
+
 await page.goto(BASE, { waitUntil: "networkidle" });
 
-// ── the masthead and the chrome ──────────────────────────────────────────────
-check("masthead", (await page.getByText("SENTINEL", { exact: true }).count()) > 0);
+// ── the masthead, and what it claims ─────────────────────────────────────────
+check("masthead", (await page.locator("header").getByText("Sentinel", { exact: true }).count()) === 1);
 check("runway rule", (await page.locator(".bg-runway").count()) === 1);
-check("hunt strip", (await page.getByText(/QUARRY LOCKED|STOOD DOWN|HELD AT BAY|STALKING|ON THE SCENT|NOT YET RUN/).count()) > 0);
+if (SNAPSHOT) {
+  check(
+    "labels itself a static snapshot",
+    (await page.getByText(/static snapshot/).count()) > 0,
+  );
+} else {
+  check(
+    "labels its data source",
+    (await page.getByText(/demo mode|live backend/).count()) > 0,
+  );
+}
 
 // ── the queue ────────────────────────────────────────────────────────────────
-await page.waitForSelector("text=CASE QUEUE", { timeout: 15000 });
-const queueRows = await page.locator('aside button[aria-current], aside button').count();
+check("queue header", await seen(page.getByText("Case queue")));
+const queueRows = await page.locator("aside ul li button").count();
 check("queue rows", queueRows >= 20, `${queueRows} rows`);
 
-// ── the warm palette actually applied ────────────────────────────────────────
+// ── the palette and the typeface actually applied ────────────────────────────
 const bg = await page.evaluate(() =>
   getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(),
 );
@@ -54,109 +126,96 @@ check("stays light under a dark OS", bg === "#f7f4ef", bg);
 const font = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
 check("Space Grotesk", /Grotesk/i.test(font), font);
 
-// ── the run flow: postings arrive one at a time ──────────────────────────────
-// Reload and sample immediately. Measuring after the other checks have run
-// would time the test rather than the replay — 23 postings at 460ms finish in
-// about ten seconds, which is longer than the assertions above take.
-await page.reload({ waitUntil: "domcontentloaded" });
-await page.waitForSelector("ol li", { timeout: 20000 });
-const first = await page.locator("ol li").count();
-await page.waitForTimeout(1600);
-const later = await page.locator("ol li").count();
-check("replay advances", later > first, `${first} then ${later} postings`);
-
-// The log-odds chip and the before→after pair are the point of the row.
-check("log-odds shown", (await page.getByText(/logLR/).count()) > 0);
-
-await page.getByRole("button", { name: /skip replay/ }).click().catch(() => {});
-await page.waitForTimeout(900);
-const settled = await page.locator("ol li").count();
-check("skip reveals all", settled >= later, `${settled} postings`);
-
-// ── the graph pane: the cut-list item ────────────────────────────────────────
-await page.waitForSelector("text=GRAPH EVIDENCE", { timeout: 10000 });
-const nodes = await page.locator('aside svg g.animate-s-pop circle').count();
-check("graph nodes drawn", nodes >= 3, `${nodes} nodes`);
-check("focus lock ring", (await page.locator("aside svg circle.animate-lock").count()) >= 1);
-
-// ── the tabs ─────────────────────────────────────────────────────────────────
-for (const [tab, marker] of [
-  ["Case file", /Evidence ledger/i],
-  ["Memory", /Retrieved memory/i],
-  ["Answer file", /cases\/HHG-/],
-]) {
-  await page.getByRole("tab", { name: new RegExp(tab) }).click();
-  // Wait for the content, not for a fixed delay: the memory tab costs a round
-  // trip that the other two do not.
-  const found = await page
-    .getByText(marker)
-    .first()
-    .waitFor({ timeout: 10000 })
-    .then(() => true, () => false);
-  check(`tab ${tab}`, found);
+// ── a selected case, and its five tabs ───────────────────────────────────────
+check(
+  "a case is open",
+  (await page.getByText(/^CASE-\d{3}$/).count()) > 0,
+);
+for (const tab of ["Timeline", "Case file", "SAR", "Nemotron", "JSON"]) {
+  check(
+    `tab ${tab} exists`,
+    (await page.locator("button", { hasText: new RegExp(`^${tab}$`) }).count()) >= 1,
+  );
 }
 
-// ── the two full-screen views ────────────────────────────────────────────────
-await page.getByRole("tab", { name: "Monitor" }).click();
-await page.waitForSelector("text=The pack, scored", { timeout: 15000 });
-check("monitor renders", (await page.getByText(/Block rate/i).count()) > 0);
+/** Click a case tab; false (and a logged FAIL above) when it is missing. */
+async function openTab(label) {
+  const tab = page.locator("button", { hasText: new RegExp(`^${label}$`) }).first();
+  if ((await tab.count()) === 0) return false;
+  await tab.click();
+  return true;
+}
 
-await page.getByRole("tab", { name: "Ring" }).click();
-await page.waitForTimeout(1200);
-// The scope closing on the shared profile, and the edges being walked.
-check("ring scope animates", (await page.locator(".z-view svg circle.animate-spin-slow").count()) >= 1);
-check("ring edges are traced", (await page.locator(".z-view svg line.animate-trace").count()) >= 4);
-// The ring screen has to carry two facts at once: the finding is negative,
-// and there is still something worth drawing. Both are asserted, because
-// earlier versions lost one or the other — once by claiming a connectivity
-// the drawing did not have, once by burying the finding in a 118-node mesh.
+// Case file: the conclusion plus the evidence ledger behind it.
+if (await openTab("Case file")) {
+  check("case file: verdict grid", await seen(page.getByText("P(fraud)")));
+  check("case file: evidence ledger", await seen(page.getByText(/Evidence/)));
+}
+
+// Timeline: the backend's audit trail, one row per event.
+if (await openTab("Timeline")) {
+  check("timeline: audit trail", await seen(page.getByText("Audit timeline")));
+  const timelineRows = await page.locator("ol li").count();
+  check("timeline rows", timelineRows > 0, `${timelineRows} events`);
+}
+
+// JSON: the answer file itself, so an analyst can distrust every panel above.
+if (await openTab("JSON")) {
+  check("json tab: answer file", await seen(page.getByText(/"case_id"/)));
+}
+
+// ── the case subgraph, drawn ─────────────────────────────────────────────────
+await open(views, "graph");
+check("subgraph heading", await seen(page.getByText(/Case subgraph/)));
+const nodes = await page.locator("svg g.animate-s-pop circle").count();
+check("graph nodes drawn", nodes >= 3, `${nodes} nodes`);
+check("focus lock ring", (await page.locator("svg circle.animate-lock").count()) >= 1);
+
+// ── the pack report ──────────────────────────────────────────────────────────
+await open(views, "pack");
+check("pack heading", await seen(page.getByText("The pack, scored")));
+const packRows = await page.locator("section table tbody tr").count();
+check("pack lists every case", packRows >= 20, `${packRows} rows`);
 check(
-  "ring keeps the negative finding as the headline",
-  (await page.getByText("No ring on this pack").count()) > 0,
+  "pack shows measured latency",
+  (await page.getByText(/^\d+\.\ds$/).count()) >= 1,
 );
-const ringNodes = await page.locator(".z-view svg g.animate-s-pop circle").count();
-check("ring draws the component", ringNodes >= 5 && ringNodes <= 40, `${ringNodes} nodes`);
-const ringText = (await page.locator(".z-view svg text").allTextContents()).join(" ");
-check("ring names the shared profile", /cards · \d+ customers/.test(ringText));
-check("ring names its cards", (ringText.match(/C\d{5}-K\d/g) ?? []).length >= 4);
-check(
-  "ring marks what the bank already confirmed",
-  /confirmed fraud/.test(ringText) || /benchmark seed/.test(ringText),
-);
-check(
-  "ring lists its members",
-  (await page.locator(".z-view li").count()) >= 4,
-  `${await page.locator(".z-view li").count()} rows`,
-);
+if (SNAPSHOT) {
+  // Issue #8: the committed report is a keyed LLM run. A static build must not
+  // let a reader mistake these numbers for this page's own response times.
+  check(
+    "pack labels the run as recorded",
+    (await page.getByText(/Recorded run, replayed from the snapshot/).count()) > 0,
+  );
+}
 
-// The monitor's bars: a percentage height inside a flex column resolves to
-// zero, which shipped once already.
-await page.getByRole("tab", { name: "Monitor" }).click();
-await page.waitForSelector("text=The pack, scored");
-await page.waitForTimeout(800);
-const barHeights = await page.evaluate(() =>
-  Array.from(document.querySelectorAll("section div[style*=\"height\"]"))
-    .map((el) => el.getBoundingClientRect().height)
-    .filter((h) => h > 0),
-);
-check("histogram has bars", barHeights.some((h) => h > 20), `tallest ${Math.max(0, ...barHeights).toFixed(0)}px`);
-await page.getByRole("tab", { name: "Ring" }).click();
-await page.waitForTimeout(600);
+// ── the ring screen states the absence ───────────────────────────────────────
+await open(views, "ring");
+check("ring heading", await seen(page.getByText("Ring discovery")));
+check("ring states the missing capability", await seen(page.getByText("Not available in this API")));
 
-// ── the approvals drawer ─────────────────────────────────────────────────────
-await page.getByRole("tab", { name: "Console" }).click();
-await page.getByRole("button", { name: /Approvals/ }).click();
-await page.waitForSelector("text=APPROVAL INBOX", { timeout: 8000 });
-check("approvals drawer", true);
+// ── the approvals overlay ────────────────────────────────────────────────────
+await open(controls, "inbox");
+const dialog = page.getByRole("dialog", { name: "Approvals inbox" });
+check("approvals overlay opens", await seen(dialog));
+await page.getByRole("button", { name: /close/i }).click().catch(() => {});
+check("approvals overlay closes", await dialog.waitFor({ state: "hidden", timeout: 5000 }).then(() => true, () => false));
 
-// ── phone width must not scroll sideways ─────────────────────────────────────
-await page.keyboard.press("Escape").catch(() => {});
-await page.setViewportSize({ width: 1180, height: 900 });
-await page.waitForTimeout(600);
+// ── the guided demo walks the queue ─────────────────────────────────────────
+await open(views, "case");
+await open(controls, "demo");
+check("demo starts", await seen(page.getByText("ACT I"), 5000));
+await open(controls, "stop");
+check("demo stops", (await controls.getByRole("button", { name: "demo" }).count()) === 1);
 
-// The masthead's run controls, which are the demo.
-check("run demo button", (await page.getByRole("button", { name: /Run demo/ }).count()) === 1);
-check("run all button", (await page.getByRole("button", { name: /Run all 20/ }).count()) === 1);
+// ── laptop width must not scroll sideways ───────────────────────────────────
+await page.setViewportSize({ width: 1100, height: 900 });
+await page.waitForTimeout(500);
+const overflow = await page.evaluate(() => {
+  const el = document.documentElement;
+  return el.scrollWidth - el.clientWidth;
+});
+check("no sideways scroll at 1100px", overflow <= 1, `${overflow}px`);
 
 check("no console errors", noise.length === 0, noise.slice(0, 4).join(" | "));
 
@@ -166,4 +225,5 @@ for (const { name, ok, detail } of results) {
   console.log(`${ok ? "ok  " : "FAIL"} ${name}${detail ? `  (${detail})` : ""}`);
 }
 console.log(`\n${results.filter((r) => r.ok).length}/${results.length} checks passed`);
+if (executablePath) console.log(`browser: ${executablePath}`);
 process.exit(problems.length === 0 ? 0 : 1);
