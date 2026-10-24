@@ -24,6 +24,7 @@ docker compose up --build
 ```
 
 The single-container demo:
+- **Hosted demo**: console at <https://sentinel-ui-nu.vercel.app>, API at <https://sentinel-console-api.onrender.com> (Vercel proxies to Render; `DEMO_MODE=1`).
 - **One Container, One URL (`:8008`)**: The FastAPI backend and Next.js console (`sentinel-ui`) are co-hosted inside one container.
 - **Hermetic Synthetic Graph**: Rebuilds the SQLite graph store from committed synthetic CSVs (`data/synthetic/`) in ~3 seconds (`GRAPH_BACKEND=local`). No external cluster required.
 - **Default Demo Mode (`DEMO_MODE=1`)**: every case view, re-run and benchmark endpoint is a replay of `cases/*.json` — no run, no rewrite, no spend. Analyst Q&A is the one live path: answers are cached on disk and capped per IP and per day, so only a genuinely new question reaches Nemotron.

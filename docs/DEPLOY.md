@@ -114,3 +114,21 @@ for i in {1..25}; do curl -s -o /dev/null -w "%{http_code}
 - **Expected Result**: First 10?20 requests return HTTP 200; subsequent requests return HTTP 429 (`Rate limit exceeded: max 20 requests per IP per hour`) or fallback notice. Confirm that the application never produces an unhandled HTTP 500 error.
 
 > **Deployment Status**: The Render Blueprint specification (`render.yaml`) and Docker container configuration are fully prepared and verified. Live hosted URL will be recorded once provisioned by the operator.
+
+---
+
+## 6. Currently deployed instances (24 October 2026)
+
+| Component | URL | Where |
+|---|---|---|
+| Console | https://sentinel-ui-nu.vercel.app | Vercel project `sentinel-ui`, production |
+| API | https://sentinel-console-api.onrender.com | Render web service `sentinel-console-api` (free, Oregon) |
+
+The console proxies `/api/*`, `/investigations/*`, `/benchmark/*` and `/health` to the Render service through `NEXT_PUBLIC_API_PROXY_TARGET`, so the browser talks to a single origin and no CORS is involved. The API runs `DEMO_MODE=1` with `GRAPH_BACKEND=local` and builds its SQLite graph from the committed synthetic CSVs during deploy.
+
+Notes:
+
+- Render free instances sleep when idle; the first request after a pause takes roughly 30-60 s to wake.
+- The older `hhgoa-fraud-api` Render service is still attached to the `HHGoa26-Agentic-Fraud-Investigation` repository and was left untouched.
+- Redeploy the console with `cd sentinel-ui && vercel deploy --prod --yes`; redeploy the API with `render deploys create srv-dbefmsvavr4c73aph5c0 --confirm`.
+- The Vercel project previously served the static snapshot build (`NEXT_PUBLIC_DEMO_DATA=1`); that variable was removed in favour of the live proxy. Re-add it and redeploy to return to snapshot mode.
