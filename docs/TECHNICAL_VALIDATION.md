@@ -202,7 +202,7 @@ records only what was re-run for the release review, on the same machine.
 
 | Gate | Result | Command |
 |---|---|---|
-| Backend test suite | **353 passed, 9 skipped** | `pytest tests/ -q` |
+| Backend test suite | **354 passed, 9 skipped** | `pytest tests/ -q` |
 | Python lint | **0 findings** | `ruff check backend scripts tests` |
 | UI typecheck | **clean** | `npx tsc --noEmit` |
 | UI lint | **0 warnings** | `npx eslint . --max-warnings=0` |

@@ -7,7 +7,7 @@
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-15%20App%20Router-black?logo=next.js&logoColor=white" alt="Next.js"></a>
   <a href="https://build.nvidia.com/nvidia"><img src="https://img.shields.io/badge/NVIDIA-Nemotron_3_%7C_Token_Factory-76B900" alt="NVIDIA Nemotron"></a>
-  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-353%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
+  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-354%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
   <a href="./docs/BENCHMARK.md"><img src="https://img.shields.io/badge/Benchmark-20%2F20%20Verdict%20%7C%203--Arm%20Ablations-2E7D32" alt="Benchmark"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
 </p>
@@ -196,7 +196,7 @@ hhgoa-sentinel-console/
 ?   ??? screenshots/              # 7 high-resolution console screenshots
 ??? scripts/                      # Evaluation, benchmark, and screenshot scripts
 ??? tigergraph/                   # GSQL queries and schema definitions
-??? tests/                        # Pytest suite (353 passed / 9 skipped)
+??? tests/                        # Pytest suite (354 passed / 9 skipped)
 ??? Dockerfile                    # Multi-stage production container build
 ??? docker-compose.yml            # Single-container deployment configuration
 ??? render.yaml                   # Hosted Render Blueprint specification
@@ -265,7 +265,7 @@ NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000 npm run dev
 The repository enforces strict automated quality gates:
 
 ```bash
-# 1. Run Python test suite (353 passed, 9 skipped)
+# 1. Run Python test suite (354 passed, 9 skipped)
 pytest tests/ -q -rs
 
 # 2. Run Python lint gate (0 findings)
@@ -342,7 +342,7 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
 - **2026-10-24 ? Stress Testing & Final Submission Hardening**:
   - Enhanced synthetic data generator with overlapping score distributions ($[0.52, 0.74]$ benign, $[0.65, 0.92]$ fraud) and stress scenarios (`CASE-009` ring FN, `CASE-007` emergency FP).
   - 3-Arm evaluation: Graph Agent ($F_1 = 1.0000$) vs Score-Only ($F_1 = 0.9333$) vs Plain LLM ($F_1 = 0.0000$).
-  - Full test suite verified at **353 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
+  - Full test suite verified at **354 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
   - Gitleaks scanned 93 commits: **0 secrets found**.
   - Captured 7 high-resolution (1536?1024) UI screenshots in `docs/screenshots/`.
 

@@ -7,7 +7,7 @@ Run date: 2026-10-24. Every measurement and claim below was produced by commands
 ## Executive Summary
 
 1. **Repository & Safety**: Private repository `shaikmohammedyasin-create/hhgoa-sentinel-console` on branch `main`. The retired upstream working remote has been detached; `origin` is the only active remote. Full history scanned with `gitleaks`: **0 secrets / 0 leaks found across 93 commits**.
-2. **Automated Test Suite**: **353 passed, 9 skipped, 0 failed** in `pytest`. Skips are isolated to 6 live TigerGraph cloud tests (no cluster host attached) and 3 conditional approvals assertions.
+2. **Automated Test Suite**: **354 passed, 9 skipped, 0 failed** in `pytest`. Skips are isolated to 6 live TigerGraph cloud tests (no cluster host attached) and 3 conditional approvals assertions.
 3. **Build & Quality Gates**:
    - Python lint: `ruff check` passes cleanly with **0 errors**.
    - UI lint: `eslint . --max-warnings=0` passes with **0 errors / 0 warnings**.
@@ -53,7 +53,7 @@ Run date: 2026-10-24. Every measurement and claim below was produced by commands
 
 | Quality Gate | Command | Result | Details |
 |---|---|---|---|
-| Python Test Suite | `pytest tests/` | **353 passed, 9 skipped** | 0 failures in 16.27s |
+| Python Test Suite | `pytest tests/` | **354 passed, 9 skipped** | 0 failures in 16.27s |
 | TigerGraph skips | Census | 6 skipped | Requires live TG cloud cluster |
 | Approval skips | Census | 3 skipped | Conditional on pending state |
 | Python Lint | `ruff check backend scripts tests` | **0 errors** | Clean |
@@ -140,6 +140,6 @@ Verified live against `https://api.tokenfactory.nebius.com/v1`:
 | **Core Architecture** | *"Nemotron proposes, the deterministic policy engine decides."* |
 | **Repository** | `https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console` (branch `main`) |
 | **Single-Container Demo** | `docker compose up --build` -> `http://localhost:8008` (API + Next.js console co-hosted) |
-| **Test Suite** | 353 passed, 9 skipped, 0 failed |
+| **Test Suite** | 354 passed, 9 skipped, 0 failed |
 | **Accuracy** | 20/20 verdict, 20/20 pattern, 20/20 next-best-action ($F_1 = 1.0000$ vs baseline $F_1 = 0.9333$) |
 | **License** | MIT License |
