@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from datetime import datetime, timezone
 from typing import Any
 
@@ -14,24 +15,36 @@ from backend.logging import get_logger
 
 log = get_logger(__name__)
 
-_DB: sqlite3.Connection | None = None
+# One SQLite handle per thread. The app runs on a thread pool: an investigation
+# writes while the console polls, and sharing a single connection across those
+# threads raises `sqlite3.InterfaceError: bad parameter or other API misuse`.
+# WAL mode still lets the readers run alongside the one writer.
+_LOCAL = threading.local()
+# Opening a connection also creates the schema. Two threads opening at once
+# both ran the DDL script and one lost the write lock ("database is locked"),
+# so first-open is serialised.
+_OPEN_LOCK = threading.Lock()
 
 
 def get_db() -> sqlite3.Connection:
-    global _DB
-    if _DB is None:
-        _DB = _open()
-    return _DB
+    conn = getattr(_LOCAL, "conn", None)
+    if conn is None:
+        conn = _open()
+        _LOCAL.conn = conn
+    return conn
 
 
 def _open() -> sqlite3.Connection:
     path = settings.app_db
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    _create_schema(conn)
+    with _OPEN_LOCK:
+        conn = sqlite3.connect(str(path), check_same_thread=False, timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        # Wait rather than fail when another thread is mid-write.
+        conn.execute("PRAGMA busy_timeout=5000")
+        _create_schema(conn)
     log.info("app_db.opened", path=str(path))
     return conn
 
