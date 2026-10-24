@@ -13,9 +13,9 @@ docker compose up --build
 # Open http://localhost:8008
 ```
 
-- **Zero configuration / Zero API keys**: Operates in default `DEMO_MODE=1` using committed verified cases (`cases/*.json`).
-- **Single URL**: Both the FastAPI backend and Next.js console co-hosted inside one container.
-- **Local Synthetic Graph**: 12,230 transactions and 4,196 identity records built into SQLite automatically in < 3 seconds.
+- **Zero Configuration / Zero Credentials**: Operates in default `DEMO_MODE=1` using precomputed, verified answer files (`cases/*.json`).
+- **Single URL (`:8008`)**: The FastAPI backend and Next.js console (`sentinel-ui`) are co-hosted inside one container.
+- **Local Synthetic Graph**: 12,230 transactions and 4,196 identity records built into SQLite automatically in under 3 seconds.
 
 ---
 
@@ -23,22 +23,22 @@ docker compose up --build
 
 To demonstrate why pure LLMs or simple ML risk scores fail without knowledge graphs and policy governance, showcase these three cases:
 
-### Case 1: `CASE-009` ? Coordinated Micro-Payment Ring (False Negative under ML Score)
-- **The Setup**: Small transaction ($14.50) at a digital merchant. Initial bank ML risk score is low ($0.48$).
-- **Why Naive Thresholds Fail**: Any risk score threshold (e.g. $\tau = 0.70$) dismisses this as benign (False Negative). Plain LLMs without graph context miss the distributed pattern.
-- **What Sentinel Graph Discovers**: Graph 2-hop traversal reveals device `DEV-092` is shared across 5 distinct cards within 12 minutes, executing rapid card testing.
-- **The Decision**: Graph Agent triggers rule R4 (device velocity) and R8 (ring linkage), driving $P(\text{fraud})$ to $0.88$. Nemotron Nano identifies pattern `card_testing`. Next Best Action: `block_card` and escalate ring for merchant alert.
+### Case 1: `CASE-009` ? Coordinated Micro-Payment Ring (Constructed Stress Scenario: False Negative under ML Score)
+- **The Setup**: Nominal $14.50 payment at an online merchant. Initial machine learning risk score is low (**0.48**).
+- **Why Naive Thresholds Fail**: Any risk score threshold $\tau > 0.48$ dismisses this as benign (False Negative), missing an active card-testing syndicate. Plain LLMs without graph context miss the distributed pattern.
+- **What Sentinel Graph Discovers**: Graph 2-hop traversal reveals device `DEV-092` is shared across 5 distinct credit cards in under 12 minutes.
+- **The Decision**: Graph Agent triggers velocity rule R4 and syndicate rule R8, driving $P(\text{fraud})$ to $0.88$. Nemotron Nano identifies pattern `card_testing`. Next Best Action: `block_card` and escalate ring.
 
-### Case 2: `CASE-007` ? Legitimate Emergency Purchase (False Positive under ML Score)
-- **The Setup**: Large out-of-state hospital payment ($1,450.00). Initial bank ML risk score is high ($0.86$).
-- **Why Naive Thresholds Fail**: Pure score thresholding flags this transaction as fraud (False Positive), blocking an urgent customer payment.
-- **What Sentinel Graph Discovers**: Customer verification channel confirms pre-authenticated travel notice and matched 3DS biometric token. Rule R1 (customer verification override) triggers.
-- **The Decision**: Deterministic policy engine overrides the raw risk score down to $P(\text{fraud}) = 0.12$ (`BENIGN`). Nemotron concurs with benign pattern. Next Best Action: `allow_transaction_and_notify`.
+### Case 2: `CASE-007` ? Legitimate Emergency Purchase (Constructed Stress Scenario: False Positive under ML Score)
+- **The Setup**: Large out-of-state hospital payment ($1,450.00). Initial machine learning risk score spikes to **0.86**.
+- **Why Naive Thresholds Fail**: Pure score thresholding flags this transaction as fraud (False Positive), blocking an urgent cardholder payment.
+- **What Sentinel Graph Discovers**: Customer verification channel confirms pre-authenticated travel notice and matched 3DS biometric token.
+- **The Decision**: Deterministic policy rule R1 overrides the raw risk score down to $P(\text{fraud}) = 0.12$ (`BENIGN`). Nemotron concurs with benign pattern. Next Best Action: `allow_transaction_and_notify`.
 
 ### Case 3: `CASE-004` ? Card-Not-Present Velocity Burst (Governed Nemotron Collaboration)
 - **The Setup**: Multiple rapid transactions across diverse geographic regions without physical card swipe.
-- **What Sentinel Graph Discovers**: Evidence cards assemble 8 timestamped transactions showing impossible physical travel speed.
-- **Governed Interaction**: Nemotron Nano proposes pattern `card_not_present` with confidence $0.92$. The policy engine independently agrees via rule R4, locks the card, and Nemotron Ultra drafts a FinCEN-compliant Suspicious Activity Report (SAR).
+- **What Sentinel Graph Discovers**: Evidence cards assemble timestamped transactions showing physically impossible travel speed.
+- **Governed Interaction**: Nemotron Nano proposes pattern `card_not_present` with confidence $0.92$. The policy engine independently validates via rule R4, locks the card, and Nemotron Ultra drafts a FinCEN-compliant Suspicious Activity Report (SAR).
 
 ---
 
@@ -50,7 +50,7 @@ To demonstrate why pure LLMs or simple ML risk scores fail without knowledge gra
 
 ### 0:45 ? 1:30: Evidence Ledger & Bayesian Risk Decomposition
 1. Select **`CASE-009`** or **`CASE-014`**.
-2. Open the **Case File** tab:
+2. Open the **Case file** tab:
    - **Verdict Banner**: Note the definitive verdict, exposure, and $P(\text{fraud})$.
    - **Bayesian Risk Breakdown**: Show how prior probability is updated across multiple evidence channels (identity, graph velocity, policy rules).
    - **Evidence Ledger**: Point out that every factual claim has an explicit provenance reference (`graph`, `identity`, `policy`, `txn`).
@@ -59,14 +59,14 @@ To demonstrate why pure LLMs or simple ML risk scores fail without knowledge gra
 1. Click the **Nemotron** tab:
    - **Model Proposal**: Displays NVIDIA Nemotron's recommended pattern classification and rationale.
    - **Policy Engine Gate**: Displays whether the deterministic policy engine agreed or overrode the model.
-   - Explain the core architecture rule: *"Nemotron proposes, the deterministic policy engine decides. The LLM is never given unchecked authority over financial actions."*
+   - Explain the core architecture rule: *"Nemotron proposes, the deterministic policy engine decides. The LLM is never given unilateral authority over money movement."*
 2. Click the **SAR** tab: Show the audit-grounded narrative draft generated by Nemotron Ultra, with FinCEN-standard structure and direct evidence citations.
 
 ### 2:15 ? 2:45: Graph Traversal & Interactive Analyst Q&A
 1. Switch to **GRAPH** view (bottom switcher or case footer):
    - Interactive SVG canvas displays the case subgraph (cards, accounts, devices, IP addresses, transactions).
    - The accused entity is highlighted with an animated focus ring.
-2. Return to **Case File** tab, scroll to the **Analyst Q&A** box:
+2. Return to **Case file** tab, scroll to the **Analyst Q&A** box:
    - Type: *"What evidence links this case to card testing?"*
    - Click **Ask**: Nemotron Ultra inspects the case evidence cards and returns a concise, grounded answer with zero hallucinations.
 
@@ -77,17 +77,16 @@ To demonstrate why pure LLMs or simple ML risk scores fail without knowledge gra
 
 ---
 
-## 4. Key Metrics & Evidence Sheet
+## 4. Key Metrics & Evidence Sheet (Session-Verified)
 
-| Dimension | Measured Value | Provenance / Evidence |
+| Dimension | Measured Value | Provenance / Verification Command |
 |---|---|---|
-| Test Suite | 290 passed, 9 skipped | `pytest tests/` (100% core pass) |
-| Case Accuracy (Synthetic Pack) | 20/20 (100%) | `cases/ground_truth.json` |
-| Evidence Checkpoints | 600/600 (100%) | `python -m backend.evaluation.validate_answers` |
-| 3-Arm Comparison: Graph Agent | $F_1 = 1.0000$ (100% verdict, 100% pattern, 100% NBA) | `scripts/compare_baselines.py` |
-| 3-Arm Comparison: Score-Only Baseline | Best $F_1 = 0.9333$ (Fails CASE-007 and CASE-009) | `docs/BENCHMARK.md` |
-| 3-Arm Comparison: Plain Nemotron Nano | $F_1 = 0.0000$ (20% verdict, 15% pattern) | `artifacts/compare_baselines.json` |
-| Nemotron Live Outage Resilience | 0 unhandled 500s | Verified fallback to deterministic engine |
-| UI Quality Gate | 33/33 checks passed | `sentinel-ui/e2e/smoke.mjs` (0 console errors) |
+| Automated Test Suite | **290 passed, 9 skipped** (0 failed) | `pytest tests/ -q -rs` |
+| Case Accuracy (Synthetic Pack) | **20/20 (100%)** | `python scripts/compare_baselines.py` |
+| Evidence Ledger Checkpoints | **600/600 (100%)** | Verified across all 20 case files via `validate_answers` |
+| 3-Arm Comparison: Graph Agent | **$F_1 = 1.0000$** (100% verdict, 100% pattern, 100% NBA) | `scripts/compare_baselines.py` |
+| 3-Arm Comparison: Score-Only Baseline | **$F_1 = 0.9333$** (90% verdict, **n/a** pattern, 90% NBA) | Fails on constructed stress cases CASE-007 & CASE-009 |
+| 3-Arm Comparison: Plain Nemotron Nano | **$F_1 = 0.0000$** (20% verdict, 15% pattern) | No-graph ablation arm |
+| Browser Smoke Quality Gate | **33/33 checks passed** (0 console errors) | `node sentinel-ui/e2e/smoke.mjs` |
 
 > **Real-Dataset Caveat**: On the original hackathon round's real dataset (not redistributed), verdict accuracy was 60% (12/20) and pattern accuracy 85% (17/20). The synthetic benchmark checks pipeline correctness, not real-world accuracy.
