@@ -19,6 +19,9 @@ Last captured: 24 October 2026.
 | 20-case benchmark run | **20/20 completed, 0 failed, 457 s** | `python -m backend.evaluation.run_benchmark` |
 | Per-case latency | **12.02 – 35.28 s** (mean 22.84) | `cases/_benchmark_report.json` |
 | Browser suite | **33/33 checks, 0 console errors** | `node e2e/smoke.mjs` |
+| Container build + boot | **build exit 0 (983 MB), container healthy** | `docker compose build && docker compose up -d` |
+| Container test suite (Python 3.12.15) | **290 passed, 9 skipped** (5.33 s) | `docker exec hhgoa-demo python -m pytest -q -rs` |
+| Container browser suite | **32/32 checks, 0 console errors** | `BASE=http://127.0.0.1:8008 node e2e/smoke.mjs` |
 | Python lint gate | **0 findings** | `ruff check backend scripts tests` |
 | UI lint gate | **0 errors, 0 warnings** | `npx eslint . --max-warnings=0` |
 | UI types | **clean** | `tsc --noEmit` |
@@ -157,17 +160,20 @@ a different build cached.
 
 ## 6. Security and credential isolation
 
-- **Secret scan:** a full scan of tracked files found zero hardcoded
-  credentials, tokens, API keys, or private URLs. `gitleaks` was not installed
-  during this round, so the scan was a manual/grep pass over tracked content —
-  stated plainly rather than reported as a tool result.
+- **Secret scan:** `gitleaks` v8.30.1 over the full git history
+  (`gitleaks git . --redact`) - **92 commits, 9.21 MB, 0 findings**, exit 0.
+  A pattern pass over the 219 tracked files (`nvapi-`, `sk-`, GitHub tokens,
+  `AKIA`, Slack tokens, private-key headers, JWT-shaped strings) also returned
+  zero.
 - **Environment isolation:** secrets load only through `pydantic-settings`
-  from `.env`; `.env`, `.env.*` are gitignored, and `sentinel-ui/.env.local`
-  (which Vercel CLI created with an OIDC token) is ignored and was never
-  committed — verified with `git log --all -- sentinel-ui/.env.local`.
+  from `.env`; `.env`, `.env.*` are gitignored. `sentinel-ui/.env.local`, which
+  the Vercel CLI wrote with a short-lived OIDC token, is gitignored, absent from
+  `git ls-files`, and never appears in `git log --all`; it is also listed in
+  `sentinel-ui/.vercelignore`, so a deployment cannot upload it.
 - **Data isolation:** only synthetic CSVs (`data/synthetic/`) are tracked. No
   third-party dataset, customer record, or real identifier is in the tree, and
-  `.dockerignore` keeps local/round data out of the image.
+  `.dockerignore` keeps local/round data out of the image. The published demo
+  snapshot (21 files, 966 KB) was scanned for absolute paths and usernames: none.
 - **Fail-closed:** in strict graph mode an unreachable backend returns 503
   rather than falling back to fabricated data.
 - **Rate limits:** 20 model calls per IP per hour and 200 per day by default,
@@ -183,6 +189,6 @@ Listed so no reader has to guess:
 |---|---|---|
 | Live Nemotron accuracy on the original dataset (60%/85%) | **recorded** | dataset not redistributable |
 | TigerGraph Savanna Cloud schema, queries, latency | **recorded** | no cluster or credentials attached |
-| `gitleaks` clean | **not run** | binary not installed |
-| Docker image build/boot | **not re-run this round** | see `docs/FINAL_REPORT.md` for the current status |
-| Vercel snapshot deployment reachable | **checked separately** | see `docs/DEPLOY.md` |
+| `gitleaks` clean | **verified** | v8.30.1, full history, 0 findings |
+| Docker image build/boot | **verified** | `docker compose build` exit 0 (983 MB), container healthy on `:8008`, 32/32 browser checks, 290 passed / 9 skipped on Python 3.12.15 inside the image |
+| Vercel snapshot deployment reachable | **verified** | `/`, `/demo/index.json`, `/cases/CASE-004`, `/benchmark`, `/ring` all 200; 33/33 browser checks against the live URL |

@@ -59,8 +59,8 @@ Last reconciled with the code: 24 October 2026.
 - Only synthetic CSVs (`data/synthetic/`) are tracked. Round-provided data,
   prepared stores, staging directories, and logs are excluded by `.gitignore`
   and `.dockerignore`.
-- `gitleaks` was **not** installed during this round, so the secret scan was a
-  manual pass over tracked content. Re-run a real scanner before any public
-  push, and check `git log --all --full-history -- data/prepared/* data/raw/*
+- `gitleaks` v8.30.1 was run over the full history (92 commits, 9.21 MB, **0
+  findings**). Re-run it before any public push, and check
+  `git log --all --full-history -- data/prepared/* data/raw/*
   closed_cases_history.csv` on the *old* repository history if it is ever
-  reused.
+  reused — that history was never part of this scan.

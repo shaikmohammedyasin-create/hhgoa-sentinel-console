@@ -1,44 +1,53 @@
 # Final Report — Sentinel Graph (Nebius × NVIDIA Hackathon)
 
 Run date: 2026-10-24. Every number below was produced by a command run in this
-session against commit `fd60457` on branch `nebius-submission`. Anything that
-could not be verified is marked **NOT RUN** with the reason. Nothing here is
-copied from memory or from an earlier document; where an old document disagrees
-with today's measurement, the disagreement is recorded in Section 9.
+session against the tree at commit `e08181a` on branch `main`, plus the container
+fixes in `82298ce` (the two commits that close out the round are these plus the
+documentation update you are reading). Anything that could not be
+verified is marked **NOT RUN** with the reason. Nothing here is copied from memory
+or from an earlier document; where an old document disagreed with the measurement,
+the disagreement and its disposition are recorded in Section 9.
 
 ---
 
 ## Executive summary
 
 1. Repository: `shaikmohammedyasin-create/hhgoa-sentinel-console` (private), branch
-   `nebius-submission`, HEAD `fd60457`, 83 commits, 193 tracked files, MIT licence.
-   Only remote is `origin`; the retired upstream repo is not referenced.
-2. Automated tests: **278 passed, 9 skipped** in 14.14 s. Skips are 6 live-TigerGraph
+   `main`, 94 commits, 220 tracked files, MIT licence. Measurements were taken on
+   `e08181a`, plus the container fixes in `82298ce`. Only remote is `origin`; the
+   retired upstream repo is not referenced.
+2. Automated tests: **290 passed, 9 skipped** in 16.27 s. Skips are 6 live-TigerGraph
    tests (no host configured) and 3 approval tests conditional on a pending approval.
-3. UI gates: `tsc --noEmit` clean; `next build` produced 6 routes. No linter is
-   installed or configured, so lint is **NOT RUN** (Section 2).
+3. Gates that did not exist before now exist and pass: `ruff check` clean,
+   `eslint . --max-warnings=0` exit 0, `tsc --noEmit` clean, `next build` 6 routes,
+   browser suite **33/33** hosted and **32/32** against the container.
 4. Evaluation (offline, deterministic engine): verdict **20/20**, pattern **20/20**
-   against `cases/ground_truth.json`, reproduced today after seeding the app DB.
-   This is fidelity, not generalisation — the same rule set produced both sides.
-5. Baseline weakness, measured today: a single `risk_score` threshold reaches
-   **F1 = 1.0 at 0.70** on this synthetic pack. The graph-evidence layer has not
-   been shown to beat that on this data.
+   against `cases/ground_truth.json`, tp 15 / fp 0 / tn 5 / fn 0, 600/600 evidence
+   checkpoints. This is fidelity, not generalisation — the same rule set produced both
+   sides.
+5. Baseline weakness, measured: a single `risk_score` threshold reaches **F1 = 1.0 at
+   0.70** on this synthetic pack. The graph-evidence layer has not been shown to beat
+   that on this data.
 6. Live Nemotron path: **NOT RUN** — no `NEBIUS_API_KEY` in this environment.
    `/api/llm/status` reports `available: false`, 0 calls. The 60% verdict / 85%
-   pattern live figures remain prior committed evidence, not a today measurement.
-7. Local single-URL demo works: UI 200, static assets 200, API 200, unknown 404.
-   Demo-mode replay from an empty database was verified (200 for a committed case,
-   404 in strict mode).
-8. **Blocker 1:** the console requests `GET /api/investigations/{id}`, which does
-   not exist on the backend. Every case opens with an empty **CASE FILE** tab
-   ("No answer file for this case yet"), a 404 in the console, and ASK gated behind
-   "Run the case first."
-   One-line fix, Section 9.
-9. **Blocker 2:** the public link `https://sentinel-ui-nu.vercel.app` serves the UI
-   (200) but every backend call is 404. It is a UI-only deployment, not a working demo.
-10. **Verdict: NOT READY** to submit as-is. Both blockers are small, but as of this
-    report the thing a judge would click is broken. Docker build was **NOT RUN**
-    (daemon down), so the container path is documented but unproven today.
+   pattern live figures remain prior committed evidence, not a measurement made here.
+   The live code path also had a real defect (an unbound local that broke every
+   successful call); it is fixed, and that fix is code-verified rather than
+   key-verified.
+7. Hosted demo: **works**, at `https://sentinel-ui-nu.vercel.app`. It is a *recorded
+   replay*, not a live engine: the console reads a committed 20-case snapshot and says
+   so in the masthead. The browser suite passes 33/33 against that URL, including the
+   label assertion and "a case is open on arrival".
+8. **The two blockers from the review round are closed.** The case file loads (the
+   `/api` route is aliased to the same handler), and the public link is a functioning
+   demo. Both are covered by tests, not by inspection.
+9. Container path **works**: `docker compose build` exit 0 (983 MB), container
+   healthy, `prepare_data` rebuilds the store in 3.2 s, `/` and `/cases/CASE-004`
+   serve HTML on `:8008`, the alias returns the answer file, and the suite passes
+   **290 passed / 9 skipped on Python 3.12.15 inside the image**.
+10. **Verdict: READY to submit**, with the limits stated here rather than buried:
+    nothing keyed was measured in this environment (Section 3), and the demo video
+    and Devpost entry are still to be produced (Section 7, rows 8-9).
 
 ---
 
@@ -49,10 +58,10 @@ with today's measurement, the disagreement is recorded in Section 9.
 | `pwd` | `C:\Users\ghi26\AppData\Local\Temp\opencode\hhgoa-scrubbed` |
 | `git remote -v` | `origin https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git` (fetch+push) |
 | Retired upstream remote | absent (single remote) |
-| Branch / HEAD | `nebius-submission` / `fd604572c09c55ef2bc21ad6ff7a1f27b615bf16` |
-| Commits | 83 |
-| First / last commit | `a50e635` 2026-09-19 / `fd60457` 2026-10-23 |
-| Tracked files | 193 |
+| Branch / HEAD | `main` / `e08181a` + container fixes `82298ce` |
+| Commits | 94 (last is this documentation update) |
+| First / last commit | `a50e635` 2026-09-19 / 2026-10-24 |
+| Tracked files | 220 |
 | Working tree | clean (verified again after every check below) |
 | Licence | MIT, "Copyright (c) 2026 Mohammed Yasin Shaik" |
 
@@ -79,14 +88,16 @@ data/synthetic/transactions.csv
    84,226  frontend/js/app.js
 ```
 
-**Secret scan:** `git grep -nIE` for `sk-…`, `nvapi-…`, `AKIA…`, `ghp_…`, and
-private-key headers over all tracked files returned **0 hits**. An email-address
-scan over tracked files returned **0 hits**. `.env` is not tracked; only
-`.env.example` files are.
-
-**gitleaks: NOT RUN** — binary not installed in this environment
-(`Get-Command gitleaks` → absent). The git-grep scan above is weaker than
-gitleaks; it does not catch high-entropy strings outside those patterns.
+**Secret scan:** `gitleaks` **was run** — v8.30.1, full git history
+(`gitleaks git . --redact`): **92 commits, 9.21 MB scanned, 0 findings**, exit 0.
+A pattern pass over the 219 tracked files (`nvapi-…`, `sk-…`, `ghp_/gho_/ghs_…`,
+`AKIA…`, `xox…`, private-key headers, JWT-shaped strings) also returned **0
+hits**. `.env` is not tracked; only `.env.example` files are.
+`sentinel-ui/.env.local` — which the Vercel CLI wrote with a short-lived OIDC
+token — is gitignored, untracked (`git ls-files` confirms), never committed, and
+listed in `sentinel-ui/.vercelignore` so a deployment cannot upload it. The
+published demo snapshot (21 files, 966 KB) was scanned separately for absolute
+paths and usernames: **0 hits**.
 
 **Provenance risk accepted and recorded:** `sentinel-ui/NOTICE.md` states the UI
 was derived from an unlicensed upstream project; the licence posture is
@@ -100,20 +111,26 @@ Commands run from the repo root unless noted; Python is the project venv.
 
 | Gate | Command | Result |
 |---|---|---|
-| Python tests | `python -m pytest -q` | **278 passed, 9 skipped**, 277 warnings, 14.14 s |
+| Python tests | `python -m pytest -q -rs` | **290 passed, 9 skipped**, 16.27 s |
 | Skip census | `python -m pytest -q -rs` | 6 × "TigerGraph host not configured", 3 × "case produced no pending approvals" |
+| Python lint | `ruff check backend scripts tests` | **clean** — `select = [E9, F, I]` in `pyproject.toml` |
 | UI types | `cd sentinel-ui && npx tsc --noEmit` | clean, exit 0 |
-| UI build | `node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build` | success, 6 routes (`/`, `/_not-found`, `/approvals`, `/benchmark`, `/cases/[caseId]`, `/ring`), first-load JS 133 kB |
-| Python lint | `python -m ruff --version` | **NOT RUN** — no ruff in the venv, no `[tool.ruff]` config |
-| UI lint | `npm run lint` | **NOT RUN** — no `eslint` config file and no local eslint binary; `next build` does not lint |
-| Docker build | `docker build .` | **NOT RUN** — daemon unreachable (`npipe:////./pipe/dockerDesktopLinuxEngine` missing) |
+| UI lint | `npx eslint . --max-warnings=0` | **0 errors, 0 warnings**, exit 0 |
+| UI build | `node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build` | success, 6 routes (`/`, `/_not-found`, `/approvals`, `/benchmark`, `/cases/[caseId]`, `/ring`), shared JS 103 kB |
+| Browser suite | `BASE=… SNAPSHOT=1 node e2e/smoke.mjs` | **33/33 checks**, run twice locally and again against the deployed URL |
+| Docker build | `docker compose build` | **success**, image 983 MB, exit 0 |
+| Container tests | `docker exec hhgoa-demo python -m pytest -q -rs` | **290 passed, 9 skipped** in 5.33 s on **Python 3.12.15** (same nine skips) |
+| Container browser suite | `BASE=http://127.0.0.1:8008 node e2e/smoke.mjs` | **32/32 checks**, zero console errors (the snapshot-only assertions are skipped in live mode) |
 
-Toolchain actually used: **Python 3.14.5**, **Node v24.15.0**, Windows 11.
-The Dockerfile pins Python 3.12 and Node 20, so the container stack is *not* the
-tested stack.
+Toolchain used on the host: **Python 3.14.5**, **Node v24.15.0**, Windows 11.
+The image pins Python 3.12 / Node 20, so the same suite was also run inside the
+built image: 290 passed / 9 skipped on **3.12.15**, and `npm ci` + `next build`
+under **node:20-slim** completed as part of the image build. The skew is now
+covered rather than merely disclosed.
 
-Warning: the full test suite can rewrite `cases/*.json`. It did not this run
+Warning: a full test run can rewrite `cases/*.json`. It did not this run
 (`git status` stayed clean afterwards), but treat it as a hazard when re-running.
+Inside the container the rewrite is harmless — it happens in a copy, not the tree.
 
 ---
 
@@ -149,6 +166,14 @@ The committed `cases/_benchmark_report.json` and `cases/*.json` carry token coun
 from earlier keyed runs (e.g. CASE-004 classifier: 1,181 prompt / 927 completion
 tokens). Those are **prior artifacts**, not measured today.
 
+**A defect in this path was found and fixed while adding the lint gate.** In
+`backend/llm/nebius_client.py`, `latency_ms` was referenced inside the usage dict
+before the line that assigned it, so every *successful* live call raised
+`UnboundLocalError` and fell through to the deterministic fallback — the failure was
+invisible without a key because the early return happens first. No test covered the
+success path, which is why it survived. Fixed in `ef01602`; the live path is still
+**NOT RUN** here, so the fix is code-verified, not key-verified.
+
 ---
 
 ## 4. Product features — what actually responds
@@ -169,10 +194,10 @@ prepared synthetic store: 12,235 transactions).
 | `POST /api/cases/CASE-004/ask` | 200, deterministic fallback (no key) |
 | `POST /investigations/CASE-004/run?force=true` | 200 for all 20 cases; final `legitimate`/`fraud` reproduced per case |
 | `POST /investigations/CASE-004/approvals/{id}` | approved; `decided_at` + `approver` persisted; item leaves the pending list |
-| `GET /api/investigations/CASE-004` | **404 — route does not exist** (Blocker 1) |
+| `GET /api/investigations/CASE-004` | 200, 6,758 B — identical body to the unprefixed route (issue 1) |
 | `GET /benchmark/report` | 200, committed prior benchmark artifact (20 cases, 457 s) |
-| `GET /benchmark/checkpoints` | **404 — no checkpoint report artifact committed** |
-| `POST /api/reprove` | 200 but always `rows: 0`, `ok: true` (issue 3) |
+| `GET /benchmark/checkpoints` | **404 — no checkpoint artifact is committed**; the 600/600 figure comes from a generated report, and the endpoint says so rather than inventing one |
+| `POST /api/reprove` | honest now (issue 3): unknown query → `ok:false`; a known query that returns nothing → `ok:true, reproduced:false` with the reason |
 
 **Demo-mode replay verified from an empty database** (`APP_DB` pointed at a fresh
 file, `DEMO_MODE=1`): `GET /investigations/CASE-004` → 200 served from the
@@ -180,20 +205,43 @@ committed answer file; `GET /investigations/CASE-999` → 404. With `DEMO_MODE=0
 and the same empty database: `GET /investigations/CASE-004` → **404**, so strict
 mode is not silently permissive.
 
-**Single-URL co-hosting verified** (API on 8012 with `UI_PORT=3001`, Next
-standalone on 3001): `/` 200 `text/html`, `/favicon.svg` 200, `/approvals` 200,
-`/benchmark` 200, `/ring` 200, `/api/cases` 200, `/unknown-route-xyz` 404.
-Deep link `/cases/CASE-004` returns **`application/json`** instead of the page —
-see issue 4.
+**Re-prove honesty, probed directly** (`POST /api/reprove` on the running service):
 
-**Browser check** (headless Chromium, 1440×900): queue 22 buttons, 20 cases,
-masthead renders "SENTINEL · demo mode · committed cases · nemotron unavailable",
-palette `--bg: #f7f4ef` holds under a dark OS preference, the graph pane renders
-(its footer reports 12 nodes / 18 links; 59 SVG node elements counted), a fraud
-case shows verdict/exposure/ring strip. Console noise on case open is exactly one
-404: `/api/investigations/CASE-011` — Blocker 1, not an isolated glitch. The CASE
-FILE tab itself renders "No answer file for this case yet." and ASK is gated with
-"Run the case first." for a case the queue already scores as FRAUD.
+```
+query:definitely_not_a_query(x=1)
+  ok=False  reproduced=False  "Unknown graph query … cannot be re-proved."
+query:card_transaction_history(card_id=1)
+  ok=True   reproduced=False  "Re-executed get_card_transaction_history: ran but
+                               returned no rows, so the cited evidence was not
+                               reproduced."
+query:accounts_sharing_device(device=desktop)
+  ok=True   reproduced=False  same shape, device alias mapped to device_label
+```
+
+`ok` means the request was understood; `reproduced` means the cited evidence came
+back. Only the second is a claim about evidence, and it is no longer automatic.
+
+**Single-URL co-hosting verified** (API on 8010 with the UI proxy engaged):
+`/` 200 `text/html`, `/favicon.svg` 200, `/approvals` 200, `/benchmark` 200,
+`/ring` 200, `/api/cases` 200, `/unknown-route-xyz` 404. Deep link
+`/cases/CASE-004` is **content-negotiated** (issue 4): with
+`Accept: text/html` it returns the page (15,522 B, `text/html`), so refresh and
+bookmark work. With `Accept: application/json` it returns the *stored case memory* —
+200 (17,280 B) on a store where that case has been run, and a 404 naming the reason
+on a freshly built container where it has not. The answer file lives at
+`/investigations/{id}`, and on a clean container both `/investigations/CASE-004` and
+`/api/investigations/CASE-004` still return it (8,096 B) from the committed case
+files via the demo fallback.
+
+**Browser check** (`sentinel-ui/e2e/smoke.mjs`, real Chromium, against the standalone
+build and again against the deployed URL): 33/33 checks, **zero console errors**.
+The queue lists 20 cases and a case is **open on arrival** — the earlier build landed
+on an empty pane, and that assertion is what caught it. The case file renders its
+verdict grid and evidence ledger, the timeline shows 16 events, the subgraph draws 16
+nodes with a focus ring, the pack lists all 20 cases with a "recorded run" banner,
+and the ring screen states the missing capability. The masthead reads
+`static snapshot · recorded run` on the hosted build and `demo mode · committed cases`
+with `nemotron unavailable` locally, so the data source is never implied.
 
 ---
 
@@ -236,21 +284,60 @@ mismatch unless the difference is explained.
 | Path | Status |
 |---|---|
 | Local native run (API + standalone UI + proxy) | **verified today** (Section 4) |
-| `docker compose up --build` → `http://localhost:8008` | **NOT RUN** — Docker daemon down |
-| Vercel `https://sentinel-ui-nu.vercel.app` | UI 200; `/api/cases` 404; `/health` 404; `/cases/CASE-004` 200; `/approvals` 200 → **UI-only, not a working demo** |
+| `docker compose up --build` → `http://localhost:8008` | **verified today**: `docker compose build` exit 0 (983 MB image), container reports **healthy**, and the probes below all behave |
+| Vercel `https://sentinel-ui-nu.vercel.app` | **verified today**: `/` 200 (6,622 B), `/demo/index.json` 200 (40,985 B), `/cases/CASE-004` 200 `text/html`, `/benchmark` 200, `/ring` 200; **33/33** browser checks pass against the live URL including "labels itself a static snapshot" and "a case is open" |
 | Live Nemotron cost per case | **NOT RUN** — no calls made |
 | Demo-mode cost | zero by construction; confirmed `calls_logged: 0` |
 
-Container wiring was reviewed but not executed: `Dockerfile:59-61` copies
-`.next/standalone`, `.next/static` and `public` into the runtime image — the exact
-step whose absence caused the earlier white screen. `scripts/docker_entrypoint.sh`
-then starts Node on 3000, exports `UI_PORT=3000`, and execs uvicorn on 8000;
-`docker-compose.yml` maps 8008→8000 and sets `DEMO_MODE=1`, `GRAPH_BACKEND=local`.
+The container path was built and booted, not just read:
 
-Because the build was not run in Docker, these remain **unproven**:
-`npm ci` + `next build` inside `node:20-slim`, `pip install -r requirements.txt`
-under Python 3.12, `prepare_data` on container paths, and the 40 s healthcheck
-`start_period`.
+```
+docker compose build        -> EXIT=0, image hhgoa-scrubbed-app 983 MB
+docker compose up -d        -> hhgoa-demo healthy (start_period 40 s respected)
+docker exec hhgoa-demo python --version -> Python 3.12.15
+```
+
+`prepare_data` ran on container paths and rebuilt the store from the synthetic CSVs
+in 3.2 s (`12,235` transactions, `4,201` identity rows, `28` closed cases, `20`
+case-pack rows). `scripts/docker_entrypoint.sh` then started Next standalone on
+3000 and uvicorn on 8000; the FastAPI proxy serves the console on the same port.
+
+Probed from the host against `http://127.0.0.1:8008`:
+
+| Path | Result |
+|---|---|
+| `/health` | 200 JSON, 210 B |
+| `/api/cases` | 200 JSON, 6,631 B (20 cases) |
+| `/api/llm/status` | 200 JSON, `available: false`, `calls_logged: 0` — demo mode, no key, no paid calls |
+| `/api/investigations/CASE-004` | 200 JSON, 8,096 B — the alias works in the container too |
+| `/investigations/CASE-004` | 200 JSON, 8,096 B — byte-identical to the alias |
+| `/` | 200 `text/html`, 6,622 B |
+| `/cases/CASE-004` (`Accept: text/html`) | 200 `text/html`, 16,053 B — deep link works |
+| `/favicon.svg`, `/benchmark`, `/ring` | 200 |
+| `/unknown-route-xyz` | 404 JSON |
+
+The browser suite run against that container passes **32/32** with zero console
+errors; the 33rd assertion is snapshot-only and is correctly skipped in live mode.
+The full pytest suite passes inside the image on Python 3.12.15 (Section 2).
+
+Two honest notes about the container:
+
+- **`tests/` and `docs/` are excluded by `.dockerignore`**, so pytest is not
+  installed-in-place: the suite was copied in with `docker cp tests`,
+  `docker cp pyproject.toml` before running. The image is a runtime image, not a
+  test image.
+- **`sentinel-ui/.env.local` no longer enters the build context.** A bare
+  `.env.*` pattern only matches the context root, so the Vercel CLI's
+  short-lived OIDC token was being copied into the UI build stage and loaded by
+  `next build` (`Environments: .env.local` in the log). `.dockerignore` now uses
+  `**/.env*` with `!**/.env.example`; the rebuild log has no `Environments:` line
+  and `find / -name '.env*'` inside the built image returns nothing.
+
+`/cases/<id>` returns the *stored* case memory, which on a freshly-built container
+is a 404 with the reason (`Case CASE-004 not found in app state or graph`) because
+no case has been run yet in that instance. The HTML branch is unaffected — that is
+the branch issue 4 was about — and `/investigations/<id>` is the endpoint that
+serves the committed answer file in demo mode.
 
 Budget/cost controls are code-verified, not load-tested: per-IP hourly limiter,
 global daily cap, demo answer cache, JSONL call log (`docs/DEPLOY.md:49-56`).
@@ -262,17 +349,17 @@ No dollar figure is asserted in this report because none was measured today.
 
 | # | Item | Status | Evidence / gap |
 |---|---|---|---|
-| 1 | Public or judge-accessible repo with code | **DONE (private)** | `hhgoa-sentinel-console`, branch `nebius-submission`; must be made public or shared with judges |
+| 1 | Public or judge-accessible repo with code | **DONE (private)** | `hhgoa-sentinel-console`, default branch `main`; must be made public or shared with judges |
 | 2 | MIT licence in repo | **DONE** | `LICENSE`, MIT, 2026 |
-| 3 | Runnable instructions | **DONE (unproven)** | README + `docs/DEPLOY.md`; Docker path **NOT RUN** today |
-| 4 | Working hosted demo link | **NOT DONE** | Vercel serves UI only; every API call 404s |
-| 5 | Console opens a case and shows the case file | **NOT DONE** | Blocker 1 — CASE FILE tab empty on every case |
+| 3 | Runnable instructions | **DONE** | README + `docs/DEPLOY.md`; `docker compose build` exit 0, container healthy, 32/32 browser checks against it (Section 6) |
+| 4 | Working hosted demo link | **DONE** | `https://sentinel-ui-nu.vercel.app` — recorded-snapshot console, 33/33 browser checks against production; labelled `static snapshot · recorded run` |
+| 5 | Console opens a case and shows the case file | **DONE** | Case opens on arrival; verdict grid + evidence ledger asserted in the smoke suite, and the `/api` alias pinned by `test_contract_fixes.py` |
 | 6 | Nemotron + Nebius used at runtime | **PARTIAL** | Code path complete; no key present, so 0 live calls this session |
 | 7 | Benchmark numbers that survive a re-run | **PARTIAL** | 20/20 and F1 1.0 reproduce; live 60%/85% cannot be re-run without key + original data |
 | 8 | Demo video | **NOT DONE** | No recording in repo; needs a browser pass after Blocker 1 |
 | 9 | Devpost write-up | **NOT DONE** | Section 8 is the fact sheet to write from |
-| 10 | Delete or correct stale claims | **NOT DONE** | Section 9 issue 5 (test counts, 600/600 checkpoints, static-frontend wording) |
-| 11 | No secrets / no third-party data in tree | **DONE** | Section 1; gitleaks itself **NOT RUN** |
+| 10 | Delete or correct stale claims | **DONE** | Section 9 issue 5: six documents rewritten from a fresh capture; unrerunnable claims labelled **recorded**, not verified |
+| 11 | No secrets / no third-party data in tree | **DONE** | Section 1: gitleaks full history, 92 commits, 0 findings; only synthetic CSVs tracked |
 | 12 | Free to run until 15 Dec 2026 | **DONE** | Demo mode needs no key and makes no paid calls |
 
 ---
@@ -283,11 +370,11 @@ No dollar figure is asserted in this report because none was measured today.
 |---|---|
 | Project name | Sentinel Graph — Agentic Fraud Investigation |
 | One-liner | Graph-grounded fraud investigations where NVIDIA Nemotron proposes and a deterministic policy engine decides. |
-| Repo | `https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console` (branch `nebius-submission`) |
-| Live demo | Not yet valid — UI-only Vercel deploy; local `docker compose up --build` → `:8008` |
+| Repo | `https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console` (branch `main`) |
+| Live demo | `https://sentinel-ui-nu.vercel.app` — console replaying a recorded 20-case run from a committed snapshot; every screen loads, and the two endpoints that need a live engine say so instead of faking a result |
 | Built with | Python 3.11+/FastAPI, SQLite graph store (TigerGraph-compatible traversal), Next.js 15 console, Nebius Token Factory, NVIDIA Nemotron 3 Nano / Super / Ultra |
 | Data | 100% synthetic, regenerable: 12,235 transactions, 4,201 identity records, 20 investigation cases, 28 closed cases (row counts verified today) |
-| Tests | 278 passed, 9 skipped (6 TigerGraph-live, 3 approval-conditional) |
+| Tests | 290 passed, 9 skipped (6 TigerGraph-live, 3 approval-conditional) |
 | Engine fidelity | verdict 20/20, pattern 20/20 (self-consistency on the synthetic pack) |
 | Honest baseline | risk-threshold-only F1 1.0 @ 0.70 — the graph layer is not yet shown to add lift on this pack |
 | Live Nemotron result | prior committed: 60% verdict / 85% pattern on the original dataset; not re-measured |
@@ -296,72 +383,126 @@ No dollar figure is asserted in this report because none was measured today.
 
 ---
 
-## 9. Open issues, by severity
+## 9. Issues found in the review round — disposition
 
-**1 — BLOCKER: the case file never loads.**
-`sentinel-ui/src/lib/api.ts:106` calls `GET /api/investigations/${id}`. The backend
-has no such route (only `/api/investigations/{id}/full`, `/graph`, `/risk`, plus
-`/investigations/{id}` at `backend/main.py:161`). Result: 404 on every case, CASE
-FILE tab renders "No answer file for this case yet", ASK disabled. The shape already
-matches — `/investigations/{id}` returns exactly the `AnswerFile` interface.
-Fix (either): add an alias route mirroring the demo-fallback handler at
-`backend/main.py:161-182`, or change the client to `/investigations/${id}`.
-Not fixed here: this run was scoped to verification only.
+Ten issues were raised against the previous revision. Nine are fixed, with the fix
+and its evidence named. One remains open because it needs something this
+environment does not have — an API key — and it is listed as open rather than
+downgraded.
 
-**2 — BLOCKER: the public link is not a demo.**
-`sentinel-ui` is same-origin; on Vercel there is no backend, so `/api/cases` 404s
-and the queue is empty. Fix: deploy FastAPI somewhere reachable and point
-`NEXT_PUBLIC_API_BASE` at it (the client honours it), or drop the live-link claim
-and ship the container as the demo surface.
+**1 — FIXED (was BLOCKER): the case file never loaded.**
+The console calls `GET /api/investigations/{id}`; the backend only had the
+unprefixed route. Both paths now share one handler in `backend/main.py`, so they
+cannot drift, and the demo-fallback logic is not duplicated.
+*Evidence:* `tests/integration/test_contract_fixes.py` pins the alias (13 tests in
+the file); every case in the browser suite opens with a populated case file.
 
-**3 — HIGH: re-prove always claims success.**
-`backend/main.py:305` guards with `hasattr(qrouter, query_name)`. Evidence refs are
-emitted as `query:card_transaction_history(...)` but the router exposes
-`get_card_transaction_history` (`backend/graph/query_router.py`), so the branch never
-runs — and because the miss is not an exception, the response is `ok: true`,
-`rows: 0`, note "evidence verified reproducible". Verified with three refs, including
-a deliberately fake query name: all three returned `ok: true`. A trust feature that
-always says "verified" is worse than no feature. Fix: return `ok: false` when the
-query name is unknown, and map the ref names to the real functions.
+**2 — FIXED (was BLOCKER): the public link was not a demo.**
+`sentinel-ui` is same-origin and there is no FastAPI process next to the static
+deployment. Rather than deploy Python (the Vercel root is `sentinel-ui/`) or drop
+the link, the console now runs against a committed snapshot:
+`scripts/export_ui_demo.py` writes the 21 real responses to
+`sentinel-ui/public/demo/`, and `NEXT_PUBLIC_DEMO_DATA=1` makes the client replay
+them. The two endpoints that need a live engine — running the benchmark and
+analyst Q&A — refuse and say why instead of returning a fabricated result, and the
+masthead reads `static snapshot · recorded run` rather than claiming a health
+check that does not exist.
+*Evidence:* Section 6; browser suite in `SNAPSHOT=1` mode asserts the labels.
 
-**4 — MEDIUM: case deep links return JSON on the single-URL demo.**
-`_API_PREFIXES` reserves `/cases/` (`backend/main.py:1009-1012`), and the API route
-`/cases/{case_id}` is registered first, so `GET /cases/CASE-004` on `:8012` returns
-`application/json`. Client-side navigation works; refresh or bookmark breaks. Fix:
-move the UI route to `/case/[caseId]`, or proxy `/cases/<id>` to the UI when the
-request accepts HTML.
+**3 — FIXED (was HIGH): re-prove always claimed success.**
+`reprove_query` resolved nothing and still returned `ok: true`, `rows: 0`, "evidence
+verified reproducible" — a trust feature that always says "verified". It now
+resolves `get_`-prefixed names, maps `device` to the stored `device_label`, coerces
+parameter types, and returns `ok: false` with `reproduced: false` and a written
+reason when a reference names an unknown query or omits required parameters.
+*Evidence:* `test_contract_fixes.py` covers a real ref, an unknown query name and an
+under-specified ref; the last two assert `ok is False`.
 
-**5 — MEDIUM: documents disagree with today's measurements.**
-`docs/TECHNICAL_VALIDATION.md:5-6` claims "257 / 257 Passed" and "600 / 600
-checkpoints"; today is 278 passed / 9 skipped, and no checkpoint artifact is
-committed (`/benchmark/checkpoints` → 404). The same file reports 19/20 verdict and
-15/20 NBA, while README and `docs/BENCHMARK.md` claim 20/20. `docs/DEMO.md:76`
-instructs the presenter to say "20/20 cases, 600/600 checkpoints, verified by a
-257-test suite" — two of those three numbers do not reproduce. `docs/DEPLOY.md:14-25`
-still describes a static frontend and a `llm_answer_cache.json` replay, but the
-frontend is a Next standalone server and demo mode serves the committed case files.
-Regenerate or delete these pages before submission.
+**4 — FIXED (was MEDIUM): case deep links returned JSON.**
+`GET /cases/CASE-004` on the single-URL demo hit the API route because `/cases/` is
+a reserved prefix. The handler now sniffs `Accept:` and hands an HTML request to the
+UI proxy, through an extracted `_proxy_to_ui` helper shared with the catch-all, so
+refresh and bookmark work.
+*Evidence:* `test_contract_fixes.py` asserts HTML and JSON for the same path.
 
-**6 — MEDIUM: no lint gate.**
-No ruff, no eslint config, no local eslint binary. Tests and types pass; style is
-unenforced. Either add configs or stop implying a lint gate exists.
+**5 — FIXED (was MEDIUM): documents disagreed with the measurements.**
+`docs/TECHNICAL_VALIDATION.md`, `docs/DEMO.md`, `docs/DEPLOY.md`,
+`docs/FEEDBACK_NOTES.md`, `docs/BENCHMARK.md` and the README were rewritten from a
+fresh capture, with the command beside every number. Claims that cannot be re-run
+here — the live-model 60%/85%, the TigerGraph cloud schema — are labelled
+**recorded**, not verified, and appear in a "what is not verified" table. The
+`257 / 257` and `278` test counts are gone; the static-frontend wording is gone;
+the `llm_answer_cache.json` claim is corrected (it is a gitignored runtime artifact,
+not something a fresh clone contains).
+*Evidence:* `git grep -n "257\|278 passed"` returns nothing; commit `e08181a`.
 
-**7 — LOW: browser smoke suite cannot run as written.**
-`npm run smoke` fails before any assertion: Playwright expects
-`chromium_headless_shell-1148`, only `chromium-1248` is cached, and
-`e2e/smoke.mjs:25` has no `executablePath` override. Its masthead assertion
-(`getByText("SENTINEL", {exact: true})`) also no longer matches the header markup.
-The ad-hoc Chromium pass in Section 4 used the cached binary directly.
+**6 — FIXED (was MEDIUM): no lint gate.**
+Python: a deliberately narrow ruff gate (`select = [E9, F, I]`, line-length 100) —
+real defects, not a style war. It found 14 dead stores and one unbound local in the
+live LLM path (Section 3). UI: eslint 9 with `next/core-web-vitals` and
+`next/typescript`, gated at `--max-warnings=0`, replacing the `next lint` script
+that Next 15 had removed.
+*Evidence:* `ruff check backend scripts tests` → `All checks passed`;
+`npx eslint . --max-warnings=0` → exit 0; `tsc --noEmit` → exit 0.
 
-**8 — LOW: benchmark artifact implies a latency the demo will not show.**
-`cases/_benchmark_report.json` is a committed LLM-path run (12–35 s/case). Demo mode
-answers in ~0.4 s. Label the file as a live-run artifact in the UI, or state the
-distinction on the benchmark screen.
+**7 — FIXED (was LOW): the browser suite could not run.**
+`e2e/smoke.mjs` was rewritten against the DOM that actually ships and now resolves a
+browser by `CHROME_PATH`, then the newest cached `chromium-*`, then the bundled
+revision — the pin is what made it unrunnable. Missing controls now name the
+selector instead of throwing a bare TypeError, which is how the empty-pane defect
+below was found.
+*Evidence:* 33/33 checks, twice, against the standalone build.
 
-**9 — LOW: environment skew.**
-Verified on Python 3.14.5 / Node 24; Docker pins 3.12 / Node 20. Consider running
-the suite once inside the container to close the gap (blocked today: daemon down).
+**8 — FIXED (was LOW): the benchmark artifact implied a latency the demo will not
+show.**
+The pack view now carries a banner stating that these figures were measured on a
+keyed run and are being replayed, so the page's own response times are not the
+engine's. It also names the command that reproduces them — which was itself wrong in
+the first draft of the fix (`python -m scripts.run_benchmark` does not exist;
+corrected to `python -m backend.evaluation.run_benchmark`, and the built chunks were
+grepped to confirm the stale string is gone).
+*Evidence:* `PACK SNAPSHOT ROW` assertion in the smoke suite.
 
-**10 — UNVERIFIED, not a defect:** gitleaks, Docker build, and every keyed Nemotron
-measurement. Install the tool / start the daemon / supply a key before claiming them
-in the submission.
+**9 — FIXED (was LOW): environment skew.**
+The suite was verified on Python 3.14.5 / Node 24.15.0 while the image pins 3.12 /
+Node 20. Both sides are now measured: `npm ci` + `next build` complete inside
+`node:20-slim` as part of the image build, and the full suite runs **290 passed,
+9 skipped in 5.33 s on Python 3.12.15** inside the built container
+(`docker exec hhgoa-demo python -m pytest -q -rs`). A container-side test run is not
+the same as a container-side *deployment* test, so Section 6 also probes the running
+container and drives it with the browser suite.
+
+**10 — HALF CLOSED: unverified third-party claims.**
+`gitleaks` is no longer a gap: v8.30.1 was downloaded and run over the full history
+(92 commits, 9.21 MB, **0 findings**), so the secret-scan claim is now a tool result
+rather than a pattern pass. What remains genuinely unrun is every keyed Nemotron
+measurement — there is no `NEBIUS_API_KEY` in this environment — and that is stated
+wherever those numbers appear, including Section 3 and `docs/BENCHMARK.md`.
+
+### Defects found while fixing the above
+
+These were not on the original list and were found by driving the build:
+
+- **Unbound local in the live LLM path** (`backend/llm/nebius_client.py`):
+  `latency_ms` was read in the usage dict before it was assigned, so every
+  *successful* live Nemotron call would have raised and silently fallen back. No test
+  covered that path without a key. Fixed and committed (`ef01602`).
+- **A policy gate with no enforcement** (`backend/policies/engine.py`): R10 only
+  admits `BLOCK_ALL_CARDS` when two or more connected cards show confirmed fraud, but
+  the rule held only because nothing emitted the action. It is now filtered out when
+  the precondition fails, so a future emitter cannot bypass it (`57e712b`).
+- **The console opened with an empty right pane**: nothing selected the first queue
+  row on arrival, so a visitor had to click before seeing anything. Fixed
+  (`ea562e0`), and the smoke suite now asserts a case is open on load.
+- **A secret entering the image build context** (`.dockerignore`): a bare
+  `.env.*` pattern only matches the context root, so `sentinel-ui/.env.local` — the
+  file the Vercel CLI writes with a short-lived OIDC token — was copied into the UI
+  build stage and loaded by `next build` (`Environments: .env.local` in the log).
+  Fixed with `**/.env*` / `!**/.env.example`; the rebuilt image contains no
+  `.env*` file at all.
+- **A build that fails on a slow connection** (`Dockerfile`): `pip install` with the
+  default 15 s read timeout aborted the build against PyPI on this machine
+  (`ReadTimeoutError` at ~350 s). Now `--default-timeout=120 --retries 5`, because a
+  judge on a worse connection than mine should not hit it.
+- **A wrong command in the UI** (`python -m scripts.run_benchmark`), described under
+  issue 8.

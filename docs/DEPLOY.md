@@ -90,6 +90,20 @@ vercel --prod
 The full backend-connected experience is the Docker image above; the Vercel
 URL is a read-only replay of it.
 
+**Operational hazard, documented rather than hidden:** the Vercel project
+(`prj_lFoevNwIqkBZEd99A4MvKDEamJho`, team `team_uAtXXJKvXhHJMjkrVZroN8lZ`) is
+still Git-linked to the **retired** repository
+`HHGoa26-Agentic-Fraud-Investigation` with `productionBranch: main`, because
+re-pointing it at `hhgoa-sentinel-console` through the API returns HTTP 400 —
+the Vercel GitHub app has not been granted access to the private submission repo.
+Consequence: production is deployed by CLI only, and a push to that old repo's
+`main` would auto-deploy pre-fix code over the live demo. The submission repo is
+never pushed to that remote. To remove the footgun entirely, unlink it in the
+Vercel dashboard (Project → Settings → Git) or grant the GitHub app access to
+`hhgoa-sentinel-console` and relink with `rootDirectory: sentinel-ui`.
+`sentinel-ui/.vercelignore` keeps `.env.local` (a short-lived Vercel OIDC token)
+out of every upload.
+
 ## Local (no Docker) quickstart
 
 ```bash
@@ -123,3 +137,5 @@ Environment variables are documented in `.env`.
 | `llm_used=false` / `nemotron unavailable` everywhere | No `NEBIUS_API_KEY` in the environment. Demo runs stay deterministic; add the key and set `DEMO_MODE=0` for live calls. |
 | `daily credit cap reached` responses | Capped at `LLM_DAILY_CALL_CAP` calls; the app keeps running deterministically. |
 | Port busy | `ports: "9000:8000"` in compose, then open `:9000`. |
+| `:8008` answers but `/` returns `500 Internal Server Error` and `/api/llm/status` reports calls you did not make | An **older** process is still bound to 8008 and Windows is routing to it, not to the container. This happened during verification: a stale `uvicorn ... --port 8008` from a previous round shadowed the new container. Check with `Get-NetTCPConnection -LocalPort 8008` (Windows) or `lsof -i :8008`, stop the stray process, and confirm with `docker ps` that `hhgoa-demo` owns the port. |
+| Docker build fails with `pip` `ReadTimeoutError` on a slow link | Already mitigated: the Dockerfile uses `--default-timeout=120 --retries 5`. If your network still drops, re-run `docker compose build` — completed layers are cached. |
