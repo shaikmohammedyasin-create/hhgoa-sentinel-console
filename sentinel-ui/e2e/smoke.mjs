@@ -124,6 +124,15 @@ if (SNAPSHOT) {
 
 // ── the queue ────────────────────────────────────────────────────────────────
 check("queue header", await seen(page.getByText("Case queue")));
+// The rail renders before the fetch lands (it says "Loading queue…"), so wait for
+// the rows rather than counting whatever happens to be mounted.
+await page
+  .waitForFunction(
+    () => document.querySelectorAll("aside ul li button").length >= 20,
+    null,
+    { timeout: 20_000 },
+  )
+  .catch(() => {});
 const queueRows = await page.locator("aside ul li button").count();
 check("queue rows", queueRows >= 20, `${queueRows} rows`);
 
