@@ -11,9 +11,9 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.main import app
 from backend import db as app_db
 from backend.agents.orchestrator import run_investigation
+from backend.main import app
 
 
 @pytest.fixture(scope="module")
@@ -126,7 +126,6 @@ class TestInvestigationSummariesEndpoint:
 
     def test_summaries_match_stored_payload(self, client):
         """Summary fields must mirror the persisted InvestigationCase exactly."""
-        payload = app_db.load_investigation("CASE-001")
         r = client.get("/api/investigations/CASE-001/full")
         assert r.status_code == 200
         full = r.json()

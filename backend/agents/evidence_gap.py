@@ -29,15 +29,17 @@ each outcome would produce.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace as dc_replace
+from dataclasses import dataclass, field
+from dataclasses import replace as dc_replace
 from typing import Any
 
-from backend.models import (
-    Action, ApprovalRoute, EvidenceRequestType, FraudPattern, RiskLevel,
-)
-from backend.risk.assessment import EvidenceSignals, compute_fraud_probability
-from backend.policies.engine import PolicyInput, build_recommendations
 from backend.logging import get_logger
+from backend.models import (
+    Action,
+    EvidenceRequestType,
+)
+from backend.policies.engine import PolicyInput, build_recommendations
+from backend.risk.assessment import EvidenceSignals, compute_fraud_probability
 
 log = get_logger(__name__)
 
@@ -221,10 +223,6 @@ def evaluate_candidates(
       { candidate, info_value, decision_relevance, fraud_side_actions,
         legit_side_actions, fraud_side_prob, legit_side_prob }
     """
-    base_actions = _actions_for(
-        sig, exposure_usd, card_testing, shared_origin,
-        connected_fraud_cards, undocumented,
-    )
     scored: list[dict[str, Any]] = []
 
     for cand in build_candidates(
@@ -244,7 +242,7 @@ def evaluate_candidates(
             connected_fraud_cards, undocumented,
         )
         actions_l = _actions_for(
-            sig_l := sig_legit, exposure_usd, card_testing, shared_origin,
+            sig_legit, exposure_usd, card_testing, shared_origin,
             connected_fraud_cards, undocumented,
         )
 

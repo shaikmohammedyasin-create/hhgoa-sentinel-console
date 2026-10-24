@@ -16,11 +16,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from backend.config import settings
-from backend.logging import configure_logging, get_logger
 from backend.agents.orchestrator import run_investigation
-from backend.evaluation.exporter import write_answer_file, case_to_answer
+from backend.config import settings
+from backend.evaluation.exporter import write_answer_file
 from backend.graph import query_router as graph
+from backend.logging import configure_logging, get_logger
 
 configure_logging()
 log = get_logger(__name__)
@@ -48,7 +48,6 @@ def run_all() -> dict:
             # pipeline rather than a cached earlier result.
             case = run_investigation(case_id, force=True)
             write_answer_file(case)
-            answer = case_to_answer(case)
             results.append({
                 "case_id": case_id,
                 "verdict": case.verdict.value,

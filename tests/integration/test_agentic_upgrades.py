@@ -14,23 +14,27 @@ from __future__ import annotations
 from datetime import datetime
 
 import pytest
-from unittest.mock import patch
 
-from backend.config import settings
-from backend.risk.assessment import EvidenceSignals, build_risk_assessment, compute_fraud_probability
-from backend.risk.independence import evidence_families, independent_evidence_count
-from backend.risk.pattern_detector import detect_pattern
+from backend import db as app_db
 from backend.agents import evidence_gap as egap
 from backend.agents import planner
-from backend.agents.orchestrator import run_investigation, submit_evidence, decide_approval
+from backend.agents.orchestrator import decide_approval, run_investigation, submit_evidence
+from backend.config import settings
 from backend.models import (
-    Action, ApprovalRoute, EvidenceItem, EvidenceSource, FraudPattern,
-    InvestigationCase, TriggerRecord, TriggerType, UncertaintyItem,
-    RiskAssessment,
+    Action,
+    EvidenceItem,
+    EvidenceSource,
+    InvestigationCase,
+    TriggerRecord,
+    TriggerType,
 )
 from backend.policies.engine import PolicyInput, build_recommendations
-from backend import db as app_db
-
+from backend.risk.assessment import (
+    EvidenceSignals,
+    build_risk_assessment,
+    compute_fraud_probability,
+)
+from backend.risk.independence import independent_evidence_count
 
 # ─── Evidence independence ─────────────────────────────────────────────────────
 
@@ -144,8 +148,7 @@ class TestNewRiskChannels:
 
     def test_signal_snapshot_roundtrip(self):
         sig = EvidenceSignals(new_device=True, shared_device_count=3, customer_denied=True)
-        from backend.agents.orchestrator import _signals_dict, _current_signals
-        from backend.models import InvestigationCase, TriggerRecord, TriggerType
+        from backend.agents.orchestrator import _current_signals
         t = TriggerRecord(case_id="S", opened_at=datetime(2016, 1, 1),
                           trigger_type=TriggerType.risk_score, trigger_text="t",
                           flagged_txn_id="1", card_id="C", customer_id="C", risk_score=0.5)

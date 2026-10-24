@@ -6,13 +6,13 @@ Never calls the LLM for probabilities.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from backend.config import settings
 from backend.models import (
-    EvidenceItem, EvidenceSource, RiskLevel, RiskAssessment, UncertaintyItem,
-    TransactionRecord, IdentityRecord, HistoricalCase,
+    RiskAssessment,
+    RiskLevel,
+    UncertaintyItem,
 )
 
 

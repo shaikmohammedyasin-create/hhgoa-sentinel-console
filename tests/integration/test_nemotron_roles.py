@@ -15,15 +15,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
-
 from backend.agents import orchestrator
 from backend.llm import nebius_client, roles
 from backend.models import (
-    Action, ActionRecommendation, ApprovalRoute, InvestigationCase,
-    TriggerRecord, TriggerType,
+    Action,
+    ActionRecommendation,
+    ApprovalRoute,
+    InvestigationCase,
+    TriggerRecord,
+    TriggerType,
 )
-
 
 # ── Module-level mocks via monkeypatch on nebius_client.chat ─────────────────
 

@@ -28,12 +28,11 @@ from __future__ import annotations
 import time
 from datetime import datetime, timezone
 from typing import Any
-from uuid import uuid4
 
 from backend import db as app_db
-from backend.config import settings
 from backend.agents import evidence_gap as egap
 from backend.agents import planner
+from backend.config import settings
 from backend.graph import query_router as graph
 from backend.graphrag.context import build_context, to_llm_prompt
 from backend.llm import client as llm
@@ -41,18 +40,40 @@ from backend.llm import roles
 from backend.logging import get_logger
 from backend.mcp import client as mcp_client
 from backend.models import (
-    Action, ActionRecommendation, ApprovalRequest, ApprovalRoute, AuditEvent,
-    CaseStatus, Channel, EvidenceItem, EvidenceRequest, EvidenceRequestType,
-    EvidenceSource, FraudPattern, HistoricalCase, InvestigationCase,
-    InvestigationState, RiskAssessment, RiskLevel, SARRecord, TransactionRecord,
-    TriggerRecord, TriggerType, UncertaintyItem, Verdict,
+    Action,
+    ActionRecommendation,
+    ApprovalRequest,
+    ApprovalRoute,
+    AuditEvent,
+    CaseStatus,
+    Channel,
+    EvidenceItem,
+    EvidenceRequest,
+    EvidenceRequestType,
+    EvidenceSource,
+    FraudPattern,
+    HistoricalCase,
+    InvestigationCase,
+    InvestigationState,
+    RiskAssessment,
+    RiskLevel,
+    SARRecord,
+    TransactionRecord,
+    TriggerRecord,
+    TriggerType,
+    Verdict,
 )
 from backend.policies.engine import (
-    PolicyInput, build_recommendations, can_auto_execute,
-    should_file_sar, validate_action_permission,
+    PolicyInput,
+    build_recommendations,
+    can_auto_execute,
+    should_file_sar,
+    validate_action_permission,
 )
 from backend.risk.assessment import (
-    EvidenceSignals, build_risk_assessment, should_request_more_evidence,
+    EvidenceSignals,
+    build_risk_assessment,
+    should_request_more_evidence,
 )
 from backend.risk.independence import independent_evidence_count
 from backend.risk.pattern_detector import detect_pattern
@@ -387,9 +408,9 @@ def _run_adaptive_investigation(case: InvestigationCase, t0: float) -> None:
             result = None
         tool_calls += 1
 
-        if tool == "get_cards_in_same_region_window" and result:
-            region_window = result
-        elif tool == "get_accounts_sharing_device" and result:
+        # get_cards_in_same_region_window is called for its evidence-trail entry
+        # only; the travel signal is derived from window_txns below.
+        if tool == "get_accounts_sharing_device" and result:
             sharing_accounts = result
         elif tool == "get_device_fraud_ring" and result:
             fraud_ring = result
@@ -1371,7 +1392,7 @@ def _policy_input(case: InvestigationCase, flagged_txn: TransactionRecord | None
         sig_pre.step_up_failed = False
         sig_pre.step_up_passed = False
         sig_pre.evidence_count = len(ev_list)
-        from backend.risk.assessment import compute_fraud_probability, compute_confidence
+        from backend.risk.assessment import compute_confidence, compute_fraud_probability
         prob, _ = compute_fraud_probability(sig_pre)
         conf = compute_confidence(sig_pre, prob)
     exposure = flagged_txn.amount if flagged_txn is not None else _exposure_hint(case)

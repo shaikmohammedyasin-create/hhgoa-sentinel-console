@@ -34,10 +34,8 @@ from pathlib import Path
 # Make `backend` importable when run from any cwd.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.config import settings                      # noqa: E402
-from backend import db as app_db                         # noqa: E402
-from backend.evaluation.exporter import case_to_answer   # noqa: E402
-from backend.llm import nebius_client                    # noqa: E402
+from backend import db as app_db  # noqa: E402
+from backend.llm import nebius_client  # noqa: E402
 
 EVAL_SEED = 20261030
 N_SAMPLE = 200

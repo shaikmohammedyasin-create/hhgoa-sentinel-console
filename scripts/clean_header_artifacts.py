@@ -5,7 +5,6 @@ Deletes strictly the 8 literal CSV column-name header artifacts created by RESTP
 streaming file loads, bringing vertex and edge counts into exact 1:1 parity with
 the underlying SQLite dataset.
 """
-import json
 import sys
 import time
 from pathlib import Path

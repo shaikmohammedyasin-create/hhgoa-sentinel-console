@@ -1,10 +1,12 @@
 """Unit tests for the policy engine."""
-import pytest
-from backend.policies.engine import (
-    PolicyInput, build_recommendations, get_route, should_file_sar,
-    can_auto_execute, validate_action_permission,
-)
 from backend.models import Action, ApprovalRoute
+from backend.policies.engine import (
+    PolicyInput,
+    build_recommendations,
+    can_auto_execute,
+    get_route,
+    should_file_sar,
+)
 
 
 def _inp(**overrides):

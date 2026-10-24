@@ -7,18 +7,23 @@ case.llm_used must be False — template text is never presented as model output
 """
 from __future__ import annotations
 
-import pytest
+from datetime import datetime
 
 from backend.agents.orchestrator import _grounded_sar_narrative, _grounded_summary
 from backend.config import settings
 from backend.llm import client as llm
 from backend.models import (
-    Action, ActionRecommendation, ApprovalRoute, InvestigationCase, SARRecord,
-    TriggerRecord, TriggerType,
+    Action,
+    ActionRecommendation,
+    ApprovalRoute,
+    Channel,
+    InvestigationCase,
+    SARRecord,
+    TransactionRecord,
+    TriggerRecord,
+    TriggerType,
 )
 from backend.risk.assessment import EvidenceSignals
-from backend.models import Channel, TransactionRecord
-from datetime import datetime
 
 
 def _case():

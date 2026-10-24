@@ -3,14 +3,11 @@ Integration tests for the live TigerGraph adapter and failure resilience.
 """
 from __future__ import annotations
 
-import os
 import pytest
-from datetime import datetime
 
 from backend.config import settings
 from backend.graph import query_router, tg_adapter
 from backend.mcp.client import MCPClient, MCPUnavailableError
-from backend.agents.orchestrator import run_investigation
 
 
 class TestTigerGraphLiveAdapter:

@@ -146,7 +146,6 @@ def _add_card(cust: dict) -> dict:
         "card6": rng.choice(["visa", "mastercard", "visa", "discover"]),
         "email": cust["email"],
         "fps": len(cards),
-        "customer": cust,
     }
     card["fp"] = _fingerprint(cust["id"], card["card1"], card["card2"], card["card3"], card["card4"], card["card5"], card["card6"])
     cards.append(card)
@@ -393,7 +392,6 @@ def _plant_burst(case_id: str, cust: dict, card: dict, pattern: str) -> dict:
         identity_rows.append(bident)
     identity_rows.append(flagged_ident)
     device_info = flagged_ident["DeviceInfo"]
-    debit_adds = burst_ids + [str(flagged_id)]
     trigger_txt = (
         f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
         f"(${big_amount:.2f}, in billing region 'domestic') at "
@@ -481,8 +479,6 @@ def _plant_syndicate(case_id: str, cust: dict, card: dict) -> dict:
     flagged_ident["id_23"] = "NotFound"
     flagged_ident["id_34"] = "match_status:2"
     identity_rows.append(flagged_ident)
-    device_info, os_v, browser, screen = (flagged_ident["DeviceInfo"], flagged_ident["id_30"],
-                                          flagged_ident["id_31"], flagged_ident["id_33"])
 
     # 17 additional customer cards riding the SAME device label
     for i in range(17):
@@ -507,7 +503,6 @@ def _plant_syndicate(case_id: str, cust: dict, card: dict) -> dict:
         if is_fraud_member:
             ident["id_34"] = "match_status:1"
         identity_rows.append(ident)
-        device_tuple = (device_info, os_v, browser, screen)
         if is_fraud_member:
             # NOTE: do not mention the ring device string here — the ring count
             # works off card_id, and device-linked cases would set

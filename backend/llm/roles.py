@@ -24,9 +24,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from backend.llm import nebius_client
 from backend.logging import get_logger
 from backend.models import FraudPattern
-from backend.llm import nebius_client
 
 log = get_logger(__name__)
 

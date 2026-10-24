@@ -1,12 +1,12 @@
-import os
 import sys
 import time
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.smoke_test_load import get_conn
+
 
 def retry_call(fn, max_retries=3, delay=2):
     for i in range(1, max_retries + 1):
@@ -69,7 +69,7 @@ for cu in custs:
     f_seen = attrs.get("first_seen")
     try:
         dt = datetime.strptime(f_seen, "%Y-%m-%d %H:%M:%S")
-    except Exception as e:
+    except Exception:
         if v_id != "customer_id":
             malformed_cust += 1
 print(f"  Sampled {len(custs)} customers: {malformed_cust} malformed first_seen.")

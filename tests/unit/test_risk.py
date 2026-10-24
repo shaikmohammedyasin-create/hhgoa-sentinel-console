@@ -1,11 +1,13 @@
 """Unit tests for risk assessment and pattern detector."""
-import pytest
+from backend.models import FraudPattern, RiskLevel
 from backend.risk.assessment import (
-    EvidenceSignals, compute_fraud_probability, classify_risk,
-    compute_confidence, build_risk_assessment, should_request_more_evidence,
+    EvidenceSignals,
+    build_risk_assessment,
+    classify_risk,
+    compute_fraud_probability,
+    should_request_more_evidence,
 )
 from backend.risk.pattern_detector import detect_pattern
-from backend.models import FraudPattern, RiskLevel
 
 
 class TestFraudProbability:

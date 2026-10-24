@@ -12,5 +12,17 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
 
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+# Runtime data, the Next.js app and the venv are not Python source here.
+extend-exclude = ["data", "sentinel-ui", ".venv"]
+
+[tool.ruff.lint]
+# Error-class rules only: syntax errors, undefined names, dead imports and
+# variables, redefinitions, and import order. This is a defect gate, not a
+# reformatter — line length and docstring style are deliberately not enforced.
+select = ["E9", "F", "I"]
+
 [tool.setuptools.packages.find]
 include = ["backend*"]

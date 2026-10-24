@@ -13,12 +13,14 @@ from datetime import datetime
 import pytest
 
 from backend.agents.orchestrator import run_investigation
-from backend.config import settings
 from backend.graph import query_router as graph
 from backend.graphrag.context import build_context, to_llm_prompt
 from backend.models import (
-    Channel, EvidenceItem, EvidenceSource, InvestigationCase, RiskLevel,
-    TransactionRecord, TriggerRecord, TriggerType,
+    EvidenceItem,
+    EvidenceSource,
+    InvestigationCase,
+    TriggerRecord,
+    TriggerType,
 )
 
 

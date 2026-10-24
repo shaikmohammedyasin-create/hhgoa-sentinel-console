@@ -12,9 +12,6 @@ Falls back to a template when provider = 'none' or when LLM call fails.
 """
 from __future__ import annotations
 
-import json
-from datetime import datetime
-
 from backend.config import settings
 from backend.logging import get_logger
 

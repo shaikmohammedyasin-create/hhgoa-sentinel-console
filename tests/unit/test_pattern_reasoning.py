@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import pytest
+from backend.models import FraudPattern
 from backend.risk.assessment import EvidenceSignals
 from backend.risk.pattern_detector import detect_pattern
-from backend.models import FraudPattern
+
 
 class TestMultiCandidateScoring:
     def test_two_co_present_patterns_returns_secondary(self):

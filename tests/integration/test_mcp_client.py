@@ -10,7 +10,6 @@ The MCP client is the real tool surface of tigergraph-mcp.  These checks prove:
 """
 from __future__ import annotations
 
-import httpx
 import pytest
 
 from backend.config import settings

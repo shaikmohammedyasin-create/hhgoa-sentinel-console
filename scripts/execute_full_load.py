@@ -6,7 +6,6 @@ Requires --confirm-full-load flag to execute.
 DO NOT RUN UNLESS EXPLICITLY APPROVED BY USER.
 """
 import argparse
-import os
 import sys
 import time
 from pathlib import Path
@@ -15,11 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT / ".env", override=False)
 
-import pyTigerGraph as tg
 from scripts.smoke_test_load import get_conn
-
 
 DATA_DIR = ROOT / "data" / "full_load_staging"
 

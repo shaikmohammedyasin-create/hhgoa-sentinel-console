@@ -11,14 +11,23 @@ from datetime import datetime
 
 import pytest
 
-from backend.agents.orchestrator import _route_and_execute, run_investigation
 from backend import db as app_db
+from backend.agents.orchestrator import _route_and_execute, run_investigation
 from backend.models import (
-    Action, ActionRecommendation, ApprovalRoute, EvidenceItem, EvidenceSource,
-    InvestigationCase, TriggerRecord, TriggerType,
+    Action,
+    ActionRecommendation,
+    ApprovalRoute,
+    EvidenceItem,
+    EvidenceSource,
+    InvestigationCase,
+    TriggerRecord,
+    TriggerType,
 )
 from backend.policies.engine import (
-    can_auto_execute, get_route, should_file_sar, validate_action_permission,
+    can_auto_execute,
+    get_route,
+    should_file_sar,
+    validate_action_permission,
 )
 
 HIGH_IMPACT = {
@@ -139,7 +148,6 @@ class TestRoutingAndExecution:
 
 class TestSARConsistency:
     def test_sar_agrees_with_file_report(self):
-        case = _case()
         actions = [ActionRecommendation(
             action=Action.FILE_REPORT, route=ApprovalRoute.L2, reason="R2")]
         file_, reason = should_file_sar(actions, 2000.0, True, verdict="fraud")

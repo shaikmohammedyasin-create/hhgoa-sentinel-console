@@ -3,21 +3,21 @@ Phase B Hardening: Failure tests and adversarial checks.
 """
 from __future__ import annotations
 
-import os
-import pytest
-from datetime import datetime
 from unittest.mock import patch
 
-from backend.config import settings
-from backend.models import (
-    TriggerRecord, TriggerType, InvestigationCase, InvestigationState,
-    ApprovalRoute, Action
-)
+import pytest
+
+from backend import db as app_db
 from backend.agents.orchestrator import run_investigation
+from backend.config import settings
 from backend.graph import query_router
 from backend.mcp.client import MCPClient, MCPUnavailableError
-from backend.policies.engine import get_route, can_auto_execute
-from backend import db as app_db
+from backend.models import (
+    Action,
+    ApprovalRoute,
+    InvestigationState,
+)
+from backend.policies.engine import can_auto_execute, get_route
 
 
 class TestFailureScenarios:

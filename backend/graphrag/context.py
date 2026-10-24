@@ -13,8 +13,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from backend.models import (
-    EvidenceItem, HistoricalCase, EvidenceSource, RiskLevel,
-    TransactionRecord, IdentityRecord, InvestigationCase,
+    HistoricalCase,
+    IdentityRecord,
+    InvestigationCase,
+    TransactionRecord,
 )
 
 FRAUD_POLICY_TEXT = """

@@ -16,8 +16,11 @@ from typing import Any
 from backend.config import settings
 from backend.logging import get_logger
 from backend.models import (
-    TransactionRecord, IdentityRecord, HistoricalCase,
-    Channel, DeviceProfileKey,
+    Channel,
+    DeviceProfileKey,
+    HistoricalCase,
+    IdentityRecord,
+    TransactionRecord,
 )
 
 log = get_logger(__name__)

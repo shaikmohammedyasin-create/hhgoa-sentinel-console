@@ -15,7 +15,6 @@ Run:
 from __future__ import annotations
 
 import hashlib
-import itertools
 import sqlite3
 import sys
 import time
@@ -99,7 +98,6 @@ def _derive_card_ids(txn: pd.DataFrame, case_pack: pd.DataFrame, closed_cases: p
 
     # Map fingerprint → card_id from known txns
     fp_to_cardid: dict[str, str] = {}
-    txn_id_str = txn["TransactionID"].astype(str)
     for i, row in txn.iterrows():
         tid = str(row["TransactionID"])
         if tid in known:
@@ -160,12 +158,10 @@ def prepare() -> None:
     closed_cases = pd.read_csv(settings.closed_cases_csv)
 
     log.info("loading identity (may take a moment)")
-    id_available = [c for c in IDENTITY_KEEP if c != "TransactionID"]
     identity_raw = pd.read_csv(settings.identity_csv, dtype={"TransactionID": str},
                                 usecols=lambda c: c in IDENTITY_KEEP)
 
     log.info("loading transactions (may take several minutes for 590k rows)")
-    txn_cols_available = None  # let pandas discover
     txn_raw = pd.read_csv(
         settings.transactions_csv,
         dtype={"TransactionID": str},

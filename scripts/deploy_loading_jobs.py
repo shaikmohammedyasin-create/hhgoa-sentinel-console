@@ -9,10 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT / ".env", override=False)
 
 import pyTigerGraph as tg
-
 
 LOADING_JOBS = {
     "load_transactions": """

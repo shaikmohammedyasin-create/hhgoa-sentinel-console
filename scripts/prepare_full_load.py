@@ -4,7 +4,6 @@ Full Dataset Loading Pipeline Preparation for TigerGraph Savanna Cloud (fraud_in
 DO NOT RUN AUTOMATICALLY: This script prepares and defines the full 590,742 transaction
 data loading procedure. Execution requires explicit user approval.
 """
-import os
 import sqlite3
 import sys
 from pathlib import Path

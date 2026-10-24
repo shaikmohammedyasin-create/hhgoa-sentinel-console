@@ -4,11 +4,13 @@ Generalisation tests for the NBA explanation engine.
 Verifies that ActionRecommendation now carries evidence_ids,
 alternatives_rejected, and expected_impact per recommendation.
 """
-import pytest
-from backend.policies.engine import (
-    PolicyInput, build_recommendations, get_route, can_auto_execute,
-)
 from backend.models import Action, ApprovalRoute
+from backend.policies.engine import (
+    PolicyInput,
+    build_recommendations,
+    can_auto_execute,
+    get_route,
+)
 
 
 def _inp(**overrides):

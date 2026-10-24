@@ -5,7 +5,6 @@ Extracts a controlled representative subset (~1,000 transactions, 20 benchmark e
 all matching cards, identities, billing regions, email domains, and 100 closed cases),
 loads them into fraud_investigation, verifies counts, and tests installed queries.
 """
-import json
 import os
 import sqlite3
 import sys
@@ -15,11 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT / ".env", override=False)
 
 import pandas as pd
 import pyTigerGraph as tg
-
 
 SCRATCH_DIR = ROOT / "scratch"
 SCRATCH_DIR.mkdir(exist_ok=True)
@@ -101,7 +100,6 @@ def extract_smoke_dataset():
     txn_export.to_csv(txn_csv, index=False)
 
     # 3. Cards & OWNS edges
-    card_ids = txn_export["card_id"].unique().tolist()
     cards_df = all_txns[["card_id", "customer_id", "card4", "card6"]].drop_duplicates(subset=["card_id"]).copy()
     cards_df["card4"] = cards_df["card4"].fillna("")
     cards_df["card6"] = cards_df["card6"].fillna("")
@@ -294,7 +292,12 @@ def run_smoke_load():
     print("\n" + "=" * 60)
     print("STEP 5: VERIFYING BACKEND ADAPTER LIVE INVOCATION")
     print("=" * 60)
-    from backend.graph.tg_adapter import get_transaction, get_customer_cards, get_card_transaction_history, get_closed_cases_by_pattern
+    from backend.graph.tg_adapter import (
+        get_card_transaction_history,
+        get_closed_cases_by_pattern,
+        get_customer_cards,
+        get_transaction,
+    )
 
     adapter_txn = get_transaction(flagged_0)
     print(f"  adapter.get_transaction({flagged_0}):", adapter_txn)

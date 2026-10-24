@@ -6,12 +6,12 @@ GRAPH_BACKEND / availability.  Everything above this layer calls this module.
 """
 from __future__ import annotations
 
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 from backend.config import settings
 from backend.logging import get_logger
-from backend.models import TransactionRecord, IdentityRecord, HistoricalCase
+from backend.models import HistoricalCase, IdentityRecord, TransactionRecord
 
 log = get_logger(__name__)
 

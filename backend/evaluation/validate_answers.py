@@ -116,7 +116,6 @@ def validate_all() -> dict:
     from backend import db as app_db
 
     cases_dir = settings.cases_dir
-    report_path = cases_dir / "_benchmark_report.json"
 
     results: list[dict] = []
     for path in sorted(cases_dir.glob("CASE-*.json")):

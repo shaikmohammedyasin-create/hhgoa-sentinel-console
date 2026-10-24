@@ -89,7 +89,7 @@ def run_connection_test() -> bool:
     print("      Configuration check: OK")
 
     # 2. Hostname validation & DNS resolution
-    print(f"\n[2/5] Testing DNS resolution for TG_HOST...")
+    print("\n[2/5] Testing DNS resolution for TG_HOST...")
     raw_host = tg_host
     if raw_host.startswith("https://"):
         raw_host = raw_host[8:]
@@ -185,7 +185,7 @@ def run_connection_test() -> bool:
     try:
         # Read-only query: count vertices across the graph
         counts = conn.getVertexCount("*")
-        print(f"      SUCCESS: Read-only query executed.")
+        print("      SUCCESS: Read-only query executed.")
         print(f"      Vertex counts in '{tg_graph}': {counts}")
 
     except Exception as exc:

@@ -17,7 +17,7 @@ same query about the same subject is one family, regardless of row count.
 """
 from __future__ import annotations
 
-from backend.models import EvidenceItem, EvidenceSource
+from backend.models import EvidenceItem
 
 
 def _family_key(ev: EvidenceItem) -> str:

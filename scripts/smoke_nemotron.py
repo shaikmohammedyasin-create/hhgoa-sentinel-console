@@ -17,9 +17,9 @@ import sys
 # Make `backend` importable when run from any cwd.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.config import settings                      # noqa: E402
-from backend.llm import nebius_client, roles             # noqa: E402
-from backend.models import FraudPattern                  # noqa: E402
+from backend.config import settings  # noqa: E402
+from backend.llm import nebius_client, roles  # noqa: E402
+from backend.models import FraudPattern  # noqa: E402
 
 PATTERN_ENUM = [p.value for p in FraudPattern]
 

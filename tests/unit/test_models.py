@@ -1,12 +1,21 @@
 """Unit tests for backend.models – contract validation."""
-import pytest
-from backend.models import (
-    InvestigationCase, TriggerRecord, TriggerType, InvestigationState,
-    CaseStatus, Verdict, FraudPattern, EvidenceItem, EvidenceSource,
-    ActionRecommendation, Action, ApprovalRoute, SARRecord, RiskLevel,
-    AuditEvent,
-)
 from datetime import datetime
+
+from backend.models import (
+    Action,
+    ActionRecommendation,
+    ApprovalRoute,
+    AuditEvent,
+    EvidenceItem,
+    EvidenceSource,
+    FraudPattern,
+    InvestigationCase,
+    InvestigationState,
+    SARRecord,
+    TriggerRecord,
+    TriggerType,
+    Verdict,
+)
 
 
 def _trigger(**overrides):

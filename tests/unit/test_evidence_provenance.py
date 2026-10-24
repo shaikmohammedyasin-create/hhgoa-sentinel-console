@@ -1,9 +1,8 @@
 """
 Evidence provenance and uncertainty resolution tests.
 """
-import pytest
+from backend.models import UncertaintyItem
 from backend.risk.assessment import EvidenceSignals, build_risk_assessment
-from backend.models import UncertaintyItem, RiskAssessment
 
 
 class TestScoreBreakdown:
@@ -76,7 +75,7 @@ class TestEvidenceProvenance:
     def test_ev_helper_populates_provenance(self):
         """The _ev helper should auto-populate provenance from ref string."""
         from backend.agents.orchestrator import _ev
-        from backend.models import EvidenceSource, RiskLevel
+        from backend.models import EvidenceSource
         ev = _ev(
             "CASE-TEST",
             "Test claim",

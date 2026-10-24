@@ -6,9 +6,9 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.main import app
 from backend import db as app_db
 from backend.agents.orchestrator import run_investigation
+from backend.main import app
 
 
 @pytest.fixture(scope="module")
@@ -85,7 +85,7 @@ class TestFrontendAPI:
         # Create an approval if none exists
         approvals = app_db.list_pending_approvals("CASE-001")
         if not approvals:
-            from backend.models import ApprovalRequest, Action, ApprovalRoute
+            from backend.models import Action, ApprovalRequest, ApprovalRoute
             apr = ApprovalRequest(
                 case_id="CASE-001",
                 action=Action.BLOCK_CARD,

@@ -12,16 +12,11 @@ Usage:
 """
 from __future__ import annotations
 
-import socket
 import sys
 from pathlib import Path
 
-import httpx
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from backend.config import settings
-from backend.graph.tg_adapter import _tg_base_url
 
 
 from scripts.test_tigergraph_connection import run_connection_test

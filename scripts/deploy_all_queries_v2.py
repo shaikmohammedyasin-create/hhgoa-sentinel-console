@@ -1,20 +1,18 @@
 """
 Deploy and compile all fraud investigation GSQL queries (v2) with all TigerGraph compiler fixes.
 """
-import json
 import os
 import sys
-import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT / ".env", override=False)
 
 import pyTigerGraph as tg
-
 
 # Clean, corrected standard GSQL queries
 QUERIES = {
