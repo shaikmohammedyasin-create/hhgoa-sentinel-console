@@ -1,0 +1,8 @@
+# Never upload local secrets or build output to a deployment.
+# .env.local in this directory holds a short-lived Vercel OIDC token written
+# by the CLI; it must not travel with the source.
+.env*
+.vercel
+.next
+node_modules
+*.log

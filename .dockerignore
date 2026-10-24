@@ -8,7 +8,14 @@ __pycache__/
 *.pyo
 .env
 .env.*
-!.env.example
+# Globstar forms: a bare `.env.*` only matches the context root, so
+# sentinel-ui/.env.local (written by the Vercel CLI with a short-lived OIDC
+# token) was still entering the build context and being loaded by `next build`
+# ("Environments: .env.local" in the build log). Secrets must never reach an
+# image layer.
+**/.env
+**/.env.*
+!**/.env.example
 # Round data (root copies), secrets & keys
 transactions.csv
 identity.csv

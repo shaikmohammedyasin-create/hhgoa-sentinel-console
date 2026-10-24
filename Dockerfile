@@ -40,9 +40,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Python deps
+# Python deps.
+# The timeout/retry flags are deliberate: the default 15 s read timeout makes the
+# build fail on a slow connection (observed on this machine, PyPI read timeout at
+# ~350 s), which is exactly the connection a judge may be on.
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --default-timeout=120 --retries 5 -r requirements.txt
 
 # Python backend
 COPY backend ./backend
