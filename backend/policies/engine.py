@@ -8,9 +8,8 @@ The LLM recommendation is passed to validate_recommendation() for gate checking.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
-from backend.models import Action, ApprovalRoute, ActionRecommendation, RiskLevel
+from backend.models import Action, ActionRecommendation, ApprovalRoute
 
 # ─── Approval routing table (from policy §2) ──────────────────────────────────
 
@@ -408,6 +407,12 @@ def build_recommendations(inp: PolicyInput) -> list[ActionRecommendation]:
     for rec in actions:
         rec.why_now = _why_now(inp, rec.action)
 
+    # R10: BLOCK_ALL_CARDS is only admissible when two or more of the
+    # customer's connected cards show confirmed fraud. No rule emits the
+    # action today; the guard is enforced here so adding one cannot skip it.
+    if not can_block_all:
+        actions = [rec for rec in actions if rec.action != Action.BLOCK_ALL_CARDS]
+
     return actions
 
 
@@ -419,8 +424,8 @@ def _why_now(inp: PolicyInput, action: Action) -> str:
             return (f"now because the cardholder denied the transaction and "
                     f"probability is {p:.2f} — delay leaves the card usable")
         if inp.card_testing_detected:
-            return (f"now because a card-testing sequence is confirmed and the "
-                    f"purchase already cleared — every hour enables more testing")
+            return ("now because a card-testing sequence is confirmed and the "
+                    "purchase already cleared — every hour enables more testing")
         return f"now because probability {p:.2f} crossed the 0.70 action threshold"
     if action == Action.DECLINE_TRANSACTION:
         return f"now because the disputed transaction can still be stopped while probability is {p:.2f}"
