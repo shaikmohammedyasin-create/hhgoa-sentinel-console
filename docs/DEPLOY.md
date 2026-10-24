@@ -11,8 +11,10 @@ docker compose up --build
 
 What you get in under 5 minutes:
 
-- The FastAPI backend serves the full investigation dashboard (frontend is
-  static, part of the same container).
+- One container, one URL. The FastAPI backend listens on 8000 and proxies
+  every non-API path to the **Next.js console** running on 3000 inside the
+  same image. The console is a real Node server (Next standalone), not a
+  static export; compose publishes the pair as `http://localhost:8008`.
 - Approximately 3 s after start, `prepare_data` rebuilds the SQLite graph
   store from the publishable synthetic CSVs (`data/synthetic/`) — 12,235
   transactions, 4,201 identity records, 28 closed cases, 20 investigation
@@ -21,9 +23,19 @@ What you get in under 5 minutes:
   local SQLite store. The cloud TigerGraph instance is an option, not a
   dependency for the demo.
 - **Demo mode is the default (`DEMO_MODE=1`)**: no `NEBIUS_API_KEY` is
-  required, and no Token Factory credit is spent. Nemotron answers replay
-  from the local answer cache (`data/logs/llm_answer_cache.json`), and the
-  deterministic policy engine always produces the final decisions.
+  required, and no Token Factory credit is spent. Opening a case that has
+  not been investigated in this session serves the committed answer file
+  `cases/<id>.json` — the output of a real recorded run, Nemotron advisory
+  block included. Fresh runs are deterministic-only when no key is
+  configured (`llm_used=false`, the policy engine still decides), and the
+  console labels which source answered.
+
+> Note on the LLM cache: `data/logs/llm_answer_cache.json` is **not** in the
+> repository (it is a runtime artifact under `data/logs/`, ignored by git and
+> `.dockerignore`). The cache is consulted only when a key is present, i.e. it
+> makes a keyed demo replay answers instead of re-billing them. Without a key
+> there are no model calls to replay — the committed `cases/*.json` files are
+> what you are looking at.
 
 ## live mode (optional — real Nemotron calls)
 
@@ -55,14 +67,50 @@ October 2026. The base URL and models are set in `.env.example`.)
 | Demo answer cache | unlimited replay, zero credits | `DEMO_MODE=1` |
 | Call log | JSONL, one row per call | `/api/llm/status` |
 
+## Hosted console (static snapshot, no backend)
+
+The Vercel deployment publishes **only the console**, built with
+`NEXT_PUBLIC_DEMO_DATA=1`. In that build every request is served from the
+committed snapshot under `sentinel-ui/public/demo/` (20 cases plus the
+benchmark report), exported from a real local run by
+`scripts/export_ui_demo.py`. Nothing is invented: the read endpoints replay
+recorded responses, the masthead says `static snapshot · recorded run`, and
+the two endpoints that need a live engine (the benchmark runner and analyst
+Q&A) answer with `served_by: "demo-snapshot"` instead of fabricating a result.
+
+To rebuild and publish:
+
+```bash
+python scripts/export_ui_demo.py                 # refresh public/demo/*.json
+cd sentinel-ui
+NEXT_PUBLIC_DEMO_DATA=1 npm run build
+vercel --prod
+```
+
+The full backend-connected experience is the Docker image above; the Vercel
+URL is a read-only replay of it.
+
 ## Local (no Docker) quickstart
 
 ```bash
 python -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt   # Windows: .venv\Scripts\...
 python -m backend.scripts.prepare_data                # build the SQLite store
-uvicorn backend.main:app --port 8008                  # serve API + dashboard
+uvicorn backend.main:app --port 8000                  # API only
 ```
+
+That serves the API (`/health`, `/docs`, `/api/*`). To get the console,
+start it separately and point it at the API:
+
+```bash
+cd sentinel-ui
+npm ci
+NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000 npm run dev   # http://localhost:3000
+```
+
+The single-URL proxy only engages inside the container, where the entrypoint
+sets `UI_PORT=3000` and the FastAPI app forwards non-API paths to the Next
+server.
 
 Environment variables are documented in `.env`.
 
@@ -71,6 +119,7 @@ Environment variables are documented in `.env`.
 | Symptom | Fix |
 |---|---|
 | `/health` reports `graph` unhealthy in cloud mode | The defense has a `graph_hint` on `/health` and `scripts/wake_graph.py` polls until the TS suspend-wake completes. Demo/local graph (default in the container) is always healthy. |
-| Nemotron answers show `cache-replay` | Demo mode; expected. Set `DEMO_MODE=0` + key for fresh calls. |
+| Nemotron answers show `cache-replay` | Demo mode **with** a key: the (role, prompt) pair was already answered and is being replayed instead of re-billed. Expected. |
+| `llm_used=false` / `nemotron unavailable` everywhere | No `NEBIUS_API_KEY` in the environment. Demo runs stay deterministic; add the key and set `DEMO_MODE=0` for live calls. |
 | `daily credit cap reached` responses | Capped at `LLM_DAILY_CALL_CAP` calls; the app keeps running deterministically. |
 | Port busy | `ports: "9000:8000"` in compose, then open `:9000`. |

@@ -7,7 +7,7 @@
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="https://www.tigergraph.com/"><img src="https://img.shields.io/badge/TigerGraph-Savanna%20Cloud-F36C21" alt="TigerGraph"></a>
   <a href="https://build.nvidia.com/nvidia"><img src="https://img.shields.io/badge/NVIDIA-Nemotron_3_%7C_Token_Factory-76B900" alt="NVIDIA Nemotron"></a>
-  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-278%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
+  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-290%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
   <a href="./docs/BENCHMARK.md"><img src="https://img.shields.io/badge/Benchmark-20%2F20%20Verdict%20%2B%20Pattern%20%7C%20Ablations-2E7D32" alt="Benchmark"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
 </p>
@@ -335,7 +335,7 @@ The autonomous investigation engine executes through an iterative, evidence-grou
 │   └── schema/                     # DDL schema definitions & schema-change jobs
 │
 ├── cases/                          # 20-case benchmark + ground_truth.json labels
-├── tests/                          # Automated test suite (278 passed / 9 skipped)
+├── tests/                          # Automated test suite (290 passed / 9 skipped)
 │   ├── integration/                # API, graph, policy, and agentic upgrade tests
 │   └── unit/                       # Risk, policy, and evidence provenance tests
 │
@@ -582,7 +582,7 @@ A typical investigation through the Command Center proceeds as follows:
 
 ### Automated Test Suite
 
-Run the full pytest suite (278 passed, 9 skipped):
+Run the full pytest suite (290 passed, 9 skipped):
 
 ```bash
 pytest

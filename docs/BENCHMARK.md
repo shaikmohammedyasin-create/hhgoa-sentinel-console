@@ -34,15 +34,17 @@ scored:
 > **Verdict accuracy 60% (12/20). Pattern accuracy 85% (17/20).**
 
 These are the live-LLM numbers. They are lower than the precomputed demo
-answers because:
+answers, and the two are **not** measured on the same cases, so the gap is not
+a controlled comparison. Two things contribute:
 
 1. The live run is the model *proposing* a pattern; the deterministic engine
-   *decides*. The three cases where accuracy dropped are where the model's
-   proposal disagreed with the engine and the engine's override was correct —
-   this is the "propose/decide" split the system is built to demonstrate, and
-   it is why the engine output (not the model output) is the accuracy target.
-2. The original dataset included harder edge cases that are not in the
-   redistributed synthetic case pack.
+   *decides*. Where the model's proposal disagreed with the engine, the engine
+   is what the committed answers record — this is the "propose/decide" split
+   the system is built to demonstrate, and it is why the engine output (not the
+   model output) is the accuracy target.
+2. The original dataset is not the redistributed synthetic case pack; its case
+   mix and difficulty differ, and that is not something this repository can
+   quantify without the dataset.
 
 **To reproduce these numbers:** run `scripts/eval_heldout.py` with
 `NEBIUS_API_KEY` set. Without the key, parts C and D (plain-LLM baseline and

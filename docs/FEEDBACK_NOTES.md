@@ -1,60 +1,66 @@
-# Feedback Notes (honest engineering ledger)
+# Feedback notes (honest engineering ledger)
 
-Known gaps, design debts, and reviewer-facing answers. If a claim is not
-in the README, tests, or `docs/BENCHMARK.md`, treat it as not implemented.
+Known gaps, design debts, and reviewer-facing answers. If a claim is not in the
+README, the tests, or `docs/BENCHMARK.md`, treat it as not implemented.
 
-## Hackathon-round specifics
+Last reconciled with the code: 24 October 2026.
 
-- **Demo mode cache replaces live calls**: in `DEMO_MODE=1` (the default
-  in the container), the Nemotron advisory replies come from
-  `data/logs/llm_answer_cache.json`. The cache is seeded only by real
-  calls made by the maintainer's runs; a judge disabling demo mode and
-  without a key gets deterministic behavior instead (`llm_provider:
-  none` on `/health`). This is by design, not a hidden call path.
-- **TigerGraph cloud vs local**: `GRAPH_BACKEND=local` runs the GSQL
-  traversal logic against a SQLite store in the container. The Savanna
-  Cloud instance (which idles after inactivity) is exercised in live
-  mode; `/health` reports graph state and `graph_hint` when it is down.
-- **SENTINEL vendored UI**: `sentinel-ui/` is an upstream's separate
-  console vendored from an unlicensed source project; it is NOT wired to
-  this backend and is excluded from our benchmark story
-  (`sentinel-ui/NOTICE.md`). Public release preparation should likely
-  drop this directory unless upstream attribution is resolved.
+## Round specifics
+
+- **Demo mode and the LLM cache.** Two distinct things, often conflated:
+  1. *No key* — `backend/llm/nebius_client.py` returns `None` before it ever
+     consults the cache, so a run is deterministic (`llm_used=false`). Opening
+     a case serves the committed answer file `cases/<id>.json`.
+  2. *Key present, `DEMO_MODE=1`* — each `(role, prompt)` pair is cached in
+     `data/logs/llm_answer_cache.json` and replayed on a repeat question, so
+     judge traffic is billed once per distinct question instead of once per
+     view. That file is a runtime artifact: gitignored, `.dockerignore`d, and
+     not shipped, so a fresh clone starts with an empty cache.
+- **TigerGraph cloud vs local.** `GRAPH_BACKEND=local` runs the GSQL traversal
+  logic against a SQLite store in the container. The Savanna Cloud instance
+  (which idles after inactivity) is exercised only when `TG_HOST` is
+  configured; `/health` reports graph state and a `graph_hint` when it is
+  down. Every number in this repo was produced on the local backend. The
+  cloud schema/queries are recorded in `docs/TECHNICAL_VALIDATION.md` §4 and
+  marked as not re-verifiable here.
+- **Vendored console.** `sentinel-ui/` started as a fork of an upstream
+  console by Team CollabUp; it is now wired to *this* backend (`src/lib/api.ts`,
+  `src/lib/hooks.ts`, `src/components/console/*`) and is the shipped UI, not a
+  decorative snapshot. Upstream has **no LICENSE file**, so attribution lives
+  in `sentinel-ui/NOTICE.md`. Publishing a fork without an upstream license is
+  a real legal risk; if that matters more than the demo, ship the FastAPI
+  `/docs` surface and drop this directory.
 
 ## Code-level debts
 
-- `requirements.txt` contains a stray duplicate `httpx` and dev deps
-  (`pytest`, `pytest-asyncio`) in the runtime list; the Docker image
-  installs all of them.
-- `backend/evaluation/run_benchmark.py` currently overwrites
-  `artifacts/`-style answer files under `cases/` on every benchmark run
-  (keeps the pack in sync; acceptable for the synthetic data contract).
-- Legacy `LLM_PROVIDER` (anthropic/openai/groq) narrative path still
-  exists dormant in code (`backend/llm/client.py`); it is unused by the
-  Nemotron advisory flow. It has been removed from the hosted config
-  (`render.yaml`), docs, and `.env.example`, and `LLM_PROVIDER` is pinned
-  to `none`. The code should be fully retired in a next version.
-- Windows console shows mojibake for some Unicode box-drawing chars in
-  docs; the repository text itself is UTF-8.
-- The per-IP limiter keys on the request's client host; behind a shared
-  NAT/proxy (e.g., judges on one hotspot) all traffic shares a bucket,
-  bounded by the daily cap (see README §Limitations).
+- `requirements.txt` keeps `pytest`/`pytest-asyncio` in the runtime list, so
+  the Docker image installs test tooling it does not need at runtime.
+- `backend/evaluation/run_benchmark.py` overwrites the answer files under
+  `cases/` on every run. That keeps the committed pack in sync with the code,
+  but it means a benchmark run is a working-tree mutation, not a read-only
+  measurement. `git checkout -- cases` restores the committed set.
+- The legacy `LLM_PROVIDER` (anthropic/openai/groq) narrative path in
+  `backend/llm/client.py` is dormant: default and `.env.example` pin it to
+  `none`, and nothing in the Nemotron advisory flow calls it. It should be
+  deleted rather than carried.
+- The per-IP limiter keys on the request's client host. Behind a shared
+  NAT/proxy (judges on one hotspot) all traffic shares a bucket, bounded by the
+  global daily cap.
+- Ultralarge reasoning models leak "chain-of-thought-like" preambles on Q&A.
+  The `ANSWER:` marker contract plus markdown post-processing handles current
+  prompts, but sampling temperature still leaves small nondeterminism in
+  freetext answers — bounded by the advisory-only role.
 
 ## Security / release prep
 
-- The maintainer's `.env` (real `NEBIUS_API_KEY`) is gitignored; no
-  secrets are committed. History scrubbing already rehearsed: any file
-  with round-provided third-party data is filtered from all commits
-  before the public push (final pass runs post-README, per plan).
-- The public push should be preceded by a fresh `git log --all --full-history -- <paths>`
-  check for: `data/prepared/*`, `data/full_load_staging/*`,
-  `closed_cases_history.csv` (round-provided), and any earlier README
-  versions (they traverse the same filter).
-
-## Area still open
-
-- Ultralarge reasoning models leak "chain-of-thought-like" preambles on
-  Q&A; the `ANSWER:` marker contract plus markdown post-processing
-  handles the current prompts, but sampling seeds/temperature still
-  leave small nondeterminism in freetext answers (bounded by the
-  advisory-only role).
+- Secrets load from `.env` only; it is gitignored, and
+  `sentinel-ui/.env.local` (a Vercel OIDC token written by the CLI) is ignored
+  and has never been committed. No key material is in the tree or in history.
+- Only synthetic CSVs (`data/synthetic/`) are tracked. Round-provided data,
+  prepared stores, staging directories, and logs are excluded by `.gitignore`
+  and `.dockerignore`.
+- `gitleaks` was **not** installed during this round, so the secret scan was a
+  manual pass over tracked content. Re-run a real scanner before any public
+  push, and check `git log --all --full-history -- data/prepared/* data/raw/*
+  closed_cases_history.csv` on the *old* repository history if it is ever
+  reused.

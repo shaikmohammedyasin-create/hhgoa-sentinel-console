@@ -1,93 +1,177 @@
-# Interactive Investigation Walkthrough & Demonstration Guide
+# Live walkthrough
 
-This guide outlines the end-to-end demonstration sequence for experiencing the **Agentic Fraud Investigation Platform** and Analyst Command Center.
-
----
-
-## Prerequisites (Pre-Flight Checklist)
-
-1. **Verify TigerGraph Savanna Status**:
-   - Open [savanna.tgcloud.io](https://savanna.tgcloud.io) and ensure the workspace is in the **READY / RUNNING** state.
-   - *If suspended:* Click **Resume/Start** and wait ~3 minutes for the green indicator.
-2. **Launch Application Server**:
-   ```bash
-   .venv\Scripts\activate
-   uvicorn backend.main:app --port 8000
-   ```
-3. **Open Command Center**:
-   - Navigate to [http://localhost:8000](http://localhost:8000) in Chrome, Edge, or Brave.
-   - Confirm the header badges read `TG: healthy` and `DB: healthy`.
+A five-minute path through the console that fits in one browser tab and
+assumes nothing about the viewer.
 
 ---
 
-## 3–5 Minute Presentation Flow
+## Before you start
 
-### Phase 1: Context & Immediate Orientation (0:00 – 0:45)
-- **Visual**: Point out the Top Bar and Key Performance Indicators (KPIs).
-- **Narrative**:
-  > *"In financial fraud detection, an alert score from a machine learning model is an input, not an answer. Our agentic investigation platform uses TigerGraph GraphRAG to synthesize multi-hop relationships, explain risk transparently via Noisy-OR channel decomposition, resolve uncertainty through customer inquiry, and enforce strict bank policy governance before taking action."*
-- **Highlight**:
-  - Show the **Health Pill**: Proves connection to live TigerGraph Savanna in strict mode (`STRICT_GRAPH_BACKEND=1`).
+Two ways to be looking at the same thing:
 
----
+**A. Hosted snapshot (no install, no key).** Open the Vercel URL. The masthead
+reads `static snapshot · recorded run`. Everything on screen is a replay of a
+real recorded run over the 20-case pack — see `docs/DEPLOY.md` for how it is
+built. What it cannot do: execute a fresh run, or answer an analyst question
+with a model. It says so where it matters instead of pretending.
 
-### Phase 2: Live Investigation Demonstration (0:45 – 2:00)
-- **Select Case**: From the Case Selector dropdown, select **`CASE-014`**.
-- **Action**: Click the **`Start Live Investigation`** button.
-- **Narrative**:
-  > *"Watch the 8-stage causal story ribbon as the agent executes. It ingests the flagged transaction, initializes graph memory, runs live TigerGraph queries—including 2-hop device co-usage traversals—and synthesizes concrete evidence."*
-- **Highlight**:
-  - **Evidence Provenance**: Point out the **Claim Type pills**:
-    - `OBSERVED FACT`: Verified graph facts (e.g., historical transaction volume, shared devices).
-    - `DERIVED INFERENCE`: Graph topological patterns.
-    - `MODEL SCORE`: Upstream detection model input.
-  - **Filter Buttons**: Click `Observed Fact` then `All` to show dynamic evidence filtering.
+**B. Full backend (Docker).**
 
----
+```bash
+docker compose up --build
+# open http://localhost:8008
+```
 
-### Phase 3: Noisy-OR Decomposition & The Evidence-Gap Loop (2:00 – 3:15)
-- **Visual**: Scroll to the **Risk Analysis** (Noisy-OR decomposition card) and **Uncertainty Loop** cards.
-- **Narrative**:
-  > *"Rather than outputting a black-box score, our engine decomposes fraud probability across independent evidence families, balanced against clearing signals."*
-  > *"When the case is borderline, the agent doesn't blindly ask questions. It scores every possible evidence request by expected decision impact — would either answer actually change the recommended action? Only the highest-value request is made. CASE-014 shows customer validation selected at information value 1.0, with the alternatives and their scores displayed."*
-- **Highlight (Human-in-the-Loop)**:
-  - Set `EVIDENCE_REQUEST_MODE=human_in_loop` in `.env` before the demo and the agent **pauses** at `MORE_EVIDENCE_REQUIRED`.
-  - The Uncertainty tab shows the request with its info value and a response input with quick-fill presets. Submit a response live (or enter a custom simulated response) and watch the reassessment update probability, risk level, and the NBA set in real time.
-  - In default `simulated` mode, the same loop runs with a synthetic response always labelled `origin=simulated` — audit-safe and honest.
+The console, the API, and the policy engine run in one container. No
+`NEBIUS_API_KEY` is needed: opening a case serves its committed answer file
+`cases/<id>.json`. The masthead reads `demo mode · committed cases`, and
+`nemotron unavailable` appears next to it when no key is configured.
+
+If you want live Nemotron calls for the demo, set `NEBIUS_API_KEY` and
+`DEMO_MODE=0` in `docker-compose.yml` (cost guards stay on: 20 calls per IP
+per hour, 200 calls per day, then deterministic-only).
+
+The cloud TigerGraph instance is optional in both modes. `GRAPH_BACKEND=local`
+runs the same traversal logic against the bundled SQLite store, which is what
+the container does.
 
 ---
 
-### Phase 4: Governed Next Best Action & Graph Canvas (3:15 – 4:30)
-- **Visual**: Switch to the **Governed NBA** tab and **Interactive Graph Canvas**.
-- **Narrative**:
-  > *"AI recommendations must never bypass institutional policy. Our Policy Engine independently gates actions into permission tiers: Auto-Execute, L1 Team Lead approval, and L2 Fraud Manager approval. Every recommendation documents the policy rule cited, a why-now rationale grounded in the current state, and the alternatives that were rejected."*
-- **Highlight (Approval Execution)**:
-  - Approve or reject a pending L1/L2 action as the analyst. The decision is re-validated against policy, **the action actually executes under the approver's authority** (or is refused), and `approval_granted` / `action_executed` audit events appear in the timeline.
-- **Highlight**:
-  - **Interactive Graph Canvas**: Click on the **Customer**, **Card**, or **Device** node to open the **Graph Inspector Drawer** showing entity attributes and linked evidence IDs.
-  - **Zoom & Pan**: Use scroll wheel to zoom into device clusters; click **Reset Zoom** to re-center.
+## The screen, in one breath
+
+Three panes, one screen, no page navigation:
+
+- **Left — the case queue.** All 20 cases, ordered by *exposure − uncertainty*,
+  so the biggest unresolved risk sits at the top. Each row carries the verdict
+  and P(fraud) once a case has run.
+- **Centre — the open case.** Header (id, verdict chip, pattern, dial), five
+  tabs, and the footer's route into the subgraph.
+- **Bottom — the view switcher.** `queue · case · graph · pack · ring`, plus
+  `inbox`, `pack` and `demo` in the masthead.
+
+The five tabs are ordered by how much interpretation each carries, least
+first — a viewer who distrusts the prose can walk right and end at raw JSON:
+
+| Tab | What it is |
+|---|---|
+| **Timeline** | The backend's audit trail: one row per event, with state transition, actor, timestamp. |
+| **Case file** | The conclusion (verdict, P(fraud), pattern, exposure, connected cards, affected txns) and the evidence ledger behind it — every claim with its source and reference. |
+| **SAR** | The filed narrative, subjects, total, activity dates, and the reason it was or was not filed. |
+| **Nemotron** | The advisory block split in two: what the model proposed, and what the policy engine decided. When they disagree, the disagreement is printed. |
+| **JSON** | `answer.json`, verbatim, copyable. |
 
 ---
 
-### Phase 5: Auditability, Memory & Live Benchmark (4:30 – 5:00)
-- **Visual**: Point to the **Graph Case ID** badge (`CASE-2016-CASE-014`) and open the **Benchmark / Validation** tab.
-- **Narrative**:
-  > *"Every completed investigation is persisted as an InvestigationCase vertex — linked to customer, card, transactions, and device profile. Future investigations retrieve this memory through the same graph traversal they use for everything else, and prior agent cases feed a dedicated risk channel. The memory loop genuinely closes."*
-  > *"The Benchmark tab shows live per-case results loaded from the actual artifacts — 20/20 cases, 600/600 checkpoints, verified by a 257-test suite."*
-- **Wrap-up**: show the **plan trace** evidence: each case records which tools the planner chose and why — different cases demonstrably run different investigation paths.
+## 3–5 minute flow
+
+### 0:00 — Orientation
+
+> "This is a fraud investigation console. The queue on the left is the bank's
+> unresolved case pack, ranked by exposure weighted by uncertainty — not by
+> date. The number next to each case is the probability the agent concluded.
+> The masthead says where the data comes from, because a demo that hides its
+> own provenance is a liability."
+
+Point at the masthead label. In snapshot mode it says so.
+
+### 0:45 — Open a case, read the conclusion
+
+Click the top row. The first case opens automatically on arrival, so there is
+always something on screen.
+
+> "Every case ends in a decision: fraud or legitimate, a pattern, a probability
+> with the uncertainty that produced it, and the exposure at stake. The dial is
+> the agent's confidence — not a decoration."
+
+Switch to **Case file**. Point at the evidence ledger.
+
+> "Each claim below is sourced and referenced: `graph`, `memory`, `policy`,
+> `txn`. If a claim has no reference, it does not belong on this screen."
+
+### 1:30 — Show the audit trail
+
+**Timeline**.
+
+> "This is the backend's audit log, not a reconstruction. State transitions,
+> who acted, when. The same rows are what an auditor would pull."
+
+### 2:00 — The governed split
+
+**Nemotron**.
+
+> "The model proposes; the policy engine decides. Both are on screen. When
+> Nemotron's pattern disagrees with the deterministic decision, the
+> disagreement is shown with its reason rather than smoothed over. The model
+> never gets the last word on money movement."
+
+### 2:30 — The subgraph
+
+Click `graph →` in the case footer, or `graph` in the bottom switcher.
+
+> "The case subgraph is the evidence as a graph — card, customer, device,
+> transactions, prior cases. Nodes the answer accuses are marked; the focus
+> ring is the entity the conclusion turns on."
+
+### 3:00 — The pack, scored
+
+`pack` in the bottom switcher (or the masthead).
+
+> "All 20 cases in one table: verdict, probability, pattern, SAR, evidence
+> count, tool calls, latency. In the snapshot build a banner says these numbers
+> were measured on a keyed run and are being replayed — the page's own response
+> times are not the engine's."
+
+The numbers to quote, and their provenance:
+
+- 20/20 cases completed, 0 failed, 457 s wall clock, 12.02–35.28 s per case.
+- 20/20 verdict and 20/20 pattern against `cases/ground_truth.json`
+  (tp 15, fp 0, tn 5, fn 0), 600/600 evidence checkpoints.
+- Reproduce: `python scripts/compare_baselines.py`, and
+  `python -m backend.evaluation.validate_answers`.
+- **State the caveat out loud** if asked about the model: the committed answer
+  files are the deterministic-engine output and score 20/20; the live
+  Nemotron-on-LLM path on the original (non-redistributed) dataset scored
+  60% verdict / 85% pattern. `docs/BENCHMARK.md` prints both numbers and says
+  which is which.
+
+### 3:45 — What the console refuses to fake
+
+`ring` in the bottom switcher.
+
+> "Ring discovery — multi-card device rings across the pack — is a capability
+> this API does not expose. The screen says exactly that instead of drawing a
+> plausible network. An honest gap is worth more than a fabricated finding."
+
+`inbox` in the masthead opens the approvals drawer: pending and decided
+actions, each with the action, the case, and the reason it was gated, plus an
+"Acting as" field so the decision is attributed to whoever is at the keyboard.
+
+### 4:15 — The guided walk (optional)
+
+The masthead's `demo` button runs three acts over the real queue, ten seconds
+each: the strongest verdict in the pack, a case where the agent's conclusion
+disagrees with the bank model, and the highest-exposure case still
+uninvestigated. The acts are selected from what the queue actually says, so a
+re-run does not break them. `stop` returns control.
 
 ---
 
-## What NOT to Do During Demo
-- **Do NOT** change `.env` or toggle `STRICT_GRAPH_BACKEND` while the server is running.
-- **Do NOT** spam the investigation button repeatedly while an execution is in flight.
-- **Do NOT** resize the window to mobile width while demonstrating the D3 graph network.
+## Questions to expect, and straight answers
+
+| Question | Answer |
+|---|---|
+| "Is this live AI right now?" | On the hosted URL, no — it is a recorded replay, labelled as such. In Docker with a key and `DEMO_MODE=0`, yes; the Nemotron tab and the per-role token/latency footer show the calls. |
+| "Where is the training data?" | There is none. The graph store is built from 12,235 synthetic transactions in `data/synthetic/`; no third-party or customer data is in the repository. |
+| "Does the model decide?" | No. The policy engine produces the verdict and the actions; the model proposes a pattern and a rationale. The split is visible on the Nemotron tab. |
+| "How do you know it works?" | 290 tests pass (9 skipped, each with a documented reason), 600/600 evidence checkpoints on the 20-case pack, and a 33-check browser suite that fails on any console error. |
+| "What is not proven?" | The live Nemotron path against the original dataset is a recorded measurement, not reproducible here (the dataset is not redistributable). It scored 60%/85%, which is stated in `docs/BENCHMARK.md` rather than buried. |
 
 ---
 
-## Emergency Recovery Procedure
-- **If the screen displays `TigerGraph Unreachable (503)`**:
-  1. Open [savanna.tgcloud.io](https://savanna.tgcloud.io).
-  2. If the cluster status is **Suspended**, click **Resume/Start**.
-  3. Wait 3 minutes until status is **RUNNING**.
-  4. Refresh the Command Center page (`F5`).
+## Do not do this mid-demo
+
+- Do not edit `.env` or toggle `GRAPH_BACKEND` while the server is running.
+- Do not present the snapshot's 20/20 as the LLM's accuracy. It is the
+  deterministic engine's, and the LLM number is lower and printed.
+- Do not claim a TigerGraph cloud run unless one is actually connected — the
+  container is local by design and `/health` reports which backend answered.
