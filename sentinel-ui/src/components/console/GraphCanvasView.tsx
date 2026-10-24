@@ -20,18 +20,23 @@
  * anyone asks.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/console/icons";
 import { toneVar, type Tone } from "@/components/console/vm";
 import type { CaseGraph, GraphNode } from "@/lib/hhgoa";
 
-const W = 560;
-const H = 236;
-const CX = W / 2;
-const CY = H / 2;
-/** Ring radii by hop distance from the focus. Two hops is all the API returns. */
-const RADII = [0, 74, 128];
+/** Fallback canvas before the pane has been measured (SSR + first paint). */
+const DEFAULT_W = 960;
+const DEFAULT_H = 520;
+const MIN_W = 320;
+const MIN_H = 260;
+/** Two hops is all the API returns; anything unreached sits on the outer ring. */
+const MAX_HOPS = 2;
+
+/** Ring geometry as a fraction of the measured pane, so the graph fills it. */
+const RING_X = [0, 0.18, 0.37];
+const RING_Y = [0, 0.20, 0.41];
 
 /** Every node type the subgraph builder emits, mapped to a tone. */
 const TYPE_TONE: Record<string, Tone> = {
@@ -87,8 +92,17 @@ interface Placed {
  *
  * Ordering within a ring is by type then id so the layout is a pure function
  * of the payload: the same case never rearranges itself between two loads.
+ * Radii are fractions of the measured pane, so a wide window spreads the rings
+ * instead of leaving the drawing stranded in the middle.
  */
-function layout(canvas: CaseGraph): { placed: Placed[]; index: Map<string, Placed> } {
+function layout(
+  canvas: CaseGraph,
+  w: number,
+  h: number,
+): { placed: Placed[]; index: Map<string, Placed> } {
+  const cx = w / 2;
+  const cy = h / 2;
+  const scale = Math.min(1.6, Math.max(1, Math.min(w, h) / 560));
   const nodes = canvas.nodes;
   const neighbours = new Map<string, string[]>();
   for (const node of nodes) neighbours.set(node.id, []);
@@ -103,7 +117,7 @@ function layout(canvas: CaseGraph): { placed: Placed[]; index: Map<string, Place
     hop.set(root.id, 0);
     let frontier = [root.id];
     let depth = 0;
-    while (frontier.length > 0 && depth < RADII.length - 1) {
+    while (frontier.length > 0 && depth < MAX_HOPS) {
       depth += 1;
       const next: string[] = [];
       for (const id of frontier) {
@@ -118,7 +132,7 @@ function layout(canvas: CaseGraph): { placed: Placed[]; index: Map<string, Place
     }
   }
   // Anything the walk never reached sits on the outer ring rather than vanishing.
-  const outer = RADII.length - 1;
+  const outer = MAX_HOPS;
   for (const node of nodes) if (!hop.has(node.id)) hop.set(node.id, outer);
 
   const byHop = new Map<number, GraphNode[]>();
@@ -134,7 +148,9 @@ function layout(canvas: CaseGraph): { placed: Placed[]; index: Map<string, Place
     const sorted = [...bucket].sort(
       (a, b) => a.type.localeCompare(b.type) || a.id.localeCompare(b.id),
     );
-    const radius = RADII[Math.min(depth, RADII.length - 1)] ?? 0;
+    const ring = Math.min(depth, MAX_HOPS);
+    const ringX = (RING_X[ring] ?? 0) * w;
+    const ringY = (RING_Y[ring] ?? 0) * h;
     sorted.forEach((node, index) => {
       // Start at the top and step round. The half-turn offset on odd rings
       // stops a first-ring node from hiding a second-ring one behind it.
@@ -142,9 +158,9 @@ function layout(canvas: CaseGraph): { placed: Placed[]; index: Map<string, Place
       const angle = -Math.PI / 2 + index * step + (depth % 2 === 0 ? 0 : step / 2);
       placed.push({
         node,
-        x: radius === 0 ? CX : CX + Math.cos(angle) * radius * 1.55,
-        y: radius === 0 ? CY : CY + Math.sin(angle) * radius * 0.78,
-        r: radiusFor(node),
+        x: ring === 0 ? cx : cx + Math.cos(angle) * ringX,
+        y: ring === 0 ? cy : cy + Math.sin(angle) * ringY,
+        r: radiusFor(node) * scale,
         tone: toneFor(node),
         hop: depth,
       });
@@ -167,27 +183,55 @@ function nodeMeta(node: GraphNode): string[] {
   return meta;
 }
 
+/** Measured size of the pane the graph fills. */
+function usePaneSize() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState({ width: DEFAULT_W, height: DEFAULT_H });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width > 0 && height > 0) setSize({ width, height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return [ref, size] as const;
+}
+
 export function GraphCanvasView({ canvas, live }: { canvas: CaseGraph | null; live: boolean }) {
-  const model = useMemo(() => (canvas ? layout(canvas) : null), [canvas]);
+  const [paneRef, size] = usePaneSize();
+  const W = Math.max(MIN_W, Math.round(size.width));
+  const H = Math.max(MIN_H, Math.round(size.height));
+  const model = useMemo(() => (canvas ? layout(canvas, W, H) : null), [canvas, W, H]);
 
   if (!canvas || !model || canvas.nodes.length === 0) {
     return (
-      <div className="mx-3 rounded-lg border border-dashed border-border bg-surface px-3 py-8 text-center text-caption text-fg-subtle">
+      <div className="mx-3 mb-3 rounded-lg border border-dashed border-border bg-surface px-3 py-8 text-center text-caption text-fg-subtle">
         No subgraph for this case yet.
       </div>
     );
   }
 
   const focus = model.placed.find((item) => item.node.type === "Card") ?? model.placed[0];
+  // Labels are in user units (1 unit = 1 px here), so they must grow with the
+  // pane or they stay thumbnail-sized on a large screen.
+  const labelSize = Math.min(13, Math.max(9, Math.round(Math.min(W, H) / 62)));
 
   return (
-    <div className="mx-3 overflow-hidden rounded-lg border border-border bg-surface">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="block h-[172px] w-full bg-dotgrid"
-        role="img"
-        aria-label={`Case subgraph: ${canvas.counts.nodes} nodes, ${canvas.counts.links} links`}
-      >
+    <div className="mx-3 mb-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface">
+      <div ref={paneRef} className="min-h-0 flex-1">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="block h-full w-full bg-dotgrid"
+          role="img"
+          aria-label={`Case subgraph: ${canvas.counts.nodes} nodes, ${canvas.counts.links} links`}
+        >
         {canvas.links.map((link, i) => {
           const a = model.index.get(link.source);
           const b = model.index.get(link.target);
@@ -262,7 +306,7 @@ export function GraphCanvasView({ canvas, live }: { canvas: CaseGraph | null; li
                 y={item.y + item.r + 12}
                 fill="var(--fg-muted)"
                 fontFamily="var(--font-mono)"
-                fontSize="9"
+                fontSize={labelSize}
                 fontWeight="600"
                 textAnchor="middle"
               >
@@ -276,8 +320,9 @@ export function GraphCanvasView({ canvas, live }: { canvas: CaseGraph | null; li
           );
         })}
       </svg>
+      </div>
 
-      <div className="flex flex-wrap items-center gap-2.5 border-t border-border px-3 py-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2.5 border-t border-border px-3 py-2">
         {Object.entries(TYPE_TONE)
           .map(([type, tone]) => ({ type, tone, count: canvas.nodes.filter((n) => n.type === type).length }))
           .filter((entry) => entry.count > 0)

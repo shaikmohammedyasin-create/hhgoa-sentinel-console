@@ -144,7 +144,7 @@ export function Console({ initialCase }: { initialCase?: string }) {
               <div className="px-3.5 pb-2 pt-3">
                 <Overline>Case subgraph · {selected}</Overline>
               </div>
-              <div className="min-h-0 flex-1">
+              <div className="flex min-h-0 flex-1 flex-col">
                 <GraphCanvasView canvas={canvas ?? null} live={demo.running} />
               </div>
             </div>
