@@ -75,9 +75,14 @@ export function Timeline({
                     ) : null}
                     <span className="flex-1" />
                     <span className="font-mono text-[9px] tabular-nums text-fg-subtle">
-                      {formatTime(ev.timestamp)}
+                      {ev.timestamp ? formatTime(ev.timestamp) : "replay"}
                     </span>
                   </div>
+                  {typeof ev.metadata?.detail === "string" ? (
+                    <p className="mt-0.5 text-[10px] leading-snug text-fg-muted">
+                      {ev.metadata.detail}
+                    </p>
+                  ) : null}
                   {ev.actor ? (
                     <div className="mt-0.5 flex items-center gap-1 font-mono text-[10px] text-fg-muted">
                       <Icon name="user" size={10} />

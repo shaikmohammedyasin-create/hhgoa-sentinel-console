@@ -149,6 +149,37 @@ class TestDemoBlocksEverythingThatWouldSpendOrRewrite:
 
         assert resp.status_code == 409
 
+    def test_timeline_replays_what_the_committed_file_records(self, demo_pack, monkeypatch):
+        answer = _answer("CASE-908")
+        answer["case"].update({
+            "evidence": [
+                {"evidence_id": "EV-1", "claim": "Trigger scored 0.48", "source": "external",
+                 "ref": "trigger:risk_score", "entity_ids": []},
+                {"evidence_id": "EV-2", "claim": "Device shared", "source": "graph",
+                 "ref": "query:accounts_sharing_device", "entity_ids": []},
+            ],
+            "pattern": "undocumented",
+            "written_to_graph": True,
+            "graph_case_id": "CASE-2026-CASE-908",
+        })
+        answer["next_best_actions"] = {"initial": [], "final": [
+            {"action": "BLOCK_CARD", "route": "L1", "reason": "R2"}], "what_changed": "x"}
+        answer["sar"] = {"file": True, "reason": "R2: confirmed fraud"}
+        (demo_pack / "CASE-908.json").write_text(json.dumps(answer))
+        monkeypatch.setattr(main.app_db, "get_audit_trail", lambda *_a, **_k: [])
+
+        resp = client.get("/investigations/CASE-908/timeline")
+
+        assert resp.status_code == 200
+        rows = resp.json()
+        types = [r["event_type"] for r in rows]
+        assert types[0] == "committed_answer"
+        assert "policy_decided" in types
+        assert "sar_recorded" in types
+        assert all(r["actor"] == "replay" for r in rows)
+        # No fabricated execution timestamps.
+        assert all(r["timestamp"] is None for r in rows)
+
     def test_submitting_evidence_is_refused(self, demo_pack, monkeypatch):
         import backend.agents.orchestrator as orchestrator
         monkeypatch.setattr(orchestrator, "submit_evidence",

@@ -317,13 +317,58 @@ def submit_evidence(case_id: str, body: EvidenceSubmission):
 
 # ─── Timeline / Audit ────────────────────────────────────────────────────────
 
+def _replay_timeline(case_id: str, answer: dict[str, Any]) -> list[dict[str, Any]]:
+    """A read-only timeline for a case served from its committed answer file.
+
+    A replayed case has never executed in this process, so there are no audit
+    events and no honest timestamps to show. Each row below is a recorded field
+    of the file — nothing is invented except the order in which the file states
+    them.
+    """
+    case = answer.get("case") or {}
+    sar = answer.get("sar") or {}
+    nba = answer.get("next_best_actions") or {}
+    evidence = case.get("evidence") or []
+    events: list[dict[str, Any]] = []
+
+    def add(event_type: str, detail: str) -> None:
+        events.append({
+            "event_id": f"replay-{case_id}-{len(events) + 1}",
+            "case_id": case_id,
+            "event_type": event_type,
+            "state_from": None,
+            "state_to": None,
+            "actor": "replay",
+            "metadata": {"detail": detail},
+            "timestamp": None,
+        })
+
+    add("committed_answer", f"Served from the committed answer file cases/{case_id}.json")
+    if evidence:
+        add("trigger_observed", str(evidence[0].get("claim") or ""))
+        sources = sorted({str(e.get("source") or "") for e in evidence if e.get("source")})
+        add("evidence_recorded", f"{len(evidence)} evidence items ({', '.join(sources)})")
+    add("pattern_assessed",
+        f"{case.get('pattern')} — fraud probability {case.get('fraud_probability')}")
+    actions = [str(a.get("action")) for a in nba.get("final") or [] if a.get("action")]
+    if actions:
+        add("policy_decided", f"{case.get('verdict')} — {', '.join(actions)}")
+    if sar.get("file"):
+        add("sar_recorded", str(sar.get("reason") or "SAR filed"))
+    if case.get("written_to_graph"):
+        add("graph_case_written", str(case.get("graph_case_id") or "written to graph"))
+    return events
+
+
 @app.get("/investigations/{case_id}/timeline", tags=["Audit"])
 def get_timeline(case_id: str):
     trail = app_db.get_audit_trail(case_id)
-    if not trail and settings.demo_mode and _answer_file(case_id) is not None:
-        # A replayed pack case has never run here, so it has no audit trail.
-        # An empty trail is the truthful answer; a 404 reads as a broken page.
-        return []
+    if not trail and settings.demo_mode:
+        answer = _answer_file(case_id)
+        if answer is not None:
+            # No execution audit here: show what the committed file records
+            # rather than framing the case as never investigated.
+            return _replay_timeline(case_id, answer)
     if not trail:
         raise HTTPException(404, f"No audit trail for {case_id}")
     return trail
