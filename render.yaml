@@ -12,7 +12,7 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
-      # Pins Python 3.12 for the Render runtime (no blueprint-level field).
+      # Pins Python 3.12 for the Render runtime
       - key: PYTHON_VERSION
         value: "3.12"
       # Hosted demo defaults: demo mode on, local synthetic graph, no
@@ -24,22 +24,23 @@ services:
       - key: GRAPH_BACKEND
         value: local
       # The only LLM vendor in this submission is Nebius Token Factory with
-      # NVIDIA Nemotron (LLM_PROVIDER stays at its "none" default; the legacy
-      # groq/anthropic/openai path was removed from the submission).
-      #
+      # NVIDIA Nemotron.
       # To enable live Nemotron calls in the hosted demo, add a host secret
-      # named NEBIUS_API_KEY (a separate demo key) and lower the caps below.
+      # named NEBIUS_API_KEY in the Render dashboard.
       - key: NEBIUS_API_KEY
         sync: false
-      - key: NEBIUS_DAILY_CALL_CAP
+      - key: LLM_DAILY_CALL_CAP
         value: "40"
-      - key: NEBIUS_PER_IP_HOURLY_LIMIT
+      - key: LLM_CALLS_PER_IP_PER_HOUR
         value: "10"
-      - key: NEBIUS_CACHE_DIR
-        value: /tmp/nebius_cache
+      - key: NEBIUS_BASE_URL
+        value: "https://api.tokenfactory.nebius.com/v1"
+      - key: NEBIUS_MODEL_NANO
+        value: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B"
+      - key: NEBIUS_MODEL_ULTRA
+        value: "nvidia/Nemotron-3-Ultra-550b-a55b"
       # To run against the live TigerGraph instance instead, set
-      # GRAPH_BACKEND=tigergraph and fill in the three variables below in the
-      # Render dashboard.
+      # GRAPH_BACKEND=tigergraph and fill in the variables below:
       - key: TG_HOST
         sync: false
       - key: TG_GRAPH
