@@ -263,7 +263,11 @@ function CaseFile({ answer, loading }: { answer: AnswerCase | undefined; loading
         {body.evidence.length === 0 ? (
           <div className="py-6 text-center text-caption text-fg-subtle">No evidence on file.</div>
         ) : (
-          body.evidence.map((ev, i) => <EvidenceRow key={ev.ref || i} ev={ev} />)
+          body.evidence.map((ev, i) => (
+            // Two evidence items can share a ref (same query, different claim),
+            // so the ref alone is not a unique key.
+            <EvidenceRow key={ev.evidence_id ?? `${ev.ref || "ev"}-${i}`} ev={ev} />
+          ))
         )}
       </Panel>
     </div>
@@ -321,8 +325,8 @@ function EvidenceRow({ ev }: { ev: AnswerEvidence }) {
         <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[9px] text-fg-subtle">
           <span className="uppercase">{ev.source}</span>
           <span>{ev.ref}</span>
-          {ev.entity_ids.slice(0, 4).map((id) => (
-            <span key={id} className="rounded-sm bg-surface-3 px-1 py-px">{id}</span>
+          {ev.entity_ids.slice(0, 4).map((id, i) => (
+            <span key={`${id}-${i}`} className="rounded-sm bg-surface-3 px-1 py-px">{id}</span>
           ))}
         </div>
       </div>

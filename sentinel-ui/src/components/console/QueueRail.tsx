@@ -37,11 +37,15 @@ export function QueueRail({
   rows,
   selected,
   runningCase,
+  loading = false,
   onSelect,
 }: {
   rows: QueueRow[];
   selected: string;
   runningCase: string | null;
+  /** True until the first queue payload lands; without it an empty rail claims
+   *  "No cases." while the fetch is still in flight. */
+  loading?: boolean;
   onSelect: (caseId: string) => void;
 }) {
   const ordered = [...rows].sort((a, b) => {
@@ -116,7 +120,9 @@ export function QueueRail({
           );
         })}
         {ordered.length === 0 ? (
-          <li className="px-2 py-8 text-center text-caption text-fg-subtle">No cases.</li>
+          <li className="px-2 py-8 text-center text-caption text-fg-subtle">
+            {loading ? "Loading queue…" : "No cases."}
+          </li>
         ) : null}
       </ul>
     </aside>

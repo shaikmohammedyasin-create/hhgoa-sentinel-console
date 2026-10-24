@@ -79,6 +79,9 @@ export interface InvestigationSummaryOut {
   exposure_usd: number | null;
   sar_required: boolean | null;
   updated_at: string | null;
+  /** "committed" = replayed answer file (no stored engine state), "live" = a
+   *  run this process persisted. */
+  source: string | null;
 }
 
 /**
@@ -92,6 +95,8 @@ export interface QueueRow extends CaseTrigger {
   pattern: FraudPattern | null;
   exposure_usd: number | null;
   sar_required: boolean | null;
+  /** Where the row came from; replayed rows have no stored risk decomposition. */
+  source?: string | null;
 }
 
 // ── Answer file (case_to_answer) ─────────────────────────────────────────────
@@ -99,6 +104,8 @@ export interface QueueRow extends CaseTrigger {
 export type EvidenceSource = "graph" | "document" | "customer" | "external";
 
 export interface AnswerEvidence {
+  /** Additive export field; absent in answer files written before it existed. */
+  evidence_id?: string;
   claim: string;
   source: EvidenceSource;
   ref: string;

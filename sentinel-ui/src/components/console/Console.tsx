@@ -65,6 +65,7 @@ export function Console({ initialCase }: { initialCase?: string }) {
         pattern: s.pattern as FraudPattern | null,
         exposure_usd: s.exposure_usd,
         sar_required: s.sar_required,
+        source: s.source,
       });
     }
     return [...byCase.values()];
@@ -84,7 +85,10 @@ export function Console({ initialCase }: { initialCase?: string }) {
   }, [queue, selected]);
 
   const { data: canvas } = useCanvas(selected, view === "graph" || view === "case");
-  const { data: riskData } = useRisk(selected, Boolean(selectedRow?.investigated));
+  // A replayed answer file carries no stored signal snapshot, so there is no
+  // risk decomposition to ask for; requesting it would only 404 in the console.
+  const hasStoredRun = Boolean(selectedRow?.investigated) && selectedRow?.source !== "committed";
+  const { data: riskData } = useRisk(selected, hasStoredRun);
 
   const hunt = huntState(
     selectedRow?.investigated === false,
@@ -117,6 +121,7 @@ export function Console({ initialCase }: { initialCase?: string }) {
           <QueueRail
             rows={queue}
             selected={selected}
+            loading={!rows && !summaries}
             runningCase={selectedRow?.investigated === false ? selected : null}
             onSelect={(id) => {
               setSelected(id);

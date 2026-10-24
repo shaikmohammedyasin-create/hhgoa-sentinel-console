@@ -160,15 +160,27 @@ export function useBenchmark() {
 export function useCopy(): [boolean, (text: string) => void] {
   // Thin wrapper over the browser clipboard for the panel's copy affordance;
   // kept here so components share one copy implementation.
+  //
+  // Clipboard access is permission-gated: Chrome rejects the write outright when
+  // the document lacks transient activation or the page is embedded, and some
+  // browsers throw synchronously instead of rejecting. Either way the console
+  // affordance must degrade to "not copied", not raise in the dev overlay.
   const [copied, setCopied] = useState(false);
   const copy = useCallback((text: string) => {
-    void navigator.clipboard?.writeText(text).then(
-      () => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
-      },
-      () => setCopied(false),
-    );
+    const done = (ok: boolean) => {
+      setCopied(ok);
+      if (ok) setTimeout(() => setCopied(false), 1200);
+    };
+    try {
+      const pending = navigator.clipboard?.writeText(text);
+      if (!pending) {
+        done(false);
+        return;
+      }
+      void pending.then(() => done(true), () => done(false));
+    } catch {
+      done(false);
+    }
   }, []);
   return [copied, copy];
 }
