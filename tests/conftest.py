@@ -55,3 +55,22 @@ def isolate_test_environment():
     settings.llm_provider = "none"
     settings.tg_host = ""
     settings.nebius_api_key = ""
+
+
+@pytest.fixture(autouse=True, scope="session")
+def protect_committed_case_pack():
+    """Fail loudly if any test tries to rewrite cases/<id>.json.
+
+    A test that starts a real investigation (POST /investigations, POST
+    /benchmark/run, a resumed evidence loop) would otherwise overwrite the
+    committed answer pack — the evaluation contract. Under this flag the
+    exporter refuses those writes; tests that legitimately produce answer files
+    point settings.cases_dir at tmp_path instead.
+    """
+    previous = os.environ.get("SENTINEL_PROTECT_CASE_PACK")
+    os.environ["SENTINEL_PROTECT_CASE_PACK"] = "1"
+    yield
+    if previous is None:
+        os.environ.pop("SENTINEL_PROTECT_CASE_PACK", None)
+    else:
+        os.environ["SENTINEL_PROTECT_CASE_PACK"] = previous

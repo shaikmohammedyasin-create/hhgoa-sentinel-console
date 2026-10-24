@@ -52,8 +52,9 @@ def _undocumented_description(sig: EvidenceSignals) -> str:
         links.append("billing region with no prior history on this card")
     joined = "; ".join(links) or "no single named shared element"
     return (
-        f"Activity does not match any of the five known fraud patterns, but the evidence "
-        f"shows coordinated abuse across accounts: {joined}. "
+        f"The policy engine's rules did not match this activity to any of the five "
+        f"named fraud patterns, but the evidence shows coordinated abuse across "
+        f"accounts: {joined}. "
         f"It is reported as undocumented rather than forced into a known category, per policy R9."
     )
 

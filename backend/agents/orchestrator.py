@@ -303,11 +303,13 @@ def _run_adaptive_investigation(case: InvestigationCase, t0: float) -> None:
     except Exception as exc:
         log.warning("investigation.initial_graph_write_skipped", error=str(exc))
 
-    # Trigger evidence
+    # Trigger evidence. The case pack may already store a labelled trigger
+    # sentence ("Trigger (risk_score): ..."); the label is added only when the
+    # source text does not carry its own (see _trigger_claim).
     evidence: list[EvidenceItem] = [
         _ev(
             case.case_id,
-            (f"Trigger ({case.trigger.trigger_type.value}): {case.trigger.trigger_text}"),
+            _trigger_claim(case.trigger.trigger_type, case.trigger.trigger_text),
             EvidenceSource.customer if case.trigger.trigger_type == TriggerType.customer_report
             else EvidenceSource.external,
             f"trigger:{case.trigger.trigger_type.value}",
@@ -335,15 +337,22 @@ def _run_adaptive_investigation(case: InvestigationCase, t0: float) -> None:
     if card_history:
         avg_amt = float(amount_stats.get("avg_amt") or 0) or (
             sum(t.amount for t in card_history) / len(card_history))
-        evidence.append(_ev(
-            case.case_id,
-            f"{len(card_history)} previous transactions retrieved for card {case.card_id}. "
-            f"Average amount: ${avg_amt:.2f}.",
-            EvidenceSource.graph,
-            f"query:card_transaction_history(card_id={case.card_id})",
-            entity_ids=[case.card_id],
-            confidence=0.95,
-        ))
+        # "Previous" means before this case: the history query returns the most
+        # recent transactions, which includes the one under investigation, so
+        # averaging it in made the claim describe the case against itself.
+        prior_history = [t for t in card_history if t.txn_id != case.flagged_txn_id]
+        if prior_history:
+            prior_avg = sum(t.amount for t in prior_history) / len(prior_history)
+            evidence.append(_ev(
+                case.case_id,
+                f"{len(prior_history)} previous transactions retrieved for card "
+                f"{case.card_id} (excluding the flagged transaction). "
+                f"Average amount: ${prior_avg:.2f}.",
+                EvidenceSource.graph,
+                f"query:card_transaction_history(card_id={case.card_id})",
+                entity_ids=[case.card_id],
+                confidence=0.95,
+            ))
     else:
         avg_amt = 0.0
 
@@ -556,13 +565,18 @@ def _run_adaptive_investigation(case: InvestigationCase, t0: float) -> None:
         ))
 
     if device_card_count > 0:
+        # The count, the named sample and the linked ids use three different caps
+        # (all/five/ten); say so, or readers cannot reconcile 17 with 5 names.
+        named_cards = other_cards[:5]
+        linked_cards = other_cards[:10]
         evidence.append(_ev(
             case.case_id,
-            f"Device profile shared across {device_card_count} other card(s): "
-            f"{', '.join(other_cards[:5])}.",
+            f"Device profile shared across {device_card_count} other card(s); "
+            f"{len(named_cards)} named here and {len(linked_cards)} linked to this case: "
+            f"{', '.join(named_cards)}.",
             EvidenceSource.graph,
             f"query:accounts_sharing_device(device={device_label})",
-            entity_ids=other_cards[:10],
+            entity_ids=linked_cards,
             severity=RiskLevel.high if device_card_count > 2 else RiskLevel.medium,
             confidence=0.80,
         ))
@@ -687,12 +701,23 @@ def _run_adaptive_investigation(case: InvestigationCase, t0: float) -> None:
     case.similar_prior_cases = case.similar_prior_cases[:15]
 
     if retrieved:
+        # State what was actually retrieved. A pattern-only lookup finds
+        # nothing for patterns absent from the closed-case history, so the
+        # claim must not assert a pattern match that never happened.
+        prior_patterns = sorted({h.pattern for h in retrieved if h.pattern})
+        if case.pattern.value in prior_patterns:
+            matched_by = (f"pattern '{case.pattern.value}' and keyword match "
+                          f"over analyst notes")
+            retrieval_ref = f"retrieval:pattern+keyword(pattern={case.pattern.value})"
+        else:
+            matched_by = "keyword match over analyst notes"
+            retrieval_ref = f"retrieval:keyword(patterns={','.join(prior_patterns) or 'none'})"
         evidence.append(_ev(
             case.case_id,
-            f"{len(retrieved)} prior closed case(s) retrieved by pattern "
-            f"({case.pattern.value}) and keyword match over analyst notes.",
+            f"{len(retrieved)} prior closed case(s) retrieved by {matched_by} "
+            f"(prior patterns: {', '.join(prior_patterns) or 'none'}).",
             EvidenceSource.document,
-            f"retrieval:pattern+keyword(pattern={case.pattern.value})",
+            retrieval_ref,
             entity_ids=[h.case_id for h in retrieved[:10]],
             severity=RiskLevel.low,
             confidence=0.75,
@@ -964,11 +989,20 @@ def _run_adaptive_investigation(case: InvestigationCase, t0: float) -> None:
         activity_dates: list[str] = []
         if all_affected_txns:
             dates = sorted(t.ts.date() for t in all_affected_txns)
-            activity_dates = [str(dates[0]), str(dates[-1])]
+            # One day of activity is one date, not "Between X and X": the SAR
+            # narrative renders the single-day window as "On X".
+            activity_dates = ([str(dates[0])] if dates[0] == dates[-1]
+                              else [str(dates[0]), str(dates[-1])])
 
-        subjects = list({case.customer_id, case.card_id} | set(case.connected_card_ids[:5]))
+        # Ordered, de-duplicated so repeated exports of the same case produce
+        # byte-identical SAR subjects (a set here reshuffled the field on every
+        # run and made benchmark diffs unreadable).
+        subjects: list[str] = []
+        for subject_id in [case.customer_id, case.card_id, *case.connected_card_ids[:5]]:
+            if subject_id and subject_id not in subjects:
+                subjects.append(subject_id)
         if device_label:
-            subjects.append(device_label[:80])
+            subjects.append(_clip_label(device_label))
 
         case.sar = SARRecord(
             file=True,
@@ -1498,6 +1532,10 @@ def _attach_model_proposals(case: InvestigationCase,
         }
         if proposal.get("usage"):
             case.model_usage["pattern_classifier"] = proposal["usage"]
+            # The classifier's spend belongs in the published token total too;
+            # recording it only in model_usage made answer files claim
+            # tokens: 0 for a run that had billed 2k+ tokens.
+            case.tokens_used += int(proposal["usage"].get("completion_tokens") or 0)
         if proposal["pattern"] == case.pattern.value:
             case.model_agreed = True
             case.model_override_reason = ""
@@ -1660,6 +1698,41 @@ def decide_approval(case_id: str, approval_id: str, decision: str,
 
 # ─── Deterministic text fallbacks (used only when no LLM provider is set) ──────
 
+def _trigger_claim(trigger_type: TriggerType, trigger_text: str) -> str:
+    """Label a trigger sentence once, never twice.
+
+    Case-pack rows already read "Trigger (risk_score): ...", so prefixing the
+    label unconditionally produced "Trigger (risk_score): Trigger (risk_score):
+    ..." in every exported evidence claim.
+    """
+    if trigger_text.lstrip().lower().startswith("trigger"):
+        return trigger_text
+    return f"Trigger ({trigger_type.value}): {trigger_text}"
+
+
+def _clip_label(label: str, limit: int = 80) -> str:
+    """Clip a composite device label on a segment boundary.
+
+    Device labels are pipe-separated ("Browser | os | agent | screen"); a raw
+    `label[:limit]` cut lands mid-token and produces identifiers no one can
+    grep for. Keep whole segments while they fit, and fall back to the last
+    whole word only for a single oversized segment.
+    """
+    if len(label) <= limit:
+        return label
+    kept = ""
+    for segment in (part.strip() for part in label.split("|")):
+        if not segment:
+            continue
+        candidate = f"{kept} | {segment}" if kept else segment
+        if len(candidate) > limit:
+            break
+        kept = candidate
+    if kept:
+        return kept
+    return label[:limit].rsplit(" ", 1)[0] or label[:limit]
+
+
 def _grounded_summary(case: InvestigationCase, txn: TransactionRecord | None,
                       sig: EvidenceSignals) -> str:
     """Case-grounded summary. Deterministic — not LLM output."""
@@ -1706,8 +1779,13 @@ def _grounded_sar_narrative(case: InvestigationCase, txn: TransactionRecord | No
     if device_label:
         who += f", device profile '{device_label}'"
 
+    if dates[0] == dates[-1]:
+        activity_window = f"On {dates[0]}"
+    else:
+        activity_window = f"Between {dates[0]} and {dates[-1]}"
+
     return (
-        f"Between {dates[0]} and {dates[-1]}, {who} were involved in "
+        f"{activity_window}, {who} were involved in "
         f"{len(affected) or 1} transaction(s) assessed as {case.verdict.value} "
         f"({case.pattern.value} pattern) with total exposure ${total:.2f}. "
         + (f"The flagged transaction {txn.txn_id} of ${txn.amount:.2f} "

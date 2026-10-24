@@ -81,7 +81,8 @@ CHECKPOINTS = [
     ("sar_narrative_present_when_filed", lambda a, ctx: (
         not a["sar"]["file"] or (
             len(a["sar"].get("narrative", "")) > 100
-            and len(a["sar"].get("activity_dates", [])) == 2
+            # One date is a one-day window; two are a range. Any more is noise.
+            and 1 <= len(a["sar"].get("activity_dates", [])) <= 2
             and a["sar"].get("total_amount_usd", 0) > 0))),
     ("nba_before_and_after", lambda a, ctx: (
         len(a["next_best_actions"]["initial"]) >= 1

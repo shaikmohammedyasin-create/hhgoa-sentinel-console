@@ -7,14 +7,36 @@ Output: one JSON file per case in cases/<case_id>.json
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
-from backend.config import settings
+from backend.config import ROOT, settings
 from backend.logging import get_logger
 from backend.models import InvestigationCase
 
 log = get_logger(__name__)
+
+# Set by tests/conftest.py. A test that accidentally starts a real investigation
+# would otherwise rewrite the committed answer pack, which is the evaluation
+# contract; under this flag such a write fails loudly instead.
+_PACK_GUARD_ENV = "SENTINEL_PROTECT_CASE_PACK"
+
+
+def _is_committed_pack(target: Path) -> bool:
+    try:
+        target.resolve().relative_to((ROOT / "cases").resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def _refuse_committed_pack_write(target: Path) -> None:
+    if os.environ.get(_PACK_GUARD_ENV) == "1" and _is_committed_pack(target):
+        raise RuntimeError(
+            f"refusing to write committed case pack during tests: {target}. "
+            "Point settings.cases_dir at a temporary directory instead."
+        )
 
 
 def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
@@ -34,6 +56,10 @@ def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
             "exposure_usd": round(case.exposure_usd, 2),
             "evidence": [
                 {
+                    # Additive (like the nemotron block below): the id is what
+                    # nemotron.model_proposal.evidence_ids points at, so dropping
+                    # it left every model citation dangling.
+                    "evidence_id": ev.evidence_id,
                     "claim": ev.claim,
                     "source": ev.source.value,
                     "ref": ev.ref,
@@ -98,8 +124,9 @@ def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
 def write_answer_file(case: InvestigationCase, output_dir: Path | None = None) -> Path:
     """Write the answer JSON file and return the path."""
     out = output_dir or settings.cases_dir
-    out.mkdir(parents=True, exist_ok=True)
     path = out / f"{case.case_id}.json"
+    _refuse_committed_pack_write(path)
+    out.mkdir(parents=True, exist_ok=True)
     answer = case_to_answer(case)
     path.write_text(json.dumps(answer, indent=2, ensure_ascii=False), encoding="utf-8")
     log.info("exporter.written", path=str(path), case_id=case.case_id)
