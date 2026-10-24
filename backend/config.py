@@ -70,10 +70,10 @@ class Settings(BaseSettings):
     cases_dir: Path = ROOT / "cases"
 
     # Source CSVs (relative to repo root)
-    transactions_csv: Path = ROOT / "transactions.csv"
-    identity_csv: Path = ROOT / "identity.csv"
-    closed_cases_csv: Path = ROOT / "closed_cases_history.csv"
-    case_pack_csv: Path = ROOT / "case_pack.csv"
+    transactions_csv: Path = ROOT / "data" / "synthetic" / "transactions.csv"
+    identity_csv: Path = ROOT / "data" / "synthetic" / "identity.csv"
+    closed_cases_csv: Path = ROOT / "data" / "synthetic" / "closed_cases_history.csv"
+    case_pack_csv: Path = ROOT / "data" / "synthetic" / "case_pack.csv"
 
     # ── Investigation limits ──────────────────────────────────────────────────
     max_investigation_steps: int = 25

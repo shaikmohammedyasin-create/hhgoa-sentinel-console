@@ -79,6 +79,8 @@ class HealthResponse(BaseModel):
     graph: dict[str, str]
     app_db: str
     llm_provider: str
+    nebius_available: bool = False
+    graph_mode: str = "sqlite"
     app_env: str
     demo_mode: bool
     graph_hint: str | None = None
@@ -111,11 +113,15 @@ def health():
         graph_hint = ("Graph instance may still be waking up - retry in 60 s "
                       "or run scripts/wake_graph.py")
 
+    from backend.llm import nebius_client
+
     return HealthResponse(
         status=overall,
         graph=graph_h if isinstance(graph_h, dict) else {"local": graph_h.get("status", "?")},
         app_db=db_status,
         llm_provider=settings.llm_provider,
+        nebius_available=nebius_client.available(),
+        graph_mode=settings.graph_backend,
         app_env=settings.app_env,
         demo_mode=settings.demo_mode,
         graph_hint=graph_hint,

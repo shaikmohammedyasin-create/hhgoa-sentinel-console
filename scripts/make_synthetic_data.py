@@ -331,16 +331,27 @@ def _case_card(cust: dict) -> dict:
 
 def _plant_benign(case_id: str, cust: dict, card: dict) -> dict:
     flagged_ts = NOW - timedelta(days=rng.randint(3, 14), hours=2)
-    amount = _normal_amount(card, cust)
     flagged_id = _new_txn_id()
+    if case_id == "CASE-007":
+        # Stress scenario (b): Legitimate high-score emergency purchase ($1,450.00 hospital/travel)
+        amount = 1450.00
+        score = 0.86
+        trigger_txt = (
+            f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
+            f"(${amount:.2f}, in billing region {cust['home_region']}) at {score}. "
+            f"Emergency medical purchase. Review and decide."
+        )
+    else:
+        amount = _normal_amount(card, cust)
+        score = round(rng.uniform(0.52, 0.72), 2)
+        trigger_txt = (
+            f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
+            f"(${amount:.2f}, in billing region {cust['home_region']}) at "
+            f"{score}. Review and decide."
+        )
     flagged = _txn_row(flagged_id, flagged_ts, card, cust, amount,
-                       "W", "in_person", None, rng.uniform(0.6, 0.65))
+                       "W", "in_person", None, score)
     identity_rows.append(_identity_row(str(flagged_id)))                       # device Found
-    trigger_txt = (
-        f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
-        f"(${amount:.2f}, in billing region {cust['home_region']}) at "
-        f"{round(rng.uniform(0.55, 0.68), 2)}. Review and decide."
-    )
     return {
         "case_id": case_id,
         "flagged_txn_id": str(flagged_id),
@@ -348,7 +359,7 @@ def _plant_benign(case_id: str, cust: dict, card: dict) -> dict:
         "customer_id": cust["id"],
         "trigger_type": "risk_score",
         "trigger_text": trigger_txt,
-        "risk_score": round(rng.uniform(0.55, 0.68), 2),
+        "risk_score": score,
         "opened_at": _ts(flagged_ts + timedelta(minutes=3)),
         "row": flagged,
     }
@@ -521,10 +532,22 @@ def _plant_syndicate(case_id: str, cust: dict, card: dict) -> dict:
         tident = dict(flagged_ident)
         tident["TransactionID"] = tid
         identity_rows.append(tident)
-    trigger_txt = (
-        f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
-        f"(${amount:.2f}) at {round(rng.uniform(0.8, 0.9), 2)}. Review and decide."
-    )
+    if case_id == "CASE-009":
+        # Stress scenario (a): Fraud ring made of low-score micro-payments ($14.50, initial score 0.48)
+        amount = 14.50
+        score = 0.48
+        trigger_txt = (
+            f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
+            f"(${amount:.2f}) at {score}. Coordinated micro-payment ring. Review and decide."
+        )
+    else:
+        score = round(rng.uniform(0.72, 0.89), 2)
+        trigger_txt = (
+            f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
+            f"(${amount:.2f}) at {score}. Review and decide."
+        )
+    flagged["amount"] = amount
+    flagged["risk_score"] = score
     return {
         "case_id": case_id,
         "flagged_txn_id": str(flagged_id),
@@ -532,7 +555,7 @@ def _plant_syndicate(case_id: str, cust: dict, card: dict) -> dict:
         "customer_id": cust["id"],
         "trigger_type": "risk_score",
         "trigger_text": trigger_txt,
-        "risk_score": round(rng.uniform(0.8, 0.9), 2),
+        "risk_score": score,
         "opened_at": _ts(flagged_ts + timedelta(minutes=8)),
         "row": flagged,
         "exposure": amount,

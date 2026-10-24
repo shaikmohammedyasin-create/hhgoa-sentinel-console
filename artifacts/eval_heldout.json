@@ -5,8 +5,8 @@
   "note": "The 28-case synthetic closed-case history is stratified at fixed seed 20261030; per CC-* case full-pipeline runs run through the same 20-case case-pack benchmark.",
   "engine_fidelity": {
     "n_cases": 20,
-    "verdict_accuracy": 1.0,
-    "pattern_accuracy": 1.0,
+    "verdict_accuracy": 0.25,
+    "pattern_accuracy": 0.25,
     "per_case": [
       {
         "case_id": "CASE-001",
@@ -53,12 +53,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_fraud"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_fraud"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-005",
@@ -66,12 +63,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_new_device"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_new_device"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-006",
@@ -92,12 +86,9 @@
           "verdict": "legitimate",
           "pattern": "none"
         },
-        "engine": {
-          "verdict": "legitimate",
-          "pattern": "none"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-008",
@@ -105,12 +96,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_fraud"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_fraud"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-009",
@@ -118,12 +106,9 @@
           "verdict": "fraud",
           "pattern": "undocumented"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "undocumented"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-010",
@@ -131,12 +116,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_new_device"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_new_device"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-011",
@@ -144,12 +126,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_fraud"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_fraud"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-012",
@@ -157,12 +136,9 @@
           "verdict": "legitimate",
           "pattern": "none"
         },
-        "engine": {
-          "verdict": "legitimate",
-          "pattern": "none"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-013",
@@ -170,12 +146,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_new_device"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_new_device"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-014",
@@ -196,12 +169,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_new_device"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_new_device"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-016",
@@ -209,12 +179,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_new_device"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_new_device"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-017",
@@ -222,12 +189,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_fraud"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_fraud"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-018",
@@ -235,12 +199,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_fraud"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_fraud"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-019",
@@ -248,12 +209,9 @@
           "verdict": "fraud",
           "pattern": "account_takeover"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "account_takeover"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       },
       {
         "case_id": "CASE-020",
@@ -261,12 +219,9 @@
           "verdict": "fraud",
           "pattern": "card_not_present_new_device"
         },
-        "engine": {
-          "verdict": "fraud",
-          "pattern": "card_not_present_new_device"
-        },
-        "verdict_ok": true,
-        "pattern_ok": true
+        "engine": null,
+        "verdict_ok": false,
+        "pattern_ok": false
       }
     ]
   },
@@ -303,79 +258,78 @@
       },
       {
         "threshold": 0.5,
-        "tp": 15,
+        "tp": 14,
         "fp": 5,
-        "fn": 0,
-        "f1": 0.8571
+        "fn": 1,
+        "f1": 0.8235
       },
       {
         "threshold": 0.55,
-        "tp": 15,
+        "tp": 14,
         "fp": 5,
-        "fn": 0,
-        "f1": 0.8571
+        "fn": 1,
+        "f1": 0.8235
       },
       {
         "threshold": 0.6,
-        "tp": 15,
-        "fp": 2,
-        "fn": 0,
-        "f1": 0.9375
+        "tp": 14,
+        "fp": 4,
+        "fn": 1,
+        "f1": 0.8485
       },
       {
         "threshold": 0.65,
-        "tp": 15,
-        "fp": 1,
-        "fn": 0,
-        "f1": 0.9677
+        "tp": 14,
+        "fp": 3,
+        "fn": 1,
+        "f1": 0.875
       },
       {
         "threshold": 0.7,
-        "tp": 15,
-        "fp": 0,
-        "fn": 0,
-        "f1": 1.0
+        "tp": 14,
+        "fp": 1,
+        "fn": 1,
+        "f1": 0.9333
       },
       {
         "threshold": 0.75,
-        "tp": 15,
-        "fp": 0,
-        "fn": 0,
-        "f1": 1.0
+        "tp": 14,
+        "fp": 1,
+        "fn": 1,
+        "f1": 0.9333
       }
     ],
     "best": {
       "threshold": 0.7,
-      "tp": 15,
-      "fp": 0,
-      "fn": 0,
-      "f1": 1.0
+      "tp": 14,
+      "fp": 1,
+      "fn": 1,
+      "f1": 0.9333
     }
   },
   "ablation_propose_decide": {
-    "n_evaluated": 20,
-    "model_agreed": 6,
-    "engine_overruled_model": 3,
-    "no_model_proposal": 11,
-    "agreement_rate": 0.6667,
-    "override_rate": 0.3333
+    "n_evaluated": 5,
+    "model_agreed": 0,
+    "engine_overruled_model": 0,
+    "no_model_proposal": 5,
+    "agreement_rate": null,
+    "override_rate": null
   },
   "cost_latency": {
     "available": true,
-    "calls_logged": 63,
-    "successes": 62,
-    "failures": 1,
-    "prompt_tokens_total": 61538,
-    "completion_tokens_total": 62045,
-    "latency_ms_p50": 6207.9,
-    "latency_ms_p95": 27810.1,
+    "calls_logged": 6,
+    "successes": 6,
+    "failures": 0,
+    "prompt_tokens_total": 3447,
+    "completion_tokens_total": 3156,
+    "latency_ms_p50": 6051.8,
+    "latency_ms_p95": 8322.2,
     "by_role": {
-      "pattern_classifier": 24,
-      "verification_request_drafter": 4,
-      "case_narrative_and_sar_draft": 25,
-      "analyst_qa": 8,
-      "dbg1": 1,
-      "dbg2": 1
+      "pattern_classifier": 2,
+      "verification_request_drafter": 1,
+      "case_narrative_and_sar_draft": 1,
+      "analyst_qa": 1,
+      "pattern_classifier_super": 1
     }
   },
   "plain_llm_baseline": {

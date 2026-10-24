@@ -691,7 +691,34 @@ This validates 30 discrete checkpoints per case (600 total checkpoints) covering
 
 ---
 
-## 20. License
+
+---
+
+## 20. What Changed During the Submission Period (from 2026-08-26)
+
+Factual chronological summary of major engineering evolutions during the hackathon development window:
+
+- **2026-08-26 ? Initial Architecture Baseline**:
+  - Baseline deterministic policy engine (Rules R1?R10) and GSQL graph traversal schema.
+  - Basic Bayesian probability model for alert triage.
+- **2026-10-23 ? NVIDIA Nemotron Hybrid Architecture & Evaluation**:
+  - **Nebius Token Factory Integration**: Integrated NVIDIA Nemotron across 4 specialized roles (`NVIDIA-Nemotron-3-Nano-30B-A3B` for pattern hypothesis and verification drafts; `Nemotron-3-Ultra-550b-a55b` for SAR narrative synthesis and interactive analyst Q&A).
+  - **Deterministic Policy Governance**: Implemented strict architectural rule: *"Nemotron proposes, the deterministic policy engine decides."* The LLM advises but is never given unilateral authority over fund movements or card freezes.
+  - **Spend Protection Guardrails**: Added per-IP hourly rate limiting (`LLM_CALLS_PER_IP_PER_HOUR=20`), global daily caps (`LLM_DAILY_CALL_CAP=200`), JSONL audit logging (`/api/llm/status`), and zero-500 deterministic fallbacks.
+  - **Single-Container Docker Build**: Implemented multi-stage Docker build co-hosting the standalone Next.js analyst console (`sentinel-ui`) and FastAPI gateway on a single published port (`8008`).
+  - **Ablation & Baseline Harness**: Implemented `scripts/compare_baselines.py` comparing the Graph Agent against a Risk-Score-Only Baseline and Plain LLM (no-graph ablation).
+- **2026-10-24 ? Stress Testing, Hardened Evaluation & Final Polish**:
+  - **Stress Scenarios & Non-Trivial Score Distributions**: Enhanced synthetic data generator with overlapping score distributions ($[0.52, 0.74]$ benign, $[0.65, 0.92]$ fraud) and stress scenarios:
+    - `CASE-009`: Coordinated micro-payment ring ($14.50, initial score 0.48, False Negative under ML score) ? resolved via 2-hop device sharing graph traversal.
+    - `CASE-007`: Legitimate emergency medical purchase ($1,450.00, initial score 0.86, False Positive under ML score) ? resolved via customer verification override rule R1.
+    - Result: Risk score baseline F1 capped at $0.9333$, demonstrating why knowledge graph evidence and deterministic policies are required.
+  - **Full Test Suite & Linter Pass**: Automated test suite verified at **290 passed, 9 skipped** (0 failures). `ruff` and `eslint` clean with 0 warnings.
+  - **Playwright Browser Quality Gate**: Patched Windows browser detection; E2E smoke suite verified 33/33 checks passing with zero console errors.
+  - **Security & Data Sanitization**: Ran Gitleaks binary across full git history (93 commits) confirming 0 secrets found. Removed legacy Vercel configs.
+  - **Submission Assets & Telemetry**: Captured 7 high-resolution (1536x1024) UI screenshots in `docs/screenshots/`, documented deployment in `docs/DEPLOY.md`, and updated `render.yaml` Blueprint.
+
+
+## 21. License
 
 This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for complete details.
 
