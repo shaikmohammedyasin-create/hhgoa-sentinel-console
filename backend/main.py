@@ -7,17 +7,17 @@ import urllib.request
 from datetime import datetime
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Header, Query, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from backend.config import settings
-from backend.logging import configure_logging, get_logger
 from backend import db as app_db
-from backend.agents.orchestrator import run_investigation, _current_risk
+from backend.agents.orchestrator import _current_risk, run_investigation
+from backend.config import settings
 from backend.evaluation.exporter import case_to_answer, write_answer_file
 from backend.graph import query_router as graph
+from backend.logging import configure_logging, get_logger
 
 configure_logging()
 log = get_logger(__name__)
@@ -159,6 +159,7 @@ def list_investigations(limit: int = Query(50, ge=1, le=200), offset: int = Quer
 
 
 @app.get("/investigations/{case_id}", tags=["Investigations"])
+@app.get("/api/investigations/{case_id}", tags=["Investigations"])
 def get_investigation(case_id: str):
     """Full answer for a case.
 
@@ -167,6 +168,10 @@ def get_investigation(case_id: str):
     served from the committed precomputed answer file (`cases/<id>.json`),
     the same deterministic output a fresh run would produce — without
     spending any Nemotron calls.
+
+    Both paths are registered because the console talks to its own backend
+    through the `/api/*` prefix (see `sentinel-ui/src/lib/api.ts`) while the
+    original route predates it. One handler, so the two cannot drift apart.
     """
     payload = app_db.load_investigation(case_id)
     if payload is None and settings.demo_mode:
@@ -268,23 +273,61 @@ def get_all_approvals(status: str | None = Query(None)):
     return app_db.list_all_approvals(status=status)
 
 
+# Evidence refs are written by the orchestrator as `query:<name>(k=v, ...)`
+# using the short TigerGraph names (`card_transaction_history`), while the
+# Python router exports the same queries with a `get_` prefix. Keeping the
+# mapping explicit is what stops this endpoint from "verifying" a query it
+# never ran, which is what it used to do for every single ref.
+_REPROVE_PARAM_ALIASES = {
+    "device": "device_label",
+}
+
+
+def _reprove_resolve(query_name: str):
+    """Return (callable, resolved_name) for a cited ref, or (None, None)."""
+    from backend.graph import query_router as qrouter
+
+    for candidate in (query_name, f"get_{query_name}"):
+        fn = getattr(qrouter, candidate, None)
+        if callable(fn):
+            return fn, candidate
+    return None, None
+
+
+def _reprove_coerce(value: Any, annotation: Any) -> Any:
+    """Turn the string parsed out of a ref into the type the signature wants."""
+    label = str(annotation)
+    try:
+        if annotation is int or label in ("int", "int | None"):
+            return int(value)
+        if annotation is float or label in ("float", "float | None"):
+            return float(value)
+        if "datetime" in label:
+            return datetime.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        # Leave it as text; the signature check below reports the real problem
+        # instead of this endpoint inventing a plausible value.
+        return value
+    return value
+
+
 @app.post("/api/reprove", tags=["Graph"])
 def reprove_query(body: ReproveRequest):
-    """
-    Re-prove / re-run a GSQL or graph query cited in evidence claims.
-    Parses 'query:name(param=val)' and runs it against the graph store,
-    returning execution timing, row count, and data sample.
+    """Re-run a graph query cited in an evidence claim.
+
+    Returns `ok: true` only when the query actually executed, and
+    `reproduced: true` only when it returned rows. An unknown query name, a
+    missing required argument, or an error all report failure — a trust
+    feature that always answers "verified" is worse than no feature.
     """
     import inspect
     import re
     import time
+
     from backend.graph import query_router as qrouter
 
     ref = body.ref.strip()
-    if ref.startswith("query:"):
-        ref_body = ref[6:]
-    else:
-        ref_body = ref
+    ref_body = ref[6:] if ref.startswith("query:") else ref
 
     m = re.match(r"^(\w+)\((.*)\)$", ref_body)
     query_name = m.group(1) if m else ref_body
@@ -295,74 +338,99 @@ def reprove_query(body: ReproveRequest):
         for part in raw_params.split(","):
             if "=" in part:
                 k, v = part.split("=", 1)
-                k = k.strip()
-                v = v.strip().strip("'\"")
-                params[k] = v
+                k = _REPROVE_PARAM_ALIASES.get(k.strip(), k.strip())
+                params[k] = v.strip().strip("'\"")
 
-    start_time = time.perf_counter()
-    rows = []
-    try:
-        if hasattr(qrouter, query_name):
-            fn = getattr(qrouter, query_name)
-            sig = inspect.signature(fn)
-            call_kwargs = {}
-            for param_name, param in sig.parameters.items():
-                if param_name in params:
-                    val = params[param_name]
-                    if param.annotation in (int, "int"):
-                        try:
-                            val = int(val)
-                        except Exception:
-                            pass
-                    call_kwargs[param_name] = val
-            res = fn(**call_kwargs)
-            if isinstance(res, list):
-                for item in res:
-                    if hasattr(item, "model_dump"):
-                        rows.append(item.model_dump(mode="json"))
-                    elif isinstance(item, dict):
-                        rows.append(item)
-                    else:
-                        rows.append({"value": str(item)})
-            elif hasattr(res, "model_dump"):
-                rows = [res.model_dump(mode="json")]
-            elif isinstance(res, dict):
-                rows = [res]
-            elif res is not None:
-                rows = [{"result": str(res)}]
-
-        elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
-        return {
-            "ok": True,
-            "query": query_name,
-            "params": params,
-            "ms": max(elapsed_ms, 0.4),
-            "rows": len(rows),
-            "via": "mcp" if qrouter._use_tg() else "local",
-            "sample": rows[:10],
-            "note": "Re-executed query on graph engine; evidence verified reproducible."
-        }
-    except Exception as exc:
-        elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
+    def _fail(reason: str, resolved: str | None = None, elapsed_ms: float = 0.0) -> dict[str, Any]:
         return {
             "ok": False,
-            "query": query_name,
+            "reproduced": False,
+            "query": resolved or query_name,
             "params": params,
-            "ms": elapsed_ms,
+            "ms": round(elapsed_ms, 2),
             "rows": 0,
             "via": "local",
             "sample": [],
-            "error": str(exc),
-            "note": f"Could not re-execute query: {exc}"
+            "error": reason,
+            "note": reason,
         }
+
+    fn, resolved = _reprove_resolve(query_name)
+    if fn is None:
+        return _fail(
+            f"Unknown graph query: {query_name}. No query of that name is exposed "
+            f"by this build, so the cited evidence cannot be re-proved."
+        )
+
+    sig = inspect.signature(fn)
+    call_kwargs: dict[str, Any] = {}
+    missing: list[str] = []
+    for param_name, param in sig.parameters.items():
+        if param_name in params:
+            call_kwargs[param_name] = _reprove_coerce(params[param_name], param.annotation)
+        elif param.default is inspect.Parameter.empty:
+            missing.append(param_name)
+    if missing:
+        return _fail(
+            f"Ref is missing required parameter(s) for {resolved}: {', '.join(missing)}. "
+            f"Rename or re-emit the ref with those arguments; nothing was re-executed."
+        )
+
+    start_time = time.perf_counter()
+    rows: list[Any] = []
+    try:
+        res = fn(**call_kwargs)
+        if isinstance(res, list):
+            for item in res:
+                if hasattr(item, "model_dump"):
+                    rows.append(item.model_dump(mode="json"))
+                elif isinstance(item, dict):
+                    rows.append(item)
+                else:
+                    rows.append({"value": str(item)})
+        elif hasattr(res, "model_dump"):
+            rows = [res.model_dump(mode="json")]
+        elif isinstance(res, dict):
+            rows = [res]
+        elif res is not None:
+            rows = [{"result": str(res)}]
+    except Exception as exc:
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        return _fail(f"Could not re-execute {resolved}: {exc}", resolved, elapsed_ms)
+
+    elapsed_ms = max((time.perf_counter() - start_time) * 1000, 0.4)
+    note = (
+        f"Re-executed {resolved}: {len(rows)} row(s) returned."
+        if rows
+        else f"Re-executed {resolved}: query ran but returned no rows, "
+             f"so the cited evidence was not reproduced."
+    )
+    return {
+        "ok": True,
+        "reproduced": bool(rows),
+        "query": resolved,
+        "params": params,
+        "ms": round(elapsed_ms, 2),
+        "rows": len(rows),
+        "via": "mcp" if qrouter._use_tg() else "local",
+        "sample": rows[:10],
+        "note": note,
+    }
 
 
 # ─── Cases (historical memory) ───────────────────────────────────────────────
 
 @app.get("/cases/{case_id}", tags=["Case Memory"])
-def get_case_memory(case_id: str):
-    """Retrieve a closed historical case from the graph store."""
-    from backend.graph.local_store import get_closed_cases_for_customer
+def get_case_memory(case_id: str, request: Request):
+    """Retrieve a closed historical case from the graph store.
+
+    The console also has a `/cases/<id>` page, so on the single-URL demo a
+    browser navigation lands here. When the caller accepts HTML and a UI is
+    co-hosted, hand the request to the page instead of returning JSON to a
+    browser — otherwise deep links and refreshes show a bare JSON body.
+    """
+    if _UI_PORT and "text/html" in request.headers.get("accept", ""):
+        return _proxy_to_ui(f"cases/{case_id}", request)
     payload = app_db.load_investigation(case_id)
     if payload:
         return payload
@@ -717,7 +785,7 @@ def get_investigation_subgraph(case_id: str):
                     "txn_id": t_id,
                     "affected": True,
                     "role": "Related Suspicious Transaction",
-                    "relevance": f"Correlated transaction within the 48h fraudulent activity burst.",
+                    "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
                     "evidence_ids": entity_ev_map.get(t_id, []),
                 }
             )
@@ -755,7 +823,7 @@ def get_investigation_subgraph(case_id: str):
                 {
                     "card_id": c_id,
                     "role": "Syndicate / Shared Device Card",
-                    "relevance": f"Card linked through shared device or cross-entity transaction patterns.",
+                    "relevance": "Card linked through shared device or cross-entity transaction patterns.",
                     "evidence_ids": entity_ev_map.get(c_id, []),
                 }
             )
@@ -1005,29 +1073,40 @@ def _reconstruct(payload: dict) -> Any:
 
 _UI_PORT = os.environ.get("UI_PORT")
 
+
+def _proxy_to_ui(path: str, request: Request) -> Response:
+    """Forward a GET to the co-hosted UI server on `UI_PORT`.
+
+    Shared by the catch-all below and by `/cases/{id}`, which is an API route
+    that browsers also navigate to directly (deep links, refresh). Callers
+    decide when a request is a page view rather than an API call.
+    """
+    try:
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{_UI_PORT}/{path.lstrip('/')}",
+            headers={"Accept": request.headers.get("accept", "*/*")},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = resp.read()
+            return Response(content=body, status_code=resp.status,
+                            media_type=resp.headers.get("content-type", "text/html"))
+    except urllib.error.HTTPError as exc:
+        # The UI server has a real answer (404, etc.) — forward it, not 502.
+        raise HTTPException(exc.code, "Not found" if exc.code == 404 else f"UI returned {exc.code}")
+    except Exception:
+        raise HTTPException(502, "UI server not reachable")
+
+
 if _UI_PORT:
     _API_PREFIXES = (
         "/api/", "/investigations", "/benchmark/", "/graph/",
         "/health", "/cases/",
     )
 
-    @app.get("/{path:path}")
+    @app.get("/{path:path}", include_in_schema=False)
     async def _ui_catchall(path: str, request: Request):
         """Proxy any non-API GET path to the co-hosted UI server."""
         if any(path.startswith(p) or path == p.lstrip("/") for p in _API_PREFIXES):
             raise HTTPException(404, f"Not found: /{path}")
-        try:
-            req = urllib.request.Request(
-                f"http://127.0.0.1:{_UI_PORT}/{path}",
-                headers={"Accept": request.headers.get("accept", "*/*")},
-            )
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                body = resp.read()
-                return Response(content=body, status_code=resp.status,
-                                media_type=resp.headers.get("content-type", "text/html"))
-        except urllib.error.HTTPError as exc:
-            # The UI server has a real answer (404, etc.) — forward it, not 502.
-            raise HTTPException(exc.code, "Not found" if exc.code == 404 else f"UI returned {exc.code}")
-        except Exception:
-            raise HTTPException(502, "UI server not reachable")
+        return _proxy_to_ui(path, request)
 
