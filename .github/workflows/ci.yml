@@ -21,14 +21,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Syntax-check frontend JavaScript
-        run: |
-          for f in frontend/js/*.js; do
-            node --check "$f" || exit 1
-          done
+      - name: Install lint tooling
+        run: pip install ruff
 
-      - name: Skip contract-typing for the vendored Next.js console
-        run: echo "sentinel-ui has its own toolchain (npm ci + tsc) in the sentinel-ui job below"
+      - name: Backend defect gate
+        run: python -m ruff check backend scripts tests
 
       - name: Run pytest
         env:
@@ -56,3 +53,9 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
