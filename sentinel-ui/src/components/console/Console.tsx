@@ -98,8 +98,9 @@ export function Console({ initialCase }: { initialCase?: string }) {
   );
 
   const demo = useDemo(queue, useCallback((act) => {
-    setSelected(act.caseId);
-    setView("case");
+    if (act.caseId) setSelected(act.caseId);
+    setView(act.view);
+    setInboxOpen(Boolean(act.inbox));
   }, []));
 
   return (
@@ -113,7 +114,10 @@ export function Console({ initialCase }: { initialCase?: string }) {
         goMonitor={() => setView("monitor")}
         running={demo.running}
         onStartDemo={demo.start}
-        onStopDemo={demo.stop}
+        onStopDemo={() => {
+          demo.stop();
+          setInboxOpen(false);
+        }}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -182,6 +186,9 @@ export function Console({ initialCase }: { initialCase?: string }) {
         <div className="fixed bottom-14 left-3.5 z-50 flex items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 shadow-2">
           <Overline>{demo.act.title}</Overline>
           <span className="max-w-[340px] text-[10px] leading-snug text-fg-muted">{demo.act.caption}</span>
+          <span className="shrink-0 font-mono text-[9px] text-fg-subtle">
+            {demo.index + 1}/{demo.total}
+          </span>
         </div>
       ) : null}
     </div>

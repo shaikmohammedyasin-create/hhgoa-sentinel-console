@@ -1,26 +1,33 @@
 "use client";
 
 /**
- * A small guided walk through three cases that tell the story.
+ * A guided walk through the console: three cases, then the other views.
  *
- * A console full of finished cases does not explain itself. The three acts
+ * A console full of finished cases does not explain itself. The three case acts
  * are selections over the real queue rows:
  *   I   the strongest verdict of the pack
  *   II  a case whose agent conclusion disagrees with the bank model
- *   III  the highest-exposure case still uninvestigated
+ *   III the highest-exposure case still uninvestigated
  *
- * Nothing here is scripted data; the acts are chosen from what the queue
- * actually says, so a re-run of the pack does not break the demo.
+ * They are followed by a tour of the views a visitor would otherwise have to
+ * find on their own: the device subgraph, the ring screen, the pack report and
+ * the approvals inbox. Nothing here is scripted data; every case is chosen from
+ * what the queue actually says, so a re-run of the pack does not break the demo.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { QueueRow } from "@/lib/hhgoa";
 
+export type DemoView = "queue" | "case" | "graph" | "monitor" | "ring";
+
 export interface Act {
   title: string;
   caption: string;
-  caseId: string;
+  view: DemoView;
+  caseId?: string;
+  /** Open the approvals overlay for this act. */
+  inbox?: boolean;
 }
 
 export interface DemoState {
@@ -46,6 +53,7 @@ function buildActs(rows: QueueRow[]): Act[] {
       title: "ACT I",
       caption: `${strongest.case_id} — the strongest fraud verdict on this pack.`,
       caseId: strongest.case_id,
+      view: "case",
     });
   }
 
@@ -57,6 +65,7 @@ function buildActs(rows: QueueRow[]): Act[] {
       title: "ACT II",
       caption: `${disagreement.case_id} — the model flagged it; the agent disagreed.`,
       caseId: disagreement.case_id,
+      view: "case",
     });
   }
 
@@ -68,8 +77,34 @@ function buildActs(rows: QueueRow[]): Act[] {
       title: "ACT III",
       caption: `${highestExposure.case_id} — highest exposure, not yet run.`,
       caseId: highestExposure.case_id,
+      view: "case",
     });
   }
+
+  // The rest of the console, so the walk does not stop at the case file.
+  const anchor = strongest?.case_id ?? answered[0]?.case_id;
+  acts.push({
+    title: "GRAPH",
+    caption: "The device subgraph behind the verdict — one profile, many cards.",
+    caseId: anchor,
+    view: "graph",
+  });
+  acts.push({
+    title: "RING",
+    caption: "Ring analysis: what the graph can prove, and what it cannot.",
+    view: "ring",
+  });
+  acts.push({
+    title: "PACK",
+    caption: "The pack report: every case, its measured latency and token spend.",
+    view: "monitor",
+  });
+  acts.push({
+    title: "INBOX",
+    caption: "Approvals: a human signs off before a block or a SAR is filed.",
+    view: "case",
+    inbox: true,
+  });
 
   return acts;
 }
