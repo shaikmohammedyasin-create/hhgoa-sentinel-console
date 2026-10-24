@@ -192,3 +192,24 @@ Listed so no reader has to guess:
 | `gitleaks` clean | **verified** | v8.30.1, full history, 0 findings |
 | Docker image build/boot | **verified** | `docker compose build` exit 0 (983 MB), container healthy on `:8008`, 32/32 browser checks, 290 passed / 9 skipped on Python 3.12.15 inside the image |
 | Vercel snapshot deployment reachable | **verified** | `/`, `/demo/index.json`, `/cases/CASE-004`, `/benchmark`, `/ring` all 200; 33/33 browser checks against the live URL |
+
+---
+
+## Release re-verification (24 October 2026, release review)
+
+The capture above records its original round and is left untouched. This table
+records only what was re-run for the release review, on the same machine.
+
+| Gate | Result | Command |
+|---|---|---|
+| Backend test suite | **353 passed, 9 skipped** | `pytest tests/ -q` |
+| Python lint | **0 findings** | `ruff check backend scripts tests` |
+| UI typecheck | **clean** | `npx tsc --noEmit` |
+| UI lint | **0 warnings** | `npx eslint . --max-warnings=0` |
+| UI production build | **exit 0** | `npm run build` |
+| Browser suite (system Edge) | **32/32 checks, 0 console errors** | `BASE=http://127.0.0.1:3000 CHROME_PATH=<msedge> node e2e/smoke.mjs` |
+| Request-size guard | **413 above 1 MB, 200 for normal requests** | live `POST /investigations` |
+| Demo-mode write guards | create replays, benchmark 409, evidence 409, case pack mtime unchanged | live API |
+| Test-run pack isolation | **pack untouched** by a full suite | mtime comparison before/after |
+| Container build/boot | **BLOCKED — ENVIRONMENT**: Docker daemon unavailable, not re-verified | `docker compose build` |
+| Container test suite / container browser suite | **NOT RE-RUN** for this release | — |

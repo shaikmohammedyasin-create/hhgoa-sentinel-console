@@ -7,16 +7,16 @@ Run date: 2026-10-24. Every measurement and claim below was produced by commands
 ## Executive Summary
 
 1. **Repository & Safety**: Private repository `shaikmohammedyasin-create/hhgoa-sentinel-console` on branch `main`. The retired upstream working remote has been detached; `origin` is the only active remote. Full history scanned with `gitleaks`: **0 secrets / 0 leaks found across 93 commits**.
-2. **Automated Test Suite**: **290 passed, 9 skipped, 0 failed** in `pytest`. Skips are isolated to 6 live TigerGraph cloud tests (no cluster host attached) and 3 conditional approvals assertions.
+2. **Automated Test Suite**: **353 passed, 9 skipped, 0 failed** in `pytest`. Skips are isolated to 6 live TigerGraph cloud tests (no cluster host attached) and 3 conditional approvals assertions.
 3. **Build & Quality Gates**:
    - Python lint: `ruff check` passes cleanly with **0 errors**.
    - UI lint: `eslint . --max-warnings=0` passes with **0 errors / 0 warnings**.
    - UI Typecheck: `tsc --noEmit` clean.
    - Next.js Standalone Build: Completed with 6 routes (`/`, `/_not-found`, `/approvals`, `/benchmark`, `/cases/[caseId]`, `/ring`).
-   - Browser Smoke Suite: **33/33 checks passed** with **0 console errors** using Playwright against system Chrome.
+   - Browser Smoke Suite: **32/32 checks passed** with **0 console errors** using Playwright against system Chrome.
 4. **Offline & Baseline Evaluation (3-Arm Comparison)**:
    - **Arm 1 (Graph Agent + Policy Engine)**: Verdict **100% (20/20)**, Pattern **100% (20/20)**, NBA **100% (20/20)**, $F_1 = 1.0000$, 600/600 evidence checkpoints.
-   - **Arm 2 (Risk Score Threshold Only Baseline)**: Best $F_1 = 0.9333$ at threshold $\tau = 0.70$. Fails on `CASE-009` (Coordinated micro-payment ring False Negative, $14.50, score 0.48) and `CASE-007` (Legitimate emergency medical purchase False Positive, $1,450.00, score 0.86).
+   - **Arm 2 (Risk Score Threshold Only Baseline)**: Best $F_1 = 0.9333$ at threshold $\tau = 0.70$. Fails on `CASE-009` (Card-testing ring with a low-score cash-out False Negative, $2,093.43, score 0.48) and `CASE-007` (Legitimate emergency medical purchase False Positive, $1,450.00, score 0.86).
    - **Arm 3 (Plain Nemotron Nano no-graph ablation)**: Verdict **20% (4/20)**, Pattern **15% (3/20)**, $F_1 = 0.0000$. Without the graph retrieval layer, the raw LLM cannot resolve distributed relationships or card velocity.
 5. **Live NVIDIA Nemotron Evidence (Nebius Token Factory)**:
    - **Live Smoke Verified**: Executed `scripts/smoke_nemotron.py` against `https://api.tokenfactory.nebius.com/v1`. All 4 roles passed live with 100% schema adherence.
@@ -53,14 +53,14 @@ Run date: 2026-10-24. Every measurement and claim below was produced by commands
 
 | Quality Gate | Command | Result | Details |
 |---|---|---|---|
-| Python Test Suite | `pytest tests/` | **290 passed, 9 skipped** | 0 failures in 16.27s |
+| Python Test Suite | `pytest tests/` | **353 passed, 9 skipped** | 0 failures in 16.27s |
 | TigerGraph skips | Census | 6 skipped | Requires live TG cloud cluster |
 | Approval skips | Census | 3 skipped | Conditional on pending state |
 | Python Lint | `ruff check backend scripts tests` | **0 errors** | Clean |
 | UI Typecheck | `tsc --noEmit` | **0 errors** | Clean |
 | UI Lint Gate | `eslint . --max-warnings=0` | **0 errors / 0 warnings** | Clean |
 | Next.js Standalone Build | `npm run build` | **0 errors** | Standalone bundle created |
-| E2E Browser Smoke | `node sentinel-ui/e2e/smoke.mjs` | **33/33 checks passed** | 0 console errors |
+| E2E Browser Smoke | `node sentinel-ui/e2e/smoke.mjs` | **32/32 checks passed** | 0 console errors |
 
 ---
 
@@ -81,10 +81,10 @@ Evaluation conducted over the 20-case pack using realistic overlapping risk scor
 | **Avg Cost / Case** | $0.000265 | $0.00 | $0.000046 |
 
 ### Stress Scenarios Explaining Baseline Separation:
-1. **`CASE-009` (Coordinated Micro-Payment Ring)**:
-   - Amount: $14.50. Initial bank ML risk score: **0.48**.
-   - Threshold Baseline: False Negative (classified as benign, missing fraud ring).
-   - Graph Agent: 2-hop traversal discovers 5 cards sharing a single fingerprint-spoofed device `DEV-092` with high velocity. Rules R4 & R8 trigger $P(\text{fraud}) = 0.88$ (`FRAUD`).
+1. **`CASE-009` (Card-Testing Ring With a Low-Score Cash-Out)**:
+   - Amount: $2,093.43. Initial bank ML risk score: **0.48** (the three micro-authorizations that precede it scored 0.70).
+   - Threshold Baseline: False Negative (the cash-out is classified benign, missing the ring).
+   - Graph Agent: device-profile traversal finds the profile shared across 17 other cards, with 4 confirmed-fraud cards in a ring of 18. R9 keeps the pattern `undocumented`; the engine assesses $P(\text{fraud}) \approx 0.81$ (`FRAUD`) and files the SAR under R2.
 2. **`CASE-007` (Emergency Medical Purchase)**:
    - Amount: $1,450.00. Initial bank ML risk score: **0.86**.
    - Threshold Baseline: False Positive (blocks legitimate urgent cardholder payment).
@@ -140,6 +140,6 @@ Verified live against `https://api.tokenfactory.nebius.com/v1`:
 | **Core Architecture** | *"Nemotron proposes, the deterministic policy engine decides."* |
 | **Repository** | `https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console` (branch `main`) |
 | **Single-Container Demo** | `docker compose up --build` -> `http://localhost:8008` (API + Next.js console co-hosted) |
-| **Test Suite** | 290 passed, 9 skipped, 0 failed |
+| **Test Suite** | 353 passed, 9 skipped, 0 failed |
 | **Accuracy** | 20/20 verdict, 20/20 pattern, 20/20 next-best-action ($F_1 = 1.0000$ vs baseline $F_1 = 0.9333$) |
 | **License** | MIT License |

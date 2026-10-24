@@ -23,11 +23,11 @@ docker compose up --build
 
 To demonstrate why pure LLMs or simple ML risk scores fail without knowledge graphs and policy governance, showcase these three cases:
 
-### Case 1: `CASE-009` ? Coordinated Micro-Payment Ring (Constructed Stress Scenario: False Negative under ML Score)
-- **The Setup**: Nominal $14.50 payment at an online merchant. Initial machine learning risk score is low (**0.48**).
-- **Why Naive Thresholds Fail**: Any risk score threshold $\tau > 0.48$ dismisses this as benign (False Negative), missing an active card-testing syndicate. Plain LLMs without graph context miss the distributed pattern.
-- **What Sentinel Graph Discovers**: Graph 2-hop traversal reveals device `DEV-092` is shared across 5 distinct credit cards in under 12 minutes.
-- **The Decision**: Graph Agent triggers velocity rule R4 and syndicate rule R8, driving $P(\text{fraud})$ to $0.88$. Nemotron Nano identifies pattern `card_testing`. Next Best Action: `block_card` and escalate ring.
+### Case 1: `CASE-009` ? Card-Testing Ring With a Low-Score Cash-Out (Constructed Stress Scenario: False Negative under ML Score)
+- **The Setup**: Three micro-authorizations ($1.79, $2.29, $4.93) on one card inside six hours, then a $2,093.43 online charge on the same card. The bank's real-time score for the charge is low (**0.48**).
+- **Why Naive Thresholds Fail**: Any risk score threshold $\tau > 0.48$ dismisses the charge as benign (False Negative), missing the card-testing ring that is already probing this card. Plain LLMs without graph context miss the distributed pattern.
+- **What Sentinel Graph Discovers**: Device-profile traversal shows the profile behind the charge is shared across 17 other credit cards, with 4 confirmed-fraud cards in a ring of 18.
+- **The Decision**: Policy rule R9 keeps the pattern `undocumented` (the evidence fits none of the five named patterns cleanly) and the engine assesses $P(\text{fraud}) \approx 0.81$. Next Best Actions: `block_card`, `file_report` under R2, and `monitor_connected_cards`. When Token Factory is configured, Nemotron proposes pattern `card_testing`; the engine's decision stands and the disagreement is recorded rather than resolved away.
 
 ### Case 2: `CASE-007` ? Legitimate Emergency Purchase (Constructed Stress Scenario: False Positive under ML Score)
 - **The Setup**: Large out-of-state hospital payment ($1,450.00). Initial machine learning risk score spikes to **0.86**.
@@ -81,12 +81,12 @@ To demonstrate why pure LLMs or simple ML risk scores fail without knowledge gra
 
 | Dimension | Measured Value | Provenance / Verification Command |
 |---|---|---|
-| Automated Test Suite | **290 passed, 9 skipped** (0 failed) | `pytest tests/ -q -rs` |
+| Automated Test Suite | **353 passed, 9 skipped** (0 failed) | `pytest tests/ -q -rs` |
 | Case Accuracy (Synthetic Pack) | **20/20 (100%)** | `python scripts/compare_baselines.py` |
 | Evidence Ledger Checkpoints | **600/600 (100%)** | Verified across all 20 case files via `validate_answers` |
 | 3-Arm Comparison: Graph Agent | **$F_1 = 1.0000$** (100% verdict, 100% pattern, 100% NBA) | `scripts/compare_baselines.py` |
 | 3-Arm Comparison: Score-Only Baseline | **$F_1 = 0.9333$** (90% verdict, **n/a** pattern, 90% NBA) | Fails on constructed stress cases CASE-007 & CASE-009 |
 | 3-Arm Comparison: Plain Nemotron Nano | **$F_1 = 0.0000$** (20% verdict, 15% pattern) | No-graph ablation arm |
-| Browser Smoke Quality Gate | **33/33 checks passed** (0 console errors) | `node sentinel-ui/e2e/smoke.mjs` |
+| Browser Smoke Quality Gate | **32/32 checks passed** (0 console errors) | `node sentinel-ui/e2e/smoke.mjs` |
 
 > **Real-Dataset Caveat**: On the original hackathon round's real dataset (not redistributed), verdict accuracy was 60% (12/20) and pattern accuracy 85% (17/20). The synthetic benchmark checks pipeline correctness, not real-world accuracy.

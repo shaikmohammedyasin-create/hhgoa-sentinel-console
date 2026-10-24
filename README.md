@@ -7,7 +7,7 @@
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-15%20App%20Router-black?logo=next.js&logoColor=white" alt="Next.js"></a>
   <a href="https://build.nvidia.com/nvidia"><img src="https://img.shields.io/badge/NVIDIA-Nemotron_3_%7C_Token_Factory-76B900" alt="NVIDIA Nemotron"></a>
-  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-290%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
+  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-353%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
   <a href="./docs/BENCHMARK.md"><img src="https://img.shields.io/badge/Benchmark-20%2F20%20Verdict%20%7C%203--Arm%20Ablations-2E7D32" alt="Benchmark"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
 </p>
@@ -26,7 +26,7 @@ docker compose up --build
 The single-container demo:
 - **One Container, One URL (`:8008`)**: The FastAPI backend and Next.js console (`sentinel-ui`) are co-hosted inside one container.
 - **Hermetic Synthetic Graph**: Rebuilds the SQLite graph store from committed synthetic CSVs (`data/synthetic/`) in ~3 seconds (`GRAPH_BACKEND=local`). No external cluster required.
-- **Default Demo Mode (`DEMO_MODE=1`)**: Nemotron advisory answers replay from validated case files (`cases/*.json`) with **zero API credits spent**.
+- **Default Demo Mode (`DEMO_MODE=1`)**: every case view, re-run and benchmark endpoint is a replay of `cases/*.json` — no run, no rewrite, no spend. Analyst Q&A is the one live path: answers are cached on disk and capped per IP and per day, so only a genuinely new question reaches Nemotron.
 - **Live Nemotron Calls (Optional)**: Set `NEBIUS_API_KEY` in `docker-compose.yml` and set `DEMO_MODE=0` (see [docs/DEPLOY.md](./docs/DEPLOY.md)).
 
 ---
@@ -151,7 +151,7 @@ graph TD
 3. **Nemotron Advisory**: Nemotron Nano inspects evidence cards and proposes a candidate fraud pattern.
 4. **Bayesian Risk Calculation**: Noisy-OR combines prior transaction score with graph risk channels.
 5. **Policy Verification**: Rules engine (R1?R10) validates constraints. If customer verification exists (R1), score overrides down to benign; if multi-card ring exists (R8/R10), escalation triggers.
-6. **SAR & Action Dispatch**: If fraud is confirmed, Nemotron Ultra drafts the SAR narrative, and next-best-actions are queued for execution or approval.
+6. **SAR & Action Dispatch**: If fraud is confirmed, Nemotron Ultra drafts the SAR narrative when Token Factory is configured (a grounded template writes it otherwise), and next-best-actions are queued for execution or approval.
 
 ---
 
@@ -196,7 +196,7 @@ hhgoa-sentinel-console/
 ?   ??? screenshots/              # 7 high-resolution console screenshots
 ??? scripts/                      # Evaluation, benchmark, and screenshot scripts
 ??? tigergraph/                   # GSQL queries and schema definitions
-??? tests/                        # Pytest suite (290 passed / 9 skipped)
+??? tests/                        # Pytest suite (353 passed / 9 skipped)
 ??? Dockerfile                    # Multi-stage production container build
 ??? docker-compose.yml            # Single-container deployment configuration
 ??? render.yaml                   # Hosted Render Blueprint specification
@@ -265,7 +265,7 @@ NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000 npm run dev
 The repository enforces strict automated quality gates:
 
 ```bash
-# 1. Run Python test suite (290 passed, 9 skipped)
+# 1. Run Python test suite (353 passed, 9 skipped)
 pytest tests/ -q -rs
 
 # 2. Run Python lint gate (0 findings)
@@ -276,7 +276,7 @@ cd sentinel-ui
 npx eslint . --max-warnings=0
 npx tsc --noEmit
 
-# 4. Run Playwright browser smoke suite (33/33 passed)
+# 4. Run Playwright browser smoke suite (32/32 passed)
 node e2e/smoke.mjs
 ```
 
@@ -289,13 +289,15 @@ Key environment variables in `.env` (see `.env.example`):
 | Variable | Default | Purpose |
 |---|---|---|
 | `GRAPH_BACKEND` | `local` | Graph engine (`local` SQLite or `tigergraph`) |
-| `DEMO_MODE` | `1` | Serve precomputed cases; zero Token Factory credits spent |
+| `DEMO_MODE` | `1` | Replay precomputed cases; runs and benchmark writes are refused, Q&A is cache-first and capped |
 | `NEBIUS_API_KEY` | `""` | Optional API key for live NVIDIA Nemotron inferences |
 | `NEBIUS_BASE_URL` | `https://api.tokenfactory.nebius.com/v1` | Nebius Token Factory OpenAI-compatible endpoint |
 | `NEBIUS_MODEL_NANO` | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` | Roles 1 & 2 model identifier |
 | `NEBIUS_MODEL_ULTRA` | `nvidia/Nemotron-3-Ultra-550b-a55b` | Roles 3 & 4 model identifier |
 | `LLM_DAILY_CALL_CAP` | `200` | Global daily call protection cap |
 | `LLM_CALLS_PER_IP_PER_HOUR`| `20` | Per-IP rate limiter |
+| `APPROVAL_TOKEN` | `""` | Shared secret required for approval decisions (`X-Approval-Token`); unset means production refuses approvals, development allows them with a warning |
+| `CORS_ORIGINS` | localhost:3000 / :8008 | Comma-separated browser origins allowed to call the API directly |
 
 ---
 
@@ -340,7 +342,7 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
 - **2026-10-24 ? Stress Testing & Final Submission Hardening**:
   - Enhanced synthetic data generator with overlapping score distributions ($[0.52, 0.74]$ benign, $[0.65, 0.92]$ fraud) and stress scenarios (`CASE-009` ring FN, `CASE-007` emergency FP).
   - 3-Arm evaluation: Graph Agent ($F_1 = 1.0000$) vs Score-Only ($F_1 = 0.9333$) vs Plain LLM ($F_1 = 0.0000$).
-  - Full test suite verified at **290 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
+  - Full test suite verified at **353 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
   - Gitleaks scanned 93 commits: **0 secrets found**.
   - Captured 7 high-resolution (1536?1024) UI screenshots in `docs/screenshots/`.
 

@@ -46,11 +46,11 @@ All numbers below were measured live in this session against the synthetic bench
 
 The synthetic benchmark incorporates two specific **constructed stress scenarios** designed to test edge cases where scalar risk scores fundamentally fail:
 
-### Stress Scenario 1: `CASE-009` ? Coordinated Micro-Payment Ring (False Negative under ML Score)
-- **Constructed Profile**: Transaction amount is small ($14.50) at a digital goods merchant. Because the amount is nominal, the initial machine learning model assigns a low risk score of **0.48**.
-- **Why Arm 2 Fails**: Any threshold $\tau > 0.48$ (including the optimal $\tau = 0.70$) marks this transaction as legitimate. This is a severe False Negative, allowing an organized card-testing ring to operate undetected.
-- **Why Arm 3 Fails**: Without graph context, plain Nemotron sees only an isolated $14.50 payment and hallucinates that it is benign card activity.
-- **How Arm 1 Resolves It**: Graph 2-hop traversal exposes that device `DEV-092` has been shared across 5 distinct credit cards in under 12 minutes, triggering velocity rule R4 and syndicate rule R8. The policy engine elevates $P(\text{fraud})$ to $0.88$ and blocks the card.
+### Stress Scenario 1: `CASE-009` ? Card-Testing Ring With a Low-Score Cash-Out (False Negative under ML Score)
+- **Constructed Profile**: Three micro-authorizations ($1.79, $2.29, $4.93) on one card inside six hours, then a $2,093.43 online charge on that same card. The real-time model scores the charge **0.48** and the micro-authorizations 0.70.
+- **Why Arm 2 Fails**: Any threshold $\tau > 0.48$ (including the optimal $\tau = 0.70$) marks the charge legitimate. This is a severe False Negative: the ring's probe payments score high, but the cash-out that follows them does not.
+- **Why Arm 3 Fails**: Without graph context, plain Nemotron sees one isolated charge and none of the ring; it cannot connect the charge to the three probes or to the 17 other cards carrying the same device profile.
+- **How Arm 1 Resolves It**: Device-profile traversal shows the profile shared across 17 other cards, with 4 confirmed-fraud cards in a ring of 18. The policy engine assesses $P(\text{fraud}) \approx 0.81$, keeps the pattern `undocumented` under R9, queues block-card and monitor-connected-cards, and files the SAR under R2 (confirmed fraud, exposure > $1,000).
 
 ### Stress Scenario 2: `CASE-007` ? Legitimate Emergency Medical Purchase (False Positive under ML Score)
 - **Constructed Profile**: Large out-of-state hospital transaction ($1,450.00). Due to high dollar amount and geographic anomaly, the raw risk score spikes to **0.86**.
