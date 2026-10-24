@@ -169,6 +169,7 @@ def chat(role: str, system: str, user: str, model: str | None = None,
             )
             text = (resp.choices[0].message.content or "").strip()
             usage = resp.usage
+            latency_ms = round((time.perf_counter() - started) * 1000, 1)
             usage_out = {
                 "prompt_tokens": getattr(usage, "prompt_tokens", 0) or 0,
                 "completion_tokens": getattr(usage, "completion_tokens", 0) or 0,
@@ -176,7 +177,6 @@ def chat(role: str, system: str, user: str, model: str | None = None,
                 "latency_ms": latency_ms,
                 "cached": False,
             }
-            latency_ms = round((time.perf_counter() - started) * 1000, 1)
             _append_log({
                 "role": role, "model": chosen_model, "latency_ms": latency_ms,
                 "prompt_tokens": usage_out["prompt_tokens"],
