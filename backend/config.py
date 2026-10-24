@@ -20,6 +20,16 @@ class Settings(BaseSettings):
     # ── Application ──────────────────────────────────────────────────────────
     app_env: Literal["development", "benchmark", "production"] = "development"
     log_level: str = "INFO"
+    # Comma-separated browser origins allowed to call the API directly. The
+    # console normally shares the backend's origin (Docker proxy / Next rewrite),
+    # so this only matters for split dev servers. "*" is honoured but disables
+    # credentialed CORS — see backend/main.py.
+    cors_origins: str = (
+        "http://localhost:3000,http://127.0.0.1:3000,"
+        "http://localhost:8008,http://127.0.0.1:8008"
+    )
+    # Reject request bodies larger than this many bytes before parsing them.
+    max_request_bytes: int = 1_048_576
 
     # ── Graph backend ────────────────────────────────────────────────────────
     graph_backend: Literal["local", "tigergraph"] = "local"
@@ -105,6 +115,13 @@ class Settings(BaseSettings):
     # serves cached or deterministic output instead of calling Token Factory.
     llm_calls_per_ip_per_hour: int = 20
     llm_daily_call_cap: int = 200
+
+    # ── Approval authorization ───────────────────────────────────────────────
+    # Server-side gate for human approval decisions. When set, a decision must
+    # present `X-Approval-Token: <value>`. With no token configured, decisions
+    # are refused in production (fail closed) and allowed with a warning in
+    # development/demo, where there is no identity provider yet.
+    approval_token: str = ""
 
 
 settings = Settings()

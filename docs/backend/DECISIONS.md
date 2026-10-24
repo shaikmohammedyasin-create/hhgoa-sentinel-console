@@ -55,4 +55,8 @@ Investigations must survive process restart (pending evidence, pending approvals
 
 ## D11. Answer files are the evaluation contract
 
-`cases/<case_id>.json` matches the README Answer Format exactly. Internal models are richer (timeline, tool provenance, before/after snapshots) and map into that schema at export time.
+`cases/<case_id>.json` matches the README Answer Format exactly. Internal models are richer (timeline, tool provenance, before/after snapshots) and map into that schema at export time, plus two additive extensions that the UI and evaluator read: an `evidence_id` on each evidence item (so `nemotron.model_proposal.evidence_ids` resolve to real evidence) and the `nemotron` advisory block.
+
+## D12. Approval authorization is server-side, even without users
+
+There is no identity provider in this submission, so the approval endpoint cannot know *who* an analyst is. It still must not let any caller execute an action. Two rules apply: when `APPROVAL_TOKEN` is set, a decision must present it in `X-Approval-Token` (constant-time compare); when it is unset, `APP_ENV=production` refuses decisions with 503 and development/demo allow them while logging that the call was unauthenticated. The `approver` field stays a display name — it is never treated as proof of identity. This is a shared-secret gate, not a substitute for per-user auth.

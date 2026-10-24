@@ -1,6 +1,7 @@
 """FastAPI application – backend API for the fraud investigation system."""
 from __future__ import annotations
 
+import hmac
 import json
 import os
 import urllib.request
@@ -9,7 +10,7 @@ from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from backend import db as app_db
@@ -28,13 +29,48 @@ app = FastAPI(
     version="1.0.0",
 )
 
+def _cors_options(raw_origins: str) -> tuple[list[str], bool]:
+    """Parse the configured origins and decide whether credentials may ride along.
+
+    A wildcard origin with credentials is both rejected by browsers and an
+    invitation to cross-site callers, so credentials are enabled only for an
+    explicit allow-list.
+    """
+    origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    return origins, "*" not in origins
+
+
+_CORS_ORIGINS, _CORS_ALLOW_CREDENTIALS = _cors_options(settings.cors_origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=_CORS_ALLOW_CREDENTIALS,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def reject_oversized_bodies(request: Request, call_next):
+    """413 before parsing when Content-Length exceeds the configured cap.
+
+    This is a size sanity check, not a streaming guard: a chunked request with
+    no Content-Length still reaches the handler, which is why every request
+    model also bounds its fields.
+    """
+    raw_length = request.headers.get("content-length")
+    if raw_length:
+        try:
+            too_big = int(raw_length) > settings.max_request_bytes
+        except ValueError:
+            too_big = True
+        if too_big:
+            return JSONResponse(
+                status_code=413,
+                content={"detail": f"Request body exceeds {settings.max_request_bytes} bytes"},
+            )
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -136,6 +172,16 @@ def create_investigation(
     idempotency_key: str | None = Header(None, alias="Idempotency-Key"),
 ):
     """Create and run a new investigation for a case-pack case."""
+    if settings.demo_mode:
+        # Demo mode must never start a run: it would call the LLM and rewrite
+        # the committed answer pack. Replay the packed answer instead.
+        answer = _answer_file(req.case_id)
+        if answer is not None:
+            log.info("api.investigation.replayed_from_answer_file", case_id=req.case_id)
+            return answer
+        raise HTTPException(
+            409, f"DEMO_MODE serves precomputed answers and {req.case_id} has none")
+
     if idempotency_key:
         existing = app_db.check_idempotency(idempotency_key)
         if existing:
@@ -164,30 +210,44 @@ def list_investigations(limit: int = Query(50, ge=1, le=200), offset: int = Quer
     return app_db.list_investigations(limit, offset)
 
 
+def _answer_file(case_id: str) -> dict[str, Any] | None:
+    """The committed answer file for a case, if one exists and parses.
+
+    Answer files are the published contract (DECISIONS.md D11), so demo mode
+    reads them instead of whatever an older run left in the app database.
+    """
+    if not case_id.isascii() or "/" in case_id or "\\" in case_id:
+        return None
+    path = settings.cases_dir / f"{case_id}.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        log.warning("api.investigation.answer_file_unreadable",
+                    case_id=case_id, error=str(exc))
+        return None
+
+
 @app.get("/investigations/{case_id}", tags=["Investigations"])
 @app.get("/api/investigations/{case_id}", tags=["Investigations"])
 def get_investigation(case_id: str):
     """Full answer for a case.
 
-    Live mode returns a stored investigation. In `DEMO_MODE=1` (the hosted
-    demo default) a case that has not been investigated in this session is
-    served from the committed precomputed answer file (`cases/<id>.json`),
-    the same deterministic output a fresh run would produce — without
-    spending any Nemotron calls.
+    In `DEMO_MODE=1` (the hosted demo default) the committed answer file wins
+    over the app database: the file is the published contract, and a stale row
+    from an older run must not shadow it. Live mode returns the stored
+    investigation and 404s for a case that has not been run.
 
     Both paths are registered because the console talks to its own backend
     through the `/api/*` prefix (see `sentinel-ui/src/lib/api.ts`) while the
     original route predates it. One handler, so the two cannot drift apart.
     """
+    if settings.demo_mode:
+        answer = _answer_file(case_id)
+        if answer is not None:
+            return answer
     payload = app_db.load_investigation(case_id)
-    if payload is None and settings.demo_mode:
-        case_file = settings.cases_dir / f"{case_id}.json"
-        if case_id.isascii() and case_file.exists():
-            try:
-                return json.loads(case_file.read_text(encoding="utf-8"))
-            except ValueError as exc:
-                log.warning("api.investigation.answer_file_unreadable",
-                            case_id=case_id, error=str(exc))
     if payload is None:
         raise HTTPException(404, f"Case {case_id} not found")
     return case_to_answer(_reconstruct(payload))
@@ -201,7 +261,18 @@ def run_investigation_endpoint(case_id: str, force: bool = False, request: Reque
     force=true re-runs a completed case from scratch (the UI re-run button uses
     this so an analyst always gets a fresh execution); the default respects the
     idempotent cache and any paused human-in-the-loop state.
+
+    In `DEMO_MODE=1` this replays the committed answer instead of running: the
+    demo must not spend Nemotron calls, and it must not rewrite the published
+    case pack. Set `DEMO_MODE=0` for a real run.
     """
+    if settings.demo_mode:
+        answer = _answer_file(case_id)
+        if answer is None:
+            raise HTTPException(
+                409, f"DEMO_MODE serves precomputed answers and {case_id} has none")
+        log.info("api.run.replayed_from_answer_file", case_id=case_id, force=force)
+        return answer
     if force and request is not None:
         # Fresh runs can spend Nemotron calls; only re-run button traffic is gated.
         _guard_llm_budget(request)
@@ -232,6 +303,9 @@ def submit_evidence(case_id: str, body: EvidenceSubmission):
     This is the human-in-the-loop path: the investigation persists in
     MORE_EVIDENCE_REQUIRED until a real response arrives here.
     """
+    if settings.demo_mode:
+        raise HTTPException(
+            409, "DEMO_MODE replays committed answers; set DEMO_MODE=0 to submit evidence")
     from backend.agents.orchestrator import submit_evidence as _submit
     try:
         case = _submit(case_id, body.type, body.response, body.origin)
@@ -246,6 +320,10 @@ def submit_evidence(case_id: str, body: EvidenceSubmission):
 @app.get("/investigations/{case_id}/timeline", tags=["Audit"])
 def get_timeline(case_id: str):
     trail = app_db.get_audit_trail(case_id)
+    if not trail and settings.demo_mode and _answer_file(case_id) is not None:
+        # A replayed pack case has never run here, so it has no audit trail.
+        # An empty trail is the truthful answer; a 404 reads as a broken page.
+        return []
     if not trail:
         raise HTTPException(404, f"No audit trail for {case_id}")
     return trail
@@ -258,13 +336,49 @@ def list_approvals(case_id: str):
     return app_db.list_pending_approvals(case_id)
 
 
+def _approval_decision_allowed(provided_token: str | None) -> tuple[bool, str]:
+    """Decide whether this process may record an approval, and why not.
+
+    Returning a reason keeps the handler honest: an unconfigured production
+    deployment fails closed instead of silently trusting the caller.
+    """
+    if settings.approval_token:
+        if provided_token and hmac.compare_digest(settings.approval_token, provided_token):
+            return True, ""
+        return False, "invalid"
+    if settings.app_env == "production":
+        return False, "unconfigured"
+    return True, ""
+
+
 @app.post("/investigations/{case_id}/approvals/{approval_id}", tags=["Approvals"])
-def decide_approval(case_id: str, approval_id: str, body: ApprovalDecision):
+def decide_approval(
+    case_id: str,
+    approval_id: str,
+    body: ApprovalDecision,
+    x_approval_token: str | None = Header(None, alias="X-Approval-Token"),
+):
     """
     Record a human approval decision AND execute it:
       approved → ACTION_APPROVED: action executed under the approver's authority
       rejected → action refused with the approver recorded
+
+    Authorization is server-side: with `APPROVAL_TOKEN` set the caller must
+    present it; with no token configured, production refuses the decision and
+    development/demo allow it, logging that the call was unauthenticated.
     """
+    allowed, reason = _approval_decision_allowed(x_approval_token)
+    if not allowed:
+        if reason == "unconfigured":
+            log.error("api.approval.unconfigured_in_production", case_id=case_id)
+            raise HTTPException(
+                503, "Approval authorization is not configured; decisions are refused")
+        log.warning("api.approval.token_rejected", case_id=case_id)
+        raise HTTPException(401, "Invalid or missing approval token")
+    if not settings.approval_token:
+        log.warning("api.approval.unauthenticated_development",
+                    case_id=case_id, approver=body.approver)
+
     from backend.agents.orchestrator import decide_approval as _decide
     try:
         return _decide(case_id, approval_id, body.decision, body.approver)
@@ -475,6 +589,14 @@ def get_closed_cases(customer_id: str):
 @app.post("/benchmark/run", tags=["Evaluation"])
 def run_benchmark():
     """Run the full 20-case benchmark (may take a while)."""
+    if settings.demo_mode:
+        # A benchmark run calls the LLM and rewrites every answer file; demo mode
+        # is defined as serving the committed pack untouched.
+        raise HTTPException(
+            409,
+            "DEMO_MODE serves committed answers and benchmark runs rewrite the case pack; "
+            "set DEMO_MODE=0 to run it",
+        )
     from backend.evaluation.run_benchmark import run_all
     report = run_all()
     return report
@@ -511,7 +633,9 @@ class InvestigationSummaryOut(BaseModel):
 
     Fields come straight from the persisted InvestigationCase (or its workflow
     state row); no placeholder values are substituted for uninvestigated cases
-    beyond explicit None/False.
+    beyond explicit None/False. `source` says where the row came from:
+    "committed" is a replayed answer file (no stored engine state, so no risk
+    decomposition), "live" is a run this process persisted.
     """
     case_id: str
     status: str
@@ -522,6 +646,7 @@ class InvestigationSummaryOut(BaseModel):
     exposure_usd: float | None = None
     sar_required: bool | None = None
     updated_at: str | None = None
+    source: str | None = None
 
 
 def _is_investigated(payload: dict[str, Any] | None) -> bool:
@@ -538,7 +663,30 @@ def list_investigation_summaries(
     offset: int = Query(0, ge=0),
 ):
     """Queue summaries (case_id, status, verdict, posterior, pattern, exposure, SAR)."""
-    summaries: list[InvestigationSummaryOut] = []
+    if settings.demo_mode:
+        # The pack is the demo's data source; a stale run left in the app
+        # database would otherwise put different numbers in the queue than the
+        # case pane shows.
+        summaries: list[InvestigationSummaryOut] = []
+        for path in sorted(settings.cases_dir.glob("CASE-*.json"))[offset: offset + limit]:
+            answer = _answer_file(path.stem)
+            if answer is None:
+                continue
+            case = answer.get("case") or {}
+            summaries.append(InvestigationSummaryOut(
+                case_id=str(answer.get("case_id") or path.stem),
+                status=str(case.get("status", "unknown")),
+                investigated=True,
+                verdict=case.get("verdict"),
+                fraud_probability=case.get("fraud_probability"),
+                pattern=case.get("pattern"),
+                exposure_usd=case.get("exposure_usd"),
+                sar_required=bool((answer.get("sar") or {}).get("file")),
+                updated_at=None,
+                source="committed",
+            ))
+        return summaries
+    summaries = []
     for item in app_db.list_investigations(limit, offset):
         case_id = str(item.get("case_id", ""))
         payload = app_db.load_investigation(case_id)
@@ -556,6 +704,7 @@ def list_investigation_summaries(
                     exposure_usd=float(case.exposure_usd) if investigated else None,
                     sar_required=bool(case.sar.file) if investigated else None,
                     updated_at=item.get("updated_at"),
+                    source="live",
                 ))
                 continue
             except Exception:
@@ -566,6 +715,7 @@ def list_investigation_summaries(
             status=str(item.get("state", "unknown")),
             investigated=False,
             updated_at=item.get("updated_at"),
+            source="live",
         ))
     return summaries
 
@@ -687,10 +837,45 @@ def llm_status():
 
 
 
+def _demo_payload(case_id: str, answer: dict[str, Any]) -> dict[str, Any]:
+    """Minimal case payload for a pack-only case, built from real sources.
+
+    Demo mode serves every packed case, but only a case that has actually run
+    has a stored payload. The graph view still needs the subject entities, so it
+    is assembled from the case trigger in the prepared store plus the entities
+    the committed answer file cites — nothing is invented.
+    """
+    trigger = {}
+    try:
+        trigger = graph.get_case_trigger(case_id) or {}
+    except Exception as exc:  # noqa: BLE001 - the view degrades, it must not 500
+        log.warning("api.graph.trigger_lookup_failed", case_id=case_id, error=str(exc))
+    case = answer.get("case") or {}
+    evidence = [
+        {"evidence_id": ev.get("evidence_id"), "entity_ids": ev.get("entity_ids") or []}
+        for ev in case.get("evidence") or []
+    ]
+    return {
+        "customer_id": trigger.get("customer_id"),
+        "card_id": trigger.get("card_id"),
+        "flagged_txn_id": trigger.get("flagged_txn_id") or case.get("first_suspicious_txn_id"),
+        "trigger": dict(trigger),
+        "evidence": evidence,
+        "affected_txn_ids": case.get("affected_txn_ids") or [],
+        "connected_card_ids": case.get("connected_card_ids") or [],
+        "connected_device_profiles": case.get("connected_device_profiles") or [],
+        "exposure_usd": case.get("exposure_usd"),
+    }
+
+
 @app.get("/api/investigations/{case_id}/graph", tags=["Graph Visualization"])
 def get_investigation_subgraph(case_id: str):
     """Build a case-scoped local knowledge subgraph for visual rendering."""
     payload = app_db.load_investigation(case_id)
+    if not payload and settings.demo_mode:
+        answer = _answer_file(case_id)
+        if answer is not None:
+            payload = _demo_payload(case_id, answer)
     if not payload:
         raise HTTPException(404, f"Investigation for case {case_id} not found")
 
