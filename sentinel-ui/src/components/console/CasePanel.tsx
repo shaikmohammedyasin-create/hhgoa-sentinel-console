@@ -28,7 +28,7 @@ import {
   verdictTone,
 } from "@/components/console/vm";
 import { useAnswer, useAsk, useCopy, useStartInvestigation, useTimeline } from "@/lib/hooks";
-import type { AnswerCase, AnswerFile, AnswerEvidence, NemotronBlock, QueueRow, SarOut } from "@/lib/hhgoa";
+import type { AnswerCase, AnswerEvidence, NemotronBlock, QueueRow, SarOut } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
 
 type Tab = "timeline" | "file" | "sar" | "nemotron" | "json";

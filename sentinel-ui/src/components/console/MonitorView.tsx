@@ -13,8 +13,8 @@
 import { Icon } from "@/components/console/icons";
 import { ConsoleChip, Overline, StatTile } from "@/components/console/parts";
 import { humanise, meterVar, toneVar, verdictTone } from "@/components/console/vm";
+import { DEMO_SNAPSHOT } from "@/lib/demo";
 import { useBenchmark } from "@/lib/hooks";
-import type { BenchmarkReport } from "@/lib/hhgoa";
 
 export function MonitorView() {
   const { data, isLoading, error } = useBenchmark();
@@ -42,6 +42,12 @@ export function MonitorView() {
   const dominant = verdictTally[0];
   const complete = data.completed === data.total_cases;
 
+  const latencies = data.results
+    .map((row) => row.latency_s)
+    .filter((value) => Number.isFinite(value));
+  const latMin = latencies.length ? Math.min(...latencies) : 0;
+  const latMax = latencies.length ? Math.max(...latencies) : 0;
+
   return (
     <div className="absolute inset-x-0 bottom-0 top-0 z-view overflow-y-auto bg-bg px-6 pb-9 pt-5">
       <header className="mb-4 flex flex-wrap items-end gap-3.5">
@@ -57,6 +63,18 @@ export function MonitorView() {
           {data.failed === 0 ? "all cases ran" : `${data.failed} failed`}
         </ConsoleChip>
       </header>
+
+      {DEMO_SNAPSHOT ? (
+        <p className="mb-4 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-[10.5px] leading-relaxed text-fg-muted">
+          <span className="font-semibold text-fg">Recorded run, replayed from the snapshot.</span>{" "}
+          These numbers were measured on a keyed Nebius Token Factory / Nemotron pass over all{" "}
+          {data.total_cases} cases: {latMin.toFixed(1)}&ndash;{latMax.toFixed(1)}s per case,{" "}
+          {data.elapsed_s.toFixed(0)}s wall clock. This static build does not re-execute the
+          pipeline &mdash; it serves the recorded report, so the console&apos;s own response times
+          are not the engine&apos;s. Run <code className="font-mono">python -m backend.evaluation.run_benchmark</code>{" "}
+          locally to reproduce it.
+        </p>
+      ) : null}
 
       <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
         <StatTile

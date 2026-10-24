@@ -14,7 +14,8 @@
  * `/benchmark` and `/approvals`.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { DEMO_SNAPSHOT } from "@/lib/demo";
 import { IconSprite } from "@/components/console/icons";
 import { Overline } from "@/components/console/parts";
 import { huntState, toneVar } from "@/components/console/vm";
@@ -49,8 +50,6 @@ export function Console({ initialCase }: { initialCase?: string }) {
       byCase.set(trigger.case_id, { ...trigger, investigated: false, verdict: null, fraud_probability: null, pattern: null, exposure_usd: null, sar_required: null });
     }
     for (const s of summaries ?? []) {
-      const existing = byCase.get(s.case_id);
-      const base = existing ?? null;
       byCase.set(s.case_id, {
         case_id: s.case_id,
         opened_at: s.updated_at ?? "",
@@ -76,6 +75,14 @@ export function Console({ initialCase }: { initialCase?: string }) {
     [queue, selected],
   );
 
+  // Open the first case as soon as the queue arrives. Landing on an empty
+  // pane asks a visitor to do work before they can see anything.
+  useEffect(() => {
+    if (selected || queue.length === 0) return;
+    const first = queue[0];
+    if (first) setSelected(first.case_id);
+  }, [queue, selected]);
+
   const { data: canvas } = useCanvas(selected, view === "graph" || view === "case");
   const { data: riskData } = useRisk(selected, Boolean(selectedRow?.investigated));
 
@@ -91,8 +98,6 @@ export function Console({ initialCase }: { initialCase?: string }) {
     setView("case");
   }, []));
 
-  const live = health?.status !== "healthy";
-
   return (
     <div className="relative flex h-dvh flex-col bg-bg text-fg">
       <IconSprite />
@@ -102,7 +107,6 @@ export function Console({ initialCase }: { initialCase?: string }) {
         llmAvailable={llmStatus?.available}
         openInbox={() => setInboxOpen(true)}
         goMonitor={() => setView("monitor")}
-        goRing={() => setView("ring")}
         running={demo.running}
         onStartDemo={demo.start}
         onStopDemo={demo.stop}
@@ -146,7 +150,6 @@ export function Console({ initialCase }: { initialCase?: string }) {
               riskTone={toneVar("accent")}
               hunt={hunt}
               onOpenGraph={() => setView("graph")}
-              running={demo.running}
             />
           ) : null}
         </div>
@@ -188,7 +191,6 @@ function Masthead({
   llmAvailable,
   openInbox,
   goMonitor,
-  goRing,
   running,
   onStartDemo,
   onStopDemo,
@@ -198,12 +200,11 @@ function Masthead({
   llmAvailable: boolean | undefined;
   openInbox: () => void;
   goMonitor: () => void;
-  goRing: () => void;
   running: boolean;
   onStartDemo: () => void;
   onStopDemo: () => void;
 }) {
-  const tone = health === "healthy" ? "success" : "warning";
+  const tone = DEMO_SNAPSHOT ? "neutral" : health === "healthy" ? "success" : "warning";
   return (
     <header className="relative shrink-0 border-b border-border bg-surface">
       <div className="flex h-1 bg-runway" />
@@ -212,12 +213,20 @@ function Masthead({
           <span
             className="h-2.5 w-2.5 rounded-full"
             style={{ background: toneVar(tone) }}
-            aria-label={`backend ${health ?? "unknown"}`}
+            aria-label={
+              DEMO_SNAPSHOT
+                ? "static snapshot of a recorded run"
+                : `backend ${health ?? "unknown"}`
+            }
           />
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em]">Sentinel</span>
         </span>
         <span className="font-mono text-[9px] text-fg-subtle">
-          {demoMode ? "demo mode · committed cases" : "live backend"}
+          {DEMO_SNAPSHOT
+            ? "static snapshot · recorded run"
+            : demoMode
+              ? "demo mode · committed cases"
+              : "live backend"}
         </span>
         {llmAvailable !== undefined ? (
           <span
@@ -228,30 +237,32 @@ function Masthead({
           </span>
         ) : null}
         <span className="flex-1" />
-        <button
-          type="button"
-          onClick={openInbox}
-          className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
-        >
-          inbox
-        </button>
-        <button
-          type="button"
-          onClick={goMonitor}
-          className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
-        >
-          pack
-        </button>
-        <button
-          type="button"
-          onClick={running ? onStopDemo : onStartDemo}
-          className={cn(
-            "rounded-md px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.08em]",
-            running ? "bg-accent text-accent-contrast" : "border border-border text-fg-muted hover:text-fg",
-          )}
-        >
-          {running ? "stop" : "demo"}
-        </button>
+        <span role="group" aria-label="Run controls" className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={openInbox}
+            className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+          >
+            inbox
+          </button>
+          <button
+            type="button"
+            onClick={goMonitor}
+            className="rounded-md border border-border px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+          >
+            pack
+          </button>
+          <button
+            type="button"
+            onClick={running ? onStopDemo : onStartDemo}
+            className={cn(
+              "rounded-md px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.08em]",
+              running ? "bg-accent text-accent-contrast" : "border border-border text-fg-muted hover:text-fg",
+            )}
+          >
+            {running ? "stop" : "demo"}
+          </button>
+        </span>
       </div>
     </header>
   );
@@ -266,7 +277,7 @@ function ViewSwitcher({ view, onSelect }: { view: View; onSelect: (v: View) => v
     { id: "ring", label: "ring" },
   ];
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5" role="group" aria-label="Views">
       {items.map((item) => (
         <button
           key={item.id}
@@ -304,14 +315,12 @@ function CaseFooter({
   riskTone,
   hunt,
   onOpenGraph,
-  running,
 }: {
   caseId: string;
   canvas: CaseGraph | null | undefined;
   riskTone: string;
   hunt: ReturnType<typeof huntState>;
   onOpenGraph: () => void;
-  running: boolean;
 }) {
   if (!caseId) return null;
   return (

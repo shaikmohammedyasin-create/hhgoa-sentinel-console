@@ -14,7 +14,7 @@ import { useState } from "react";
 
 import { Icon } from "@/components/console/icons";
 import { ConsoleChip, Overline } from "@/components/console/parts";
-import { humanise, routeTone, toneVar } from "@/components/console/vm";
+import { humanise, routeTone } from "@/components/console/vm";
 import { ApiProblem } from "@/lib/api";
 import { useApprovals, useDecideApproval } from "@/lib/hooks";
 import type { ApprovalOut } from "@/lib/hhgoa";

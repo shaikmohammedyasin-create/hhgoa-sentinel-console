@@ -1,0 +1,1631 @@
+{
+ "case_id": "CASE-014",
+ "answer": {
+  "case_id": "CASE-014",
+  "case": {
+   "status": "closed_fraud",
+   "verdict": "fraud",
+   "fraud_probability": 0.824,
+   "pattern": "undocumented",
+   "pattern_description": "Activity does not match any of the five known fraud patterns, but the evidence shows coordinated abuse across accounts: 17 other card(s) share the device profile used here. It is reported as undocumented rather than forced into a known category, per policy R9.",
+   "affected_txn_ids": [
+    "4012231",
+    "4012211",
+    "4012229",
+    "4012230"
+   ],
+   "first_suspicious_txn_id": "4012231",
+   "connected_card_ids": [
+    "SC-09000-K1",
+    "SC-09001-K1",
+    "SC-09002-K1",
+    "SC-09003-K1",
+    "SC-09004-K2",
+    "SC-09005-K2",
+    "SC-09006-K2",
+    "SC-09007-K2",
+    "SC-09008-K2",
+    "SC-09009-K2"
+   ],
+   "connected_device_profiles": [
+    "IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014"
+   ],
+   "exposure_usd": 1162.14,
+   "evidence": [
+    {
+     "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012211 ($1152.70) at 0.83. Review and decide.",
+     "source": "external",
+     "ref": "trigger:risk_score",
+     "entity_ids": [
+      "SC-03014",
+      "SC-03014-K956",
+      "4012211"
+     ]
+    },
+    {
+     "claim": "4 previous transactions retrieved for card SC-03014-K956. Average amount: $290.54.",
+     "source": "graph",
+     "ref": "query:card_transaction_history(card_id=SC-03014-K956)",
+     "entity_ids": [
+      "SC-03014-K956"
+     ]
+    },
+    {
+     "claim": "4 online transactions on this card within 48h of the flagged transaction.",
+     "source": "graph",
+     "ref": "query:card_window(card_id=SC-03014-K956, hours=48)",
+     "entity_ids": [
+      "4012231",
+      "4012230",
+      "4012229",
+      "4012211"
+     ]
+    },
+    {
+     "claim": "Device profile shared across 17 other card(s): SC-09000-K1, SC-09001-K1, SC-09002-K1, SC-09003-K1, SC-09004-K2.",
+     "source": "graph",
+     "ref": "query:accounts_sharing_device(device=IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014)",
+     "entity_ids": [
+      "SC-09000-K1",
+      "SC-09001-K1",
+      "SC-09002-K1",
+      "SC-09003-K1",
+      "SC-09004-K2",
+      "SC-09005-K2",
+      "SC-09006-K2",
+      "SC-09007-K2",
+      "SC-09008-K2",
+      "SC-09009-K2"
+     ]
+    },
+    {
+     "claim": "Fraud-ring analysis: device component contains 4 confirmed-fraud card(s) (ring size 18).",
+     "source": "graph",
+     "ref": "query:device_fraud_ring(device=IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014)",
+     "entity_ids": [
+      "SC-09000-K1",
+      "SC-09001-K1",
+      "SC-09002-K1",
+      "SC-09003-K1"
+     ]
+    },
+    {
+     "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
+     "source": "graph",
+     "ref": "query:closed_cases_for_customer(customer_id=SC-03014)",
+     "entity_ids": [
+      "CC-4327"
+     ]
+    },
+    {
+     "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
+     "source": "customer",
+     "ref": "evidence_request:ER-62f2bc67",
+     "entity_ids": [
+      "SC-03014"
+     ]
+    }
+   ],
+   "similar_prior_cases": [
+    "CC-4327"
+   ],
+   "summary": "Case CASE-014 (Card SC-03014-K956): The case was triggered by a real-time risk score of 0.83 on transaction 4012211 ($1,152.70) [EV-28b3c385]. The flagged card SC-03014-K956 showed four online transactions within 48 hours, deviating from its historical average of $290.54 [EV-74fd18a5, EV-1e019e4c]. Device fingerprint analysis revealed the iOS device profile was shared across 17 other cards, including the ten connected cards in this case [EV-d09d544c]. Fraud-ring analysis confirmed four cards in that device cluster had prior fraud verdicts, indicating an 18-card ring [EV-08118e6b]. The customer denied authorizing the purchases and confirmed physical card possession [EV-9e53efe9]. One prior case for this customer was cleared as legitimate, but the current pattern was assessed as undocumented fraud with 82.4% probability [EV-4beb6489].",
+   "written_to_graph": true,
+   "graph_case_id": "CASE-2026-CASE-014"
+  },
+  "evidence_requests": [
+   {
+    "type": "customer_validation",
+    "asked_after_step": 4,
+    "assumed_response": "Customer states they did not make these purchases and still has the card in their possession.",
+    "status": "received",
+    "info_value": 1.0,
+    "origin": "simulated",
+    "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.82); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.15)",
+    "alternatives_considered": [
+     {
+      "type": "analyst_info",
+      "info_value": -0.1,
+      "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.71); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.40)"
+     },
+     {
+      "type": "external_watchlist",
+      "info_value": -0.15,
+      "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.70); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.50)"
+     }
+    ]
+   }
+  ],
+  "next_best_actions": {
+   "initial": [
+    {
+     "action": "CREATE_CASE",
+     "route": "auto",
+     "reason": "R9: undocumented coordinated pattern"
+    },
+    {
+     "action": "FILE_REPORT",
+     "route": "L2",
+     "reason": "R9"
+    },
+    {
+     "action": "ESCALATE_TO_ANALYST",
+     "route": "auto",
+     "reason": "R9"
+    }
+   ],
+   "final": [
+    {
+     "action": "BLOCK_CARD",
+     "route": "L1",
+     "reason": "R2: customer denied the transaction"
+    },
+    {
+     "action": "CREATE_CASE",
+     "route": "auto",
+     "reason": "R2"
+    },
+    {
+     "action": "FILE_REPORT",
+     "route": "L2",
+     "reason": "R2: exposure > $1,000 or shared device/region"
+    },
+    {
+     "action": "MONITOR_CONNECTED_CARDS",
+     "route": "auto",
+     "reason": "R6: shared origin detected"
+    }
+   ],
+   "what_changed": "Added: BLOCK_CARD, MONITOR_CONNECTED_CARDS; Removed: ESCALATE_TO_ANALYST"
+  },
+  "sar": {
+   "file": true,
+   "reason": "R2: confirmed fraud with exposure > $1,000",
+   "narrative": "Suspicious Activity Report for CASE-014 documents a coordinated fraud ring operating through a shared iOS device fingerprint. The investigation was initiated when transaction 4012211 received a real-time risk score of 0.83, amounting to $1,152.70 [EV-28b3c385]. The originating card SC-03014-K956 exhibited anomalous velocity with four online transactions in 48 hours, far exceeding its $290.54 historical average [EV-74fd18a5, EV-1e019e4c]. Device linkage analysis identified 17 additional cards sharing the identical device profile, encompassing all ten connected cards in this case [EV-d09d544c]. Within that device cluster, four cards carried confirmed fraud verdicts, establishing an 18-card fraud ring [EV-08118e6b]. The customer reported no authorization for the disputed transactions and retained physical possession of their card [EV-9e53efe9]. Total exposure across four transactions reaches $1,162.14 with an assessed fraud probability of 82.4%. The fraud pattern is classified as undocumented, with one similar prior case CC-4327 referenced for pattern continuity. No legitimate travel or purchase explanation was identified for the current activity, contrasting with one previously cleared case for this customer [EV-4beb6489]. The evidence supports a finding of organized card-not-present fraud facilitated by device compromise or credential sharing across the ring.",
+   "subjects": [
+    "SC-09002-K1",
+    "SC-09000-K1",
+    "SC-09004-K2",
+    "SC-03014-K956",
+    "SC-09003-K1",
+    "SC-09001-K1",
+    "SC-03014",
+    "IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-c"
+   ],
+   "total_amount_usd": 1162.14,
+   "activity_dates": [
+    "2026-09-15",
+    "2026-09-15"
+   ]
+  },
+  "nemotron": {
+   "model_proposal": null,
+   "policy_decision": {
+    "verdict": "fraud",
+    "pattern": "undocumented",
+    "fraud_probability": 0.824,
+    "actions": [
+     "BLOCK_CARD",
+     "CREATE_CASE",
+     "FILE_REPORT",
+     "MONITOR_CONNECTED_CARDS"
+    ],
+    "decided_by": "deterministic policy engine (rules R1-R10)"
+   },
+   "model_agreed": false,
+   "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+   "verification_draft": null,
+   "model_usage": {
+    "case_narrative_and_sar_draft": {
+     "prompt_tokens": 1316,
+     "completion_tokens": 1743
+    }
+   }
+  },
+  "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
+  "tool_calls": 16,
+  "tokens": 1743,
+  "latency_s": 22.31
+ },
+ "full": {
+  "case_id": "CASE-014",
+  "trigger": {
+   "case_id": "CASE-014",
+   "opened_at": "2026-09-15T11:08:00Z",
+   "trigger_type": "risk_score",
+   "trigger_text": "Trigger (risk_score): Real-time model scored transaction 4012211 ($1152.70) at 0.83. Review and decide.",
+   "flagged_txn_id": "4012211",
+   "card_id": "SC-03014-K956",
+   "customer_id": "SC-03014",
+   "risk_score": 0.87
+  },
+  "state": "COMPLETED",
+  "step": 11,
+  "created_at": "2026-10-24T01:03:33.252517Z",
+  "updated_at": "2026-10-24T01:03:33.389401Z",
+  "customer_id": "SC-03014",
+  "card_id": "SC-03014-K956",
+  "flagged_txn_id": "4012211",
+  "plan_trace": [
+   {
+    "round": 0,
+    "gap": "subject_and_baseline",
+    "tools": [
+     "get_transaction",
+     "get_transaction_identity",
+     "get_card_transaction_history",
+     "get_card_amount_stats",
+     "get_card_window"
+    ],
+    "rationale": "Identify subject transaction and card baselines."
+   },
+   {
+    "round": 1,
+    "gap": "adaptive_followups",
+    "tools": [
+     "get_accounts_sharing_device",
+     "get_device_fraud_ring",
+     "get_transaction_velocity",
+     "get_closed_cases_for_customer",
+     "get_closed_cases_for_card",
+     "get_closed_cases_by_device",
+     "get_closed_cases_involving_txn",
+     "get_tiny_transaction_sequence"
+    ],
+    "rationale": "Adaptive round: tools selected by open evidence gaps (new region, device sharing, velocity, prior memory)."
+   },
+   {
+    "round": 2,
+    "gap": "historical_similarity",
+    "tools": [
+     "get_closed_cases_by_pattern",
+     "search_closed_cases_text"
+    ],
+    "rationale": "Historical similarity retrieval for pattern context."
+   }
+  ],
+  "signal_store": {
+   "customer_denied": true,
+   "customer_confirmed": false,
+   "customer_no_reply": false,
+   "step_up_failed": false,
+   "step_up_passed": false,
+   "analyst_confirms_shared_fraud": false,
+   "analyst_clears_shared": false,
+   "watchlist_hit": false,
+   "watchlist_clear": false,
+   "shared_device_count": 17,
+   "device_linked_fraud": 0,
+   "connected_card_fraud": 0,
+   "card_testing_sequence": false,
+   "small_online_count": 0,
+   "burst_online": 4,
+   "new_device": false,
+   "proxy_used": false,
+   "new_region": false,
+   "region_streak": false,
+   "mixed_channel": false,
+   "match_flag_anomaly": false,
+   "fraud_ring_size": 18,
+   "fraud_ring_fraud_cards": 4,
+   "agent_prior_investigations": 0,
+   "agent_prior_fraud": 0,
+   "prior_fraud_cases": 0,
+   "prior_cleared_cases": 1,
+   "trigger_risk_score": 0.87,
+   "trigger_type": "risk_score",
+   "txn_amount": 1152.7,
+   "avg_card_amount": 290.535,
+   "evidence_count": 7,
+   "independent_evidence_count": 7
+  },
+  "status": "closed_fraud",
+  "verdict": "fraud",
+  "fraud_probability": 0.824,
+  "pattern_candidates": [
+   {
+    "pattern": "undocumented",
+    "score": 0.8,
+    "confidence": 0.8,
+    "supporting_signals": [
+     "Syndicate device sharing across 17 accounts with 4 fraud cards in ring",
+     "Tiebreaker: coordinated multi-card syndicate abuse defines undocumented pattern per R9"
+    ],
+    "contradicting_signals": [],
+    "description": "Activity does not match any of the five known fraud patterns, but the evidence shows coordinated abuse across accounts: 17 other card(s) share the device profile used here. It is reported as undocumented rather than forced into a known category, per policy R9."
+   },
+   {
+    "pattern": "card_not_present_fraud",
+    "score": 0.45,
+    "confidence": 0.45,
+    "supporting_signals": [
+     "4 online transactions in 48h window",
+     "Transaction $1152.70 > 2x card average $290.54"
+    ],
+    "contradicting_signals": [],
+    "description": "Burst of 4 online transactions within 48h; amount is well above card average"
+   }
+  ],
+  "pattern_secondary": "",
+  "risk_level": "CRITICAL",
+  "pattern": "undocumented",
+  "pattern_description": "Activity does not match any of the five known fraud patterns, but the evidence shows coordinated abuse across accounts: 17 other card(s) share the device profile used here. It is reported as undocumented rather than forced into a known category, per policy R9.",
+  "affected_txn_ids": [
+   "4012231",
+   "4012211",
+   "4012229",
+   "4012230"
+  ],
+  "first_suspicious_txn_id": "4012231",
+  "connected_card_ids": [
+   "SC-09000-K1",
+   "SC-09001-K1",
+   "SC-09002-K1",
+   "SC-09003-K1",
+   "SC-09004-K2",
+   "SC-09005-K2",
+   "SC-09006-K2",
+   "SC-09007-K2",
+   "SC-09008-K2",
+   "SC-09009-K2"
+  ],
+  "connected_device_profiles": [
+   "IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014"
+  ],
+  "exposure_usd": 1162.14,
+  "evidence": [
+   {
+    "evidence_id": "EV-35276915",
+    "case_id": "CASE-014",
+    "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012211 ($1152.70) at 0.83. Review and decide.",
+    "source": "external",
+    "ref": "trigger:risk_score",
+    "entity_ids": [
+     "SC-03014",
+     "SC-03014-K956",
+     "4012211"
+    ],
+    "severity": "MEDIUM",
+    "confidence": 0.7,
+    "timestamp": "2026-10-24T01:03:33.257773Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "model_score",
+     "query": "risk_score"
+    }
+   },
+   {
+    "evidence_id": "EV-015adcbc",
+    "case_id": "CASE-014",
+    "claim": "4 previous transactions retrieved for card SC-03014-K956. Average amount: $290.54.",
+    "source": "graph",
+    "ref": "query:card_transaction_history(card_id=SC-03014-K956)",
+    "entity_ids": [
+     "SC-03014-K956"
+    ],
+    "severity": "MEDIUM",
+    "confidence": 0.95,
+    "timestamp": "2026-10-24T01:03:33.257861Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "card_transaction_history"
+    }
+   },
+   {
+    "evidence_id": "EV-e93a42a5",
+    "case_id": "CASE-014",
+    "claim": "4 online transactions on this card within 48h of the flagged transaction.",
+    "source": "graph",
+    "ref": "query:card_window(card_id=SC-03014-K956, hours=48)",
+    "entity_ids": [
+     "4012231",
+     "4012230",
+     "4012229",
+     "4012211"
+    ],
+    "severity": "HIGH",
+    "confidence": 0.85,
+    "timestamp": "2026-10-24T01:03:33.365247Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "card_window"
+    }
+   },
+   {
+    "evidence_id": "EV-c758992f",
+    "case_id": "CASE-014",
+    "claim": "Device profile shared across 17 other card(s): SC-09000-K1, SC-09001-K1, SC-09002-K1, SC-09003-K1, SC-09004-K2.",
+    "source": "graph",
+    "ref": "query:accounts_sharing_device(device=IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014)",
+    "entity_ids": [
+     "SC-09000-K1",
+     "SC-09001-K1",
+     "SC-09002-K1",
+     "SC-09003-K1",
+     "SC-09004-K2",
+     "SC-09005-K2",
+     "SC-09006-K2",
+     "SC-09007-K2",
+     "SC-09008-K2",
+     "SC-09009-K2"
+    ],
+    "severity": "HIGH",
+    "confidence": 0.8,
+    "timestamp": "2026-10-24T01:03:33.365264Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "accounts_sharing_device"
+    }
+   },
+   {
+    "evidence_id": "EV-fdd19b83",
+    "case_id": "CASE-014",
+    "claim": "Fraud-ring analysis: device component contains 4 confirmed-fraud card(s) (ring size 18).",
+    "source": "graph",
+    "ref": "query:device_fraud_ring(device=IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014)",
+    "entity_ids": [
+     "SC-09000-K1",
+     "SC-09001-K1",
+     "SC-09002-K1",
+     "SC-09003-K1"
+    ],
+    "severity": "CRITICAL",
+    "confidence": 0.85,
+    "timestamp": "2026-10-24T01:03:33.365278Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "derived_inference",
+     "query": "device_fraud_ring"
+    }
+   },
+   {
+    "evidence_id": "EV-fa90c0ef",
+    "case_id": "CASE-014",
+    "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
+    "source": "graph",
+    "ref": "query:closed_cases_for_customer(customer_id=SC-03014)",
+    "entity_ids": [
+     "CC-4327"
+    ],
+    "severity": "LOW",
+    "confidence": 0.9,
+    "timestamp": "2026-10-24T01:03:33.365286Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "closed_cases_for_customer"
+    }
+   },
+   {
+    "evidence_id": "EV-2c321637",
+    "case_id": "CASE-014",
+    "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
+    "source": "customer",
+    "ref": "evidence_request:ER-a04c5674",
+    "entity_ids": [
+     "SC-03014"
+    ],
+    "severity": "HIGH",
+    "confidence": 0.8,
+    "timestamp": "2026-10-24T01:03:33.373894Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "ER-a04c5674"
+    }
+   }
+  ],
+  "uncertainty": [],
+  "similar_prior_cases": [
+   "CC-4327"
+  ],
+  "evidence_requests": [
+   {
+    "request_id": "ER-a04c5674",
+    "case_id": "CASE-014",
+    "type": "customer_validation",
+    "asked_after_step": 4,
+    "rationale": "Selected by information value 1.00 (highest of candidates evaluated). Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.82); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.15)",
+    "question": "Did you make this transaction?",
+    "assumed_response": "Customer states they did not make these purchases and still has the card in their possession.",
+    "status": "received",
+    "received_at": "2026-10-24T01:03:33.372710Z",
+    "info_value": 1.0,
+    "alternatives_considered": [
+     {
+      "type": "analyst_info",
+      "info_value": -0.1,
+      "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.71); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.40)"
+     },
+     {
+      "type": "external_watchlist",
+      "info_value": -0.15,
+      "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.70); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.50)"
+     }
+    ],
+    "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.82); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.15)",
+    "origin": "simulated"
+   }
+  ],
+  "risk_before": {
+   "fraud_probability": 0.627,
+   "risk_level": "HIGH",
+   "confidence": 0.8,
+   "key_signals": [
+    "4 online transactions in 48h window",
+    "device component contains 4 confirmed-fraud cards"
+   ],
+   "uncertainty_items": [
+    {
+     "question": "Did the cardholder make this transaction?",
+     "impact": "Customer denial raises probability significantly; confirmation closes the case",
+     "resolution_method": "VERIFY_WITH_CUSTOMER",
+     "status": "open",
+     "resolved_by": "",
+     "resolution_impact": ""
+    },
+    {
+     "question": "Can the burst of online purchases be explained (gift purchases, etc.)?",
+     "impact": "Legitimate explanation reduces probability",
+     "resolution_method": "VERIFY_WITH_CUSTOMER",
+     "status": "open",
+     "resolved_by": "",
+     "resolution_impact": ""
+    }
+   ],
+   "note": "",
+   "score_breakdown": [
+    {
+     "channel": "trigger_risk_score",
+     "contribution": 0.174,
+     "label": "ML risk score 0.87 (weight 0.17)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "burst_online_3plus",
+     "contribution": 0.18,
+     "label": "4 online transactions in 48h window",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "amount_anomaly",
+     "contribution": 0.15,
+     "label": "Transaction amount $1152.70 > 3x card average $290.54",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "fraud_ring",
+     "contribution": 0.3,
+     "label": "Device component contains 4 confirmed-fraud cards (ring of 18)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "shared_device",
+     "contribution": 0.22,
+     "label": "Device shared across 17 other card(s)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "prior_cleared_cases",
+     "contribution": 0.769,
+     "label": "1 prior cleared case(s) support legitimate use",
+     "type": "clearing_signal"
+    },
+    {
+     "channel": "total",
+     "contribution": 0.627,
+     "label": "Combined fraud probability (0.627)",
+     "type": "total"
+    }
+   ]
+  },
+  "nba_initial": [
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "R9: undocumented coordinated pattern",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5",
+     "EV-c758992f",
+     "EV-fdd19b83"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Establishes investigation case for multi-card coordinated pattern",
+    "why_now": "now because probability 0.63 exceeds the case-creation floor"
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "reason": "R9",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5",
+     "EV-c758992f",
+     "EV-fdd19b83"
+    ],
+    "alternatives_rejected": [
+     "GENERATE_REPORT: R9 coordinated patterns require regulatory disclosure"
+    ],
+    "expected_impact": "Files SAR for coordinated fraud pattern per regulatory requirement",
+    "why_now": "now because regulatory thresholds are met (probability 0.63, exposure $1,152.70)"
+   },
+   {
+    "action": "ESCALATE_TO_ANALYST",
+    "route": "auto",
+    "reason": "R9",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Routes to specialist analyst for undocumented pattern classification",
+    "why_now": "now because probability 0.63 is inside the band where human judgement outperforms automation"
+   }
+  ],
+  "nba_final": [
+   {
+    "action": "BLOCK_CARD",
+    "route": "L1",
+    "reason": "R2: customer denied the transaction",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5",
+     "EV-c758992f",
+     "EV-fdd19b83"
+    ],
+    "alternatives_rejected": [
+     "MONITOR_CARD: insufficient \u2014 cardholder confirmed fraud; card must be suspended immediately",
+     "VERIFY_WITH_CUSTOMER: already done \u2014 cardholder has denied the transaction"
+    ],
+    "expected_impact": "Prevents further unauthorized charges on the compromised card",
+    "why_now": "now because the cardholder denied the transaction and probability is 0.82 \u2014 delay leaves the card usable"
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "R2",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Creates an official investigation record for compliance and audit trail",
+    "why_now": "now because probability 0.82 exceeds the case-creation floor"
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "reason": "R2: exposure > $1,000 or shared device/region",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5",
+     "EV-c758992f",
+     "EV-fdd19b83"
+    ],
+    "alternatives_rejected": [
+     "GENERATE_REPORT: internal report insufficient \u2014 SAR threshold reached"
+    ],
+    "expected_impact": "Fulfils regulatory obligation to file SAR for confirmed fraud above threshold",
+    "why_now": "now because regulatory thresholds are met (probability 0.82, exposure $1,152.70)"
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "route": "auto",
+    "reason": "R6: shared origin detected",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Watches connected cards on same device profile for signs of coordinated fraud",
+    "why_now": "now because shared infrastructure implies correlated exposure across cards"
+   }
+  ],
+  "nba_what_changed": "Added: MONITOR_CONNECTED_CARDS, BLOCK_CARD; Removed: ESCALATE_TO_ANALYST",
+  "sar": {
+   "file": true,
+   "reason": "R2: confirmed fraud with exposure > $1,000",
+   "narrative": "Between 2026-09-15 and 2026-09-15, customer SC-03014 and card SC-03014-K956, connected cards SC-09000-K1, SC-09001-K1, SC-09002-K1, device profile 'IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014' were involved in 4 transaction(s) assessed as fraud (undocumented pattern) with total exposure $1162.14. The flagged transaction 4012211 of $1152.70 (online, product W) is inconsistent with the cardholder's established history. Evidence supporting this assessment comprises 7 items including graph-retrieved transaction history, device records and prior case memory. The activity is suspicious because it matches the undocumented pattern with assessed fraud probability 0.82. Actions taken or pending: BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS. This report is filed under policy rule R2.",
+   "subjects": [
+    "SC-09001-K1",
+    "SC-09003-K1",
+    "SC-09004-K2",
+    "SC-03014-K956",
+    "SC-09000-K1",
+    "SC-09002-K1",
+    "SC-03014",
+    "IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-c"
+   ],
+   "total_amount_usd": 1162.14,
+   "activity_dates": [
+    "2026-09-15",
+    "2026-09-15"
+   ]
+  },
+  "written_to_graph": true,
+  "graph_case_id": "CASE-2026-CASE-014",
+  "approvals": [
+   {
+    "approval_id": "APR-ac0f8bc0",
+    "case_id": "CASE-014",
+    "action": "BLOCK_CARD",
+    "reason": "R2: customer denied the transaction",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5",
+     "EV-c758992f",
+     "EV-fdd19b83",
+     "EV-fa90c0ef",
+     "EV-2c321637"
+    ],
+    "policy_ref": "R2: customer denied the transaction",
+    "required_route": "L1",
+    "status": "pending",
+    "requested_at": "2026-10-24T01:03:33.383453Z",
+    "decided_at": null,
+    "approver": null
+   },
+   {
+    "approval_id": "APR-8174839f",
+    "case_id": "CASE-014",
+    "action": "FILE_REPORT",
+    "reason": "R2: exposure > $1,000 or shared device/region",
+    "evidence_ids": [
+     "EV-35276915",
+     "EV-015adcbc",
+     "EV-e93a42a5",
+     "EV-c758992f",
+     "EV-fdd19b83",
+     "EV-fa90c0ef",
+     "EV-2c321637"
+    ],
+    "policy_ref": "R2: exposure > $1,000 or shared device/region",
+    "required_route": "L2",
+    "status": "pending",
+    "requested_at": "2026-10-24T01:03:33.385150Z",
+    "decided_at": null,
+    "approver": null
+   }
+  ],
+  "action_results": [
+   {
+    "action": "BLOCK_CARD",
+    "status": "pending_approval",
+    "timestamp": "2026-10-24T01:03:33.384032Z",
+    "result": "Awaiting L1 approval",
+    "case_id": "CASE-014",
+    "approval_ref": "APR-ac0f8bc0"
+   },
+   {
+    "action": "CREATE_CASE",
+    "status": "executed",
+    "timestamp": "2026-10-24T01:03:33.384509Z",
+    "result": "Executed by agent under policy route=auto (R2)",
+    "case_id": "CASE-014",
+    "approval_ref": ""
+   },
+   {
+    "action": "FILE_REPORT",
+    "status": "pending_approval",
+    "timestamp": "2026-10-24T01:03:33.385618Z",
+    "result": "Awaiting L2 approval",
+    "case_id": "CASE-014",
+    "approval_ref": "APR-8174839f"
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "status": "executed",
+    "timestamp": "2026-10-24T01:03:33.386180Z",
+    "result": "Executed by agent under policy route=auto (R6: shared origin detected)",
+    "case_id": "CASE-014",
+    "approval_ref": ""
+   }
+  ],
+  "graph_backend": "local",
+  "mcp_status": "not_configured",
+  "llm_used": false,
+  "model_proposal": null,
+  "policy_decision": {
+   "verdict": "fraud",
+   "pattern": "undocumented",
+   "fraud_probability": 0.824,
+   "actions": [
+    "BLOCK_CARD",
+    "CREATE_CASE",
+    "FILE_REPORT",
+    "MONITOR_CONNECTED_CARDS"
+   ],
+   "decided_by": "deterministic policy engine (rules R1-R10)"
+  },
+  "model_agreed": false,
+  "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+  "verification_draft": null,
+  "model_usage": {},
+  "summary": "Case CASE-014 investigated undocumented activity on card SC-03014-K956 (customer SC-03014) around transaction 4012211 ($1152.70, online). Assessed fraud probability 0.82 (CRITICAL risk) from 7 evidence items across 7 independent evidence families. Key signals: 4 online transactions in 48h window; device component contains 4 confirmed-fraud cards. Additional evidence requested (customer_validation, information value 1.00); response: Customer states they did not make these purchases and still has the card in their possession. Final actions: BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS.",
+  "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
+  "tool_calls": 16,
+  "tokens_used": 0,
+  "latency_s": 0.14
+ },
+ "graph": {
+  "case_id": "CASE-014",
+  "nodes": [
+   {
+    "id": "SC-03014",
+    "label": "Customer: SC-03014",
+    "type": "Customer",
+    "metadata": {
+     "customer_id": "SC-03014",
+     "role": "Cardholder Account Owner",
+     "relevance": "Customer identity anchor for card SC-03014-K956; past investigation and dispute history attached here.",
+     "evidence_ids": [
+      "EV-35276915",
+      "EV-2c321637"
+     ]
+    }
+   },
+   {
+    "id": "SC-03014-K956",
+    "label": "Card: SC-03014-K956",
+    "type": "Card",
+    "metadata": {
+     "card_id": "SC-03014-K956",
+     "role": "Payment Instrument",
+     "relevance": "Primary card under review; used in flagged transaction #4012211 and 48h activity window.",
+     "evidence_ids": [
+      "EV-35276915",
+      "EV-015adcbc"
+     ]
+    }
+   },
+   {
+    "id": "4012211",
+    "label": "Flagged Txn: #4012211",
+    "type": "FlaggedTransaction",
+    "metadata": {
+     "txn_id": "4012211",
+     "amount": 1162.14,
+     "risk_score": 0.87,
+     "is_flagged": true,
+     "role": "Trigger Alert Transaction",
+     "relevance": "Suspicious transaction #4012211 triggered the alert (Risk Score: 0.87).",
+     "evidence_ids": [
+      "EV-35276915",
+      "EV-e93a42a5"
+     ]
+    }
+   },
+   {
+    "id": "4012231",
+    "label": "Txn: #4012231",
+    "type": "Transaction",
+    "metadata": {
+     "txn_id": "4012231",
+     "affected": true,
+     "role": "Related Suspicious Transaction",
+     "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
+     "evidence_ids": [
+      "EV-e93a42a5"
+     ]
+    }
+   },
+   {
+    "id": "4012229",
+    "label": "Txn: #4012229",
+    "type": "Transaction",
+    "metadata": {
+     "txn_id": "4012229",
+     "affected": true,
+     "role": "Related Suspicious Transaction",
+     "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
+     "evidence_ids": [
+      "EV-e93a42a5"
+     ]
+    }
+   },
+   {
+    "id": "4012230",
+    "label": "Txn: #4012230",
+    "type": "Transaction",
+    "metadata": {
+     "txn_id": "4012230",
+     "affected": true,
+     "role": "Related Suspicious Transaction",
+     "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
+     "evidence_ids": [
+      "EV-e93a42a5"
+     ]
+    }
+   },
+   {
+    "id": "DEV-IOS Device (Apple) unit-case-014",
+    "label": "Device: IOS Device (Apple) unit-...",
+    "type": "DeviceProfile",
+    "metadata": {
+     "full_device": "IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014",
+     "role": "Client Hardware Fingerprint",
+     "relevance": "Hardware & OS fingerprint captured during transaction: IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014.",
+     "evidence_ids": []
+    }
+   },
+   {
+    "id": "SC-09000-K1",
+    "label": "Connected: SC-09000-K1",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09000-K1",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f",
+      "EV-fdd19b83"
+     ]
+    }
+   },
+   {
+    "id": "SC-09001-K1",
+    "label": "Connected: SC-09001-K1",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09001-K1",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f",
+      "EV-fdd19b83"
+     ]
+    }
+   },
+   {
+    "id": "SC-09002-K1",
+    "label": "Connected: SC-09002-K1",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09002-K1",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f",
+      "EV-fdd19b83"
+     ]
+    }
+   },
+   {
+    "id": "SC-09003-K1",
+    "label": "Connected: SC-09003-K1",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09003-K1",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f",
+      "EV-fdd19b83"
+     ]
+    }
+   },
+   {
+    "id": "SC-09004-K2",
+    "label": "Connected: SC-09004-K2",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09004-K2",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f"
+     ]
+    }
+   },
+   {
+    "id": "SC-09005-K2",
+    "label": "Connected: SC-09005-K2",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09005-K2",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f"
+     ]
+    }
+   },
+   {
+    "id": "SC-09006-K2",
+    "label": "Connected: SC-09006-K2",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09006-K2",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f"
+     ]
+    }
+   },
+   {
+    "id": "SC-09007-K2",
+    "label": "Connected: SC-09007-K2",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09007-K2",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f"
+     ]
+    }
+   },
+   {
+    "id": "SC-09008-K2",
+    "label": "Connected: SC-09008-K2",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09008-K2",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f"
+     ]
+    }
+   },
+   {
+    "id": "SC-09009-K2",
+    "label": "Connected: SC-09009-K2",
+    "type": "ConnectedCard",
+    "metadata": {
+     "card_id": "SC-09009-K2",
+     "role": "Syndicate / Shared Device Card",
+     "relevance": "Card linked through shared device or cross-entity transaction patterns.",
+     "evidence_ids": [
+      "EV-c758992f"
+     ]
+    }
+   },
+   {
+    "id": "CC-4327",
+    "label": "Prior Case: CC-4327",
+    "type": "ClosedCase",
+    "metadata": {
+     "case_id": "CC-4327",
+     "role": "Historical Fraud Precedent",
+     "relevance": "Historical confirmed fraud case CC-4327 establishing behavioural precedent in TigerGraph memory.",
+     "evidence_ids": [
+      "EV-fa90c0ef"
+     ]
+    }
+   },
+   {
+    "id": "CASE-2026-CASE-014",
+    "label": "Graph Case: CASE-2026-CASE-014",
+    "type": "InvestigationCase",
+    "metadata": {
+     "status": "closed_fraud",
+     "verdict": "fraud",
+     "probability": 0.824,
+     "written_to_graph": true,
+     "role": "Durable Graph Investigation Record",
+     "relevance": "Official TigerGraph InvestigationCase vertex tracking verdict (fraud), probability (0.824), and audit trail.",
+     "evidence_ids": [
+      "EV-35276915",
+      "EV-015adcbc",
+      "EV-e93a42a5",
+      "EV-c758992f",
+      "EV-fdd19b83",
+      "EV-fa90c0ef",
+      "EV-2c321637"
+     ]
+    }
+   }
+  ],
+  "links": [
+   {
+    "source": "SC-03014",
+    "target": "SC-03014-K956",
+    "type": "OWNS"
+   },
+   {
+    "source": "SC-03014-K956",
+    "target": "4012211",
+    "type": "MADE"
+   },
+   {
+    "source": "SC-03014-K956",
+    "target": "4012231",
+    "type": "MADE"
+   },
+   {
+    "source": "SC-03014-K956",
+    "target": "4012229",
+    "type": "MADE"
+   },
+   {
+    "source": "SC-03014-K956",
+    "target": "4012230",
+    "type": "MADE"
+   },
+   {
+    "source": "4012211",
+    "target": "DEV-IOS Device (Apple) unit-case-014",
+    "type": "FROM_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09000-K1",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09001-K1",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09002-K1",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09003-K1",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09004-K2",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09005-K2",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09006-K2",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09007-K2",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09008-K2",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "DEV-IOS Device (Apple) unit-case-014",
+    "target": "SC-09009-K2",
+    "type": "SHARED_DEVICE"
+   },
+   {
+    "source": "CC-4327",
+    "target": "SC-03014",
+    "type": "CC_ON_CUSTOMER"
+   },
+   {
+    "source": "CC-4327",
+    "target": "SC-03014-K956",
+    "type": "CC_ON_CARD"
+   },
+   {
+    "source": "CASE-2026-CASE-014",
+    "target": "SC-03014-K956",
+    "type": "IC_ON_CARD"
+   },
+   {
+    "source": "CASE-2026-CASE-014",
+    "target": "SC-03014",
+    "type": "IC_FOR_CUSTOMER"
+   },
+   {
+    "source": "CASE-2026-CASE-014",
+    "target": "4012211",
+    "type": "IC_INVOLVES"
+   }
+  ],
+  "counts": {
+   "nodes": 19,
+   "links": 21
+  }
+ },
+ "risk": {
+  "case_id": "CASE-014",
+  "verdict": "fraud",
+  "prior": {
+   "bank_risk_score": 0.87,
+   "source": "transaction_risk_model"
+  },
+  "pre_evidence": {
+   "fraud_probability": 0.627,
+   "confidence": 0.8,
+   "risk_level": "HIGH",
+   "key_signals": [
+    "4 online transactions in 48h window",
+    "device component contains 4 confirmed-fraud cards"
+   ],
+   "score_breakdown": [
+    {
+     "channel": "trigger_risk_score",
+     "contribution": 0.174,
+     "label": "ML risk score 0.87 (weight 0.17)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "burst_online_3plus",
+     "contribution": 0.18,
+     "label": "4 online transactions in 48h window",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "amount_anomaly",
+     "contribution": 0.15,
+     "label": "Transaction amount $1152.70 > 3x card average $290.54",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "fraud_ring",
+     "contribution": 0.3,
+     "label": "Device component contains 4 confirmed-fraud cards (ring of 18)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "shared_device",
+     "contribution": 0.22,
+     "label": "Device shared across 17 other card(s)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "prior_cleared_cases",
+     "contribution": 0.769,
+     "label": "1 prior cleared case(s) support legitimate use",
+     "type": "clearing_signal"
+    },
+    {
+     "channel": "total",
+     "contribution": 0.627,
+     "label": "Combined fraud probability (0.627)",
+     "type": "total"
+    }
+   ]
+  },
+  "current": {
+   "fraud_probability": 0.824,
+   "confidence": 0.85,
+   "risk_level": "CRITICAL",
+   "key_signals": [
+    "4 online transactions in 48h window",
+    "cardholder denied making the transaction",
+    "device component contains 4 confirmed-fraud cards"
+   ],
+   "score_breakdown": [
+    {
+     "channel": "trigger_risk_score",
+     "contribution": 0.174,
+     "label": "ML risk score 0.87 (weight 0.17)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "burst_online_3plus",
+     "contribution": 0.18,
+     "label": "4 online transactions in 48h window",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "amount_anomaly",
+     "contribution": 0.15,
+     "label": "Transaction amount $1152.70 > 3x card average $290.54",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "customer_denied",
+     "contribution": 0.55,
+     "label": "Cardholder denied making the transaction",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "fraud_ring",
+     "contribution": 0.3,
+     "label": "Device component contains 4 confirmed-fraud cards (ring of 18)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "shared_device",
+     "contribution": 0.22,
+     "label": "Device shared across 17 other card(s)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "prior_cleared_cases",
+     "contribution": 0.769,
+     "label": "1 prior cleared case(s) support legitimate use",
+     "type": "clearing_signal"
+    },
+    {
+     "channel": "total",
+     "contribution": 0.824,
+     "label": "Combined fraud probability (0.824)",
+     "type": "total"
+    }
+   ]
+  },
+  "trajectory": [
+   {
+    "step": 0,
+    "label": "Bank risk score (trigger)",
+    "probability": 0.87,
+    "origin": "bank_model"
+   },
+   {
+    "step": 1,
+    "label": "Graph evidence round (pre-evidence assessment)",
+    "probability": 0.627,
+    "origin": "graph_evidence"
+   },
+   {
+    "step": 2,
+    "label": "Reassessment 1: response to customer validation",
+    "probability": 0.824,
+    "origin": "evidence_response"
+   }
+  ],
+  "evidence_type_counts": {
+   "observed_fact": 5,
+   "derived_inference": 1,
+   "model_score": 1,
+   "total": 7
+  },
+  "methodology": "Noisy-OR channel aggregation with Bayesian likelihood-ratio odds updating for clearing signals; documented methodology DECISIONS.md D7. Probabilities are engine output, not model-synthesised confidence intervals."
+ },
+ "timeline": [
+  {
+   "event_id": "AE-4dffa846",
+   "case_id": "CASE-014",
+   "event_type": "case_created",
+   "state_from": null,
+   "state_to": "TRIGGERED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.253378+00:00"
+  },
+  {
+   "event_id": "AE-a44cad81",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "TRIGGERED",
+   "state_to": "INVESTIGATING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.254294+00:00"
+  },
+  {
+   "event_id": "AE-490f7d29",
+   "case_id": "CASE-014",
+   "event_type": "case_created_in_graph",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "graph_case_id": "CASE-2026-CASE-014"
+   },
+   "timestamp": "2026-10-24 01:03:33.257262+00:00"
+  },
+  {
+   "event_id": "AE-e48422b1",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "INVESTIGATING",
+   "state_to": "EVIDENCE_GATHERED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.365315+00:00"
+  },
+  {
+   "event_id": "AE-850ea14a",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "EVIDENCE_GATHERED",
+   "state_to": "ASSESSING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.366880+00:00"
+  },
+  {
+   "event_id": "AE-7bc3700c",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "ASSESSING",
+   "state_to": "MORE_EVIDENCE_REQUIRED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.368701+00:00"
+  },
+  {
+   "event_id": "AE-9e532f7f",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "MORE_EVIDENCE_REQUIRED",
+   "state_to": "EVIDENCE_REQUESTED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.370304+00:00"
+  },
+  {
+   "event_id": "AE-9b108ab4",
+   "case_id": "CASE-014",
+   "event_type": "evidence_request_selected",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "request_id": "ER-a04c5674",
+    "type": "customer_validation",
+    "info_value": 1.0,
+    "alternatives": [
+     "analyst_info",
+     "external_watchlist"
+    ]
+   },
+   "timestamp": "2026-10-24 01:03:33.372232+00:00"
+  },
+  {
+   "event_id": "AE-bf1e5334",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "EVIDENCE_REQUESTED",
+   "state_to": "EVIDENCE_RECEIVED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.372731+00:00"
+  },
+  {
+   "event_id": "AE-b0f8c53d",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "EVIDENCE_RECEIVED",
+   "state_to": "REASSESSING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.373979+00:00"
+  },
+  {
+   "event_id": "AE-11273768",
+   "case_id": "CASE-014",
+   "event_type": "reassessment_performed",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "request_id": "ER-a04c5674",
+    "probability_before": 0.627,
+    "probability_after": 0.824
+   },
+   "timestamp": "2026-10-24 01:03:33.376684+00:00"
+  },
+  {
+   "event_id": "AE-08211b81",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "REASSESSING",
+   "state_to": "ACTION_RECOMMENDED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.378152+00:00"
+  },
+  {
+   "event_id": "AE-8dbb4211",
+   "case_id": "CASE-014",
+   "event_type": "case_written_to_graph",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "graph_case_id": "CASE-2026-CASE-014",
+    "backend": "local"
+   },
+   "timestamp": "2026-10-24 01:03:33.382751+00:00"
+  },
+  {
+   "event_id": "AE-4bb06db6",
+   "case_id": "CASE-014",
+   "event_type": "approval_required",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "BLOCK_CARD",
+    "route": "L1",
+    "approval_id": "APR-ac0f8bc0"
+   },
+   "timestamp": "2026-10-24 01:03:33.384054+00:00"
+  },
+  {
+   "event_id": "AE-118766c5",
+   "case_id": "CASE-014",
+   "event_type": "action_executed",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "CREATE_CASE"
+   },
+   "timestamp": "2026-10-24 01:03:33.384526+00:00"
+  },
+  {
+   "event_id": "AE-fc488572",
+   "case_id": "CASE-014",
+   "event_type": "approval_required",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "approval_id": "APR-8174839f"
+   },
+   "timestamp": "2026-10-24 01:03:33.385639+00:00"
+  },
+  {
+   "event_id": "AE-43b1f966",
+   "case_id": "CASE-014",
+   "event_type": "action_executed",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "MONITOR_CONNECTED_CARDS"
+   },
+   "timestamp": "2026-10-24 01:03:33.386196+00:00"
+  },
+  {
+   "event_id": "AE-43a01cc0",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "ACTION_RECOMMENDED",
+   "state_to": "APPROVAL_REQUIRED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.386692+00:00"
+  },
+  {
+   "event_id": "AE-1e4e9286",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "APPROVAL_REQUIRED",
+   "state_to": "ACTION_EXECUTING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.388179+00:00"
+  },
+  {
+   "event_id": "AE-12ad3097",
+   "case_id": "CASE-014",
+   "event_type": "state_transition",
+   "state_from": "ACTION_EXECUTING",
+   "state_to": "COMPLETED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:33.389418+00:00"
+  }
+ ],
+ "ask": {
+  "case_id": "CASE-014",
+  "question": "What evidence supports this verdict?",
+  "answer": "Not in evidence. This case's deterministic evidence trail covers: trigger:risk_score, query:card_transaction_history(card_id=SC-03014-K956), query:card_window(card_id=SC-03014-K956, hours=48), query:accounts_sharing_device(device=IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014), query:device_fraud_ring(device=IOS Device (Apple) unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014) (and more); query it directly or re-run with the Nemotron key configured.",
+  "served_by": "deterministic-fallback",
+  "llm_used": false
+ }
+}

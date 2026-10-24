@@ -1,0 +1,1492 @@
+{
+ "case_id": "CASE-018",
+ "answer": {
+  "case_id": "CASE-018",
+  "case": {
+   "status": "closed_fraud",
+   "verdict": "fraud",
+   "fraud_probability": 0.834,
+   "pattern": "card_not_present_fraud",
+   "pattern_description": "Burst of 4 online transactions within 48h",
+   "affected_txn_ids": [
+    "4012169",
+    "4012170",
+    "4012167",
+    "4012168"
+   ],
+   "first_suspicious_txn_id": "4012167",
+   "connected_card_ids": [],
+   "connected_device_profiles": [
+    "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018"
+   ],
+   "exposure_usd": 1686.36,
+   "evidence": [
+    {
+     "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012167 ($517.26, in billing region 'domestic') at 0.88. Review and decide.",
+     "source": "external",
+     "ref": "trigger:risk_score",
+     "entity_ids": [
+      "SC-03018",
+      "SC-03018-K948",
+      "4012167"
+     ]
+    },
+    {
+     "claim": "4 previous transactions retrieved for card SC-03018-K948. Average amount: $421.59.",
+     "source": "graph",
+     "ref": "query:card_transaction_history(card_id=SC-03018-K948)",
+     "entity_ids": [
+      "SC-03018-K948"
+     ]
+    },
+    {
+     "claim": "4 online transactions on this card within 48h of the flagged transaction.",
+     "source": "graph",
+     "ref": "query:card_window(card_id=SC-03018-K948, hours=48)",
+     "entity_ids": [
+      "4012167",
+      "4012170",
+      "4012168",
+      "4012169"
+     ]
+    },
+    {
+     "claim": "1 prior confirmed fraud case(s) found for customer SC-03018 or card SC-03018-K948: CC-4319.",
+     "source": "graph",
+     "ref": "query:closed_cases_for_customer(customer_id=SC-03018)",
+     "entity_ids": [
+      "CC-4319"
+     ]
+    },
+    {
+     "claim": "Device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018' appears in 1 confirmed fraud case(s).",
+     "source": "graph",
+     "ref": "query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018)",
+     "entity_ids": [
+      "CC-4319"
+     ]
+    },
+    {
+     "claim": "6 prior closed case(s) retrieved by pattern (card_not_present_fraud) and keyword match over analyst notes.",
+     "source": "document",
+     "ref": "retrieval:pattern+keyword(pattern=card_not_present_fraud)",
+     "entity_ids": [
+      "CC-4317",
+      "CC-4316",
+      "CC-4319",
+      "CC-4314",
+      "CC-4318",
+      "CC-4315"
+     ]
+    },
+    {
+     "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
+     "source": "customer",
+     "ref": "evidence_request:ER-6a79ae5b",
+     "entity_ids": [
+      "SC-03018"
+     ]
+    }
+   ],
+   "similar_prior_cases": [
+    "CC-4319",
+    "CC-4317",
+    "CC-4316",
+    "CC-4314",
+    "CC-4318",
+    "CC-4315"
+   ],
+   "summary": "Case CASE-018 (Card SC-03018-K948): The case involves card-not-present fraud on card SC-03018-K948 with four affected transactions totaling $1,686.36 exposure [EV-bac21570, EV-5c0fde60]. Real-time scoring flagged transaction 4012167 at 0.88 risk score [EV-bac21570]. Four online transactions occurred within 48 hours of the flagged transaction, deviating from the card's historical average of $421.59 per transaction [EV-08562653, EV-5c0fde60]. The customer confirmed they did not authorize the purchases and retained physical possession of the card [EV-71797074]. A prior fraud case (CC-4319) exists for this customer/card, and the device profile used matches a device seen in another confirmed fraud case [EV-77d5cdcc, EV-5f23e756]. Six similar card-not-present fraud cases were identified through pattern and keyword retrieval [EV-4526fa4d].",
+   "written_to_graph": true,
+   "graph_case_id": "CASE-2026-CASE-018"
+  },
+  "evidence_requests": [
+   {
+    "type": "customer_validation",
+    "asked_after_step": 4,
+    "assumed_response": "Customer states they did not make these purchases and still has the card in their possession.",
+    "status": "received",
+    "info_value": 0.75,
+    "origin": "simulated",
+    "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.83); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.20)",
+    "alternatives_considered": [
+     {
+      "type": "analyst_info",
+      "info_value": 0.6,
+      "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.72); Outcome B (Analyst reports no related activity) -> ESCALATE_TO_ANALYST (p=0.41)"
+     },
+     {
+      "type": "external_watchlist",
+      "info_value": -0.15,
+      "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.70); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.51)"
+     }
+    ]
+   }
+  ],
+  "next_best_actions": {
+   "initial": [
+    {
+     "action": "CREATE_CASE",
+     "route": "auto",
+     "reason": "R6: shared device/region/email across multiple cards"
+    },
+    {
+     "action": "FILE_REPORT",
+     "route": "L2",
+     "reason": "R6: shared origin requires report"
+    },
+    {
+     "action": "MONITOR_CONNECTED_CARDS",
+     "route": "auto",
+     "reason": "R6"
+    }
+   ],
+   "final": [
+    {
+     "action": "BLOCK_CARD",
+     "route": "L1",
+     "reason": "R2: customer denied the transaction"
+    },
+    {
+     "action": "CREATE_CASE",
+     "route": "auto",
+     "reason": "R2"
+    },
+    {
+     "action": "FILE_REPORT",
+     "route": "L2",
+     "reason": "R2: exposure > $1,000 or shared device/region"
+    },
+    {
+     "action": "MONITOR_CONNECTED_CARDS",
+     "route": "auto",
+     "reason": "R6: shared origin detected"
+    }
+   ],
+   "what_changed": "Added: BLOCK_CARD"
+  },
+  "sar": {
+   "file": true,
+   "reason": "R2: confirmed fraud with exposure > $1,000",
+   "narrative": "Suspicious Activity Report for CASE-018 involving card-not-present fraud on card SC-03018-K948 belonging to customer SC-03018. The investigation identified four unauthorized card-not-present transactions (4012167, 4012168, 4012169, 4012170) totaling $1,686.36 in exposure [EV-bac21570, EV-5c0fde60]. Transaction 4012167 for $517.26 triggered a real-time risk score of 0.88, prompting review [EV-bac21570]. Analysis revealed four online transactions within a 48-hour window, significantly exceeding the card's historical transaction frequency and average amount of $421.59 [EV-08562653, EV-5c0fde60]. The customer reported no authorization of these transactions and confirmed physical possession of the card throughout the period [EV-71797074]. The device fingerprint used in the transactions matches a device profile associated with a prior confirmed fraud case [EV-5f23e756]. Customer SC-03018 has a prior confirmed fraud case (CC-4319) on record, indicating potential recurring targeting [EV-77d5cdcc]. Pattern analysis retrieved six additional card-not-present fraud cases with similar characteristics, suggesting a broader campaign [EV-4526fa4d]. The verdict of fraud is supported by the convergence of anomalous transaction velocity, device reuse across fraud cases, customer dispute, and historical pattern alignment. Recommended actions include card replacement, enhanced monitoring for related device fingerprints, and referral to law enforcement given the organized nature indicated by prior cases.",
+   "subjects": [
+    "SC-03018-K948",
+    "SC-03018",
+    "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-0"
+   ],
+   "total_amount_usd": 1686.36,
+   "activity_dates": [
+    "2026-09-13",
+    "2026-09-13"
+   ]
+  },
+  "nemotron": {
+   "model_proposal": {
+    "pattern": "card_not_present_fraud",
+    "confidence": 0.92,
+    "evidence_ids": [
+     "EV-5c0fde60",
+     "EV-08562653",
+     "EV-77d5cdcc",
+     "EV-5f23e756",
+     "EV-4526fa4d",
+     "EV-71797074"
+    ],
+    "rationale": "Multiple high\u2011value online transactions, prior fraud linkage, same device in fraud case, and customer denial indicate card\u2011not\u2011present fraud."
+   },
+   "policy_decision": {
+    "verdict": "fraud",
+    "pattern": "card_not_present_fraud",
+    "fraud_probability": 0.834,
+    "actions": [
+     "BLOCK_CARD",
+     "CREATE_CASE",
+     "FILE_REPORT",
+     "MONITOR_CONNECTED_CARDS"
+    ],
+    "decided_by": "deterministic policy engine (rules R1-R10)"
+   },
+   "model_agreed": true,
+   "model_override_reason": "",
+   "verification_draft": null,
+   "model_usage": {
+    "case_narrative_and_sar_draft": {
+     "prompt_tokens": 1244,
+     "completion_tokens": 1845
+    },
+    "pattern_classifier": {
+     "prompt_tokens": 1116,
+     "completion_tokens": 898
+    }
+   }
+  },
+  "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
+  "tool_calls": 16,
+  "tokens": 1845,
+  "latency_s": 35.28
+ },
+ "full": {
+  "case_id": "CASE-018",
+  "trigger": {
+   "case_id": "CASE-018",
+   "opened_at": "2026-09-13T10:16:00Z",
+   "trigger_type": "risk_score",
+   "trigger_text": "Trigger (risk_score): Real-time model scored transaction 4012167 ($517.26, in billing region 'domestic') at 0.88. Review and decide.",
+   "flagged_txn_id": "4012167",
+   "card_id": "SC-03018-K948",
+   "customer_id": "SC-03018",
+   "risk_score": 0.85
+  },
+  "state": "COMPLETED",
+  "step": 11,
+  "created_at": "2026-10-24T01:03:32.237487Z",
+  "updated_at": "2026-10-24T01:03:32.380121Z",
+  "customer_id": "SC-03018",
+  "card_id": "SC-03018-K948",
+  "flagged_txn_id": "4012167",
+  "plan_trace": [
+   {
+    "round": 0,
+    "gap": "subject_and_baseline",
+    "tools": [
+     "get_transaction",
+     "get_transaction_identity",
+     "get_card_transaction_history",
+     "get_card_amount_stats",
+     "get_card_window"
+    ],
+    "rationale": "Identify subject transaction and card baselines."
+   },
+   {
+    "round": 1,
+    "gap": "adaptive_followups",
+    "tools": [
+     "get_accounts_sharing_device",
+     "get_device_fraud_ring",
+     "get_transaction_velocity",
+     "get_closed_cases_for_customer",
+     "get_closed_cases_for_card",
+     "get_closed_cases_by_device",
+     "get_closed_cases_involving_txn",
+     "get_tiny_transaction_sequence"
+    ],
+    "rationale": "Adaptive round: tools selected by open evidence gaps (new region, device sharing, velocity, prior memory)."
+   },
+   {
+    "round": 2,
+    "gap": "historical_similarity",
+    "tools": [
+     "get_closed_cases_by_pattern",
+     "search_closed_cases_text"
+    ],
+    "rationale": "Historical similarity retrieval for pattern context."
+   }
+  ],
+  "signal_store": {
+   "customer_denied": true,
+   "customer_confirmed": false,
+   "customer_no_reply": false,
+   "step_up_failed": false,
+   "step_up_passed": false,
+   "analyst_confirms_shared_fraud": false,
+   "analyst_clears_shared": false,
+   "watchlist_hit": false,
+   "watchlist_clear": false,
+   "shared_device_count": 0,
+   "device_linked_fraud": 1,
+   "connected_card_fraud": 0,
+   "card_testing_sequence": false,
+   "small_online_count": 0,
+   "burst_online": 4,
+   "new_device": false,
+   "proxy_used": false,
+   "new_region": false,
+   "region_streak": false,
+   "mixed_channel": false,
+   "match_flag_anomaly": true,
+   "fraud_ring_size": 1,
+   "fraud_ring_fraud_cards": 1,
+   "agent_prior_investigations": 0,
+   "agent_prior_fraud": 0,
+   "prior_fraud_cases": 1,
+   "prior_cleared_cases": 0,
+   "trigger_risk_score": 0.85,
+   "trigger_type": "risk_score",
+   "txn_amount": 517.26,
+   "avg_card_amount": 421.59,
+   "evidence_count": 7,
+   "independent_evidence_count": 7
+  },
+  "status": "closed_fraud",
+  "verdict": "fraud",
+  "fraud_probability": 0.834,
+  "pattern_candidates": [
+   {
+    "pattern": "card_not_present_fraud",
+    "score": 0.3,
+    "confidence": 0.3,
+    "supporting_signals": [
+     "4 online transactions in 48h window"
+    ],
+    "contradicting_signals": [],
+    "description": "Burst of 4 online transactions within 48h"
+   }
+  ],
+  "pattern_secondary": "",
+  "risk_level": "CRITICAL",
+  "pattern": "card_not_present_fraud",
+  "pattern_description": "Burst of 4 online transactions within 48h",
+  "affected_txn_ids": [
+   "4012168",
+   "4012169",
+   "4012170",
+   "4012167"
+  ],
+  "first_suspicious_txn_id": "4012167",
+  "connected_card_ids": [],
+  "connected_device_profiles": [
+   "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018"
+  ],
+  "exposure_usd": 1686.36,
+  "evidence": [
+   {
+    "evidence_id": "EV-c0877551",
+    "case_id": "CASE-018",
+    "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012167 ($517.26, in billing region 'domestic') at 0.88. Review and decide.",
+    "source": "external",
+    "ref": "trigger:risk_score",
+    "entity_ids": [
+     "SC-03018",
+     "SC-03018-K948",
+     "4012167"
+    ],
+    "severity": "MEDIUM",
+    "confidence": 0.7,
+    "timestamp": "2026-10-24T01:03:32.245195Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "model_score",
+     "query": "risk_score"
+    }
+   },
+   {
+    "evidence_id": "EV-a6a2dab4",
+    "case_id": "CASE-018",
+    "claim": "4 previous transactions retrieved for card SC-03018-K948. Average amount: $421.59.",
+    "source": "graph",
+    "ref": "query:card_transaction_history(card_id=SC-03018-K948)",
+    "entity_ids": [
+     "SC-03018-K948"
+    ],
+    "severity": "MEDIUM",
+    "confidence": 0.95,
+    "timestamp": "2026-10-24T01:03:32.245345Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "card_transaction_history"
+    }
+   },
+   {
+    "evidence_id": "EV-85da5701",
+    "case_id": "CASE-018",
+    "claim": "4 online transactions on this card within 48h of the flagged transaction.",
+    "source": "graph",
+    "ref": "query:card_window(card_id=SC-03018-K948, hours=48)",
+    "entity_ids": [
+     "4012167",
+     "4012170",
+     "4012168",
+     "4012169"
+    ],
+    "severity": "HIGH",
+    "confidence": 0.85,
+    "timestamp": "2026-10-24T01:03:32.352870Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "card_window"
+    }
+   },
+   {
+    "evidence_id": "EV-c063ea1c",
+    "case_id": "CASE-018",
+    "claim": "1 prior confirmed fraud case(s) found for customer SC-03018 or card SC-03018-K948: CC-4319.",
+    "source": "graph",
+    "ref": "query:closed_cases_for_customer(customer_id=SC-03018)",
+    "entity_ids": [
+     "CC-4319"
+    ],
+    "severity": "HIGH",
+    "confidence": 0.95,
+    "timestamp": "2026-10-24T01:03:32.352890Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "closed_cases_for_customer"
+    }
+   },
+   {
+    "evidence_id": "EV-68488e52",
+    "case_id": "CASE-018",
+    "claim": "Device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018' appears in 1 confirmed fraud case(s).",
+    "source": "graph",
+    "ref": "query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018)",
+    "entity_ids": [
+     "CC-4319"
+    ],
+    "severity": "CRITICAL",
+    "confidence": 0.9,
+    "timestamp": "2026-10-24T01:03:32.352899Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "closed_cases_by_device"
+    }
+   },
+   {
+    "evidence_id": "EV-b0cc5b6c",
+    "case_id": "CASE-018",
+    "claim": "6 prior closed case(s) retrieved by pattern (card_not_present_fraud) and keyword match over analyst notes.",
+    "source": "document",
+    "ref": "retrieval:pattern+keyword(pattern=card_not_present_fraud)",
+    "entity_ids": [
+     "CC-4317",
+     "CC-4316",
+     "CC-4319",
+     "CC-4314",
+     "CC-4318",
+     "CC-4315"
+    ],
+    "severity": "LOW",
+    "confidence": 0.75,
+    "timestamp": "2026-10-24T01:03:32.356534Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "pattern+keyword"
+    }
+   },
+   {
+    "evidence_id": "EV-5586bcff",
+    "case_id": "CASE-018",
+    "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
+    "source": "customer",
+    "ref": "evidence_request:ER-f9df436a",
+    "entity_ids": [
+     "SC-03018"
+    ],
+    "severity": "HIGH",
+    "confidence": 0.8,
+    "timestamp": "2026-10-24T01:03:32.364130Z",
+    "provenance": {
+     "step": 0,
+     "claim_type": "observed_fact",
+     "query": "ER-f9df436a"
+    }
+   }
+  ],
+  "uncertainty": [],
+  "similar_prior_cases": [
+   "CC-4319",
+   "CC-4317",
+   "CC-4316",
+   "CC-4314",
+   "CC-4318",
+   "CC-4315"
+  ],
+  "evidence_requests": [
+   {
+    "request_id": "ER-f9df436a",
+    "case_id": "CASE-018",
+    "type": "customer_validation",
+    "asked_after_step": 4,
+    "rationale": "Selected by information value 0.75 (highest of candidates evaluated). Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.83); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.20)",
+    "question": "Did you make this transaction?",
+    "assumed_response": "Customer states they did not make these purchases and still has the card in their possession.",
+    "status": "received",
+    "received_at": "2026-10-24T01:03:32.362844Z",
+    "info_value": 0.75,
+    "alternatives_considered": [
+     {
+      "type": "analyst_info",
+      "info_value": 0.6,
+      "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.72); Outcome B (Analyst reports no related activity) -> ESCALATE_TO_ANALYST (p=0.41)"
+     },
+     {
+      "type": "external_watchlist",
+      "info_value": -0.15,
+      "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.70); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.51)"
+     }
+    ],
+    "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.83); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.20)",
+    "origin": "simulated"
+   }
+  ],
+  "risk_before": {
+   "fraud_probability": 0.631,
+   "risk_level": "HIGH",
+   "confidence": 0.8,
+   "key_signals": [
+    "4 online transactions in 48h window",
+    "1 prior confirmed fraud case(s) on card/customer",
+    "device also used in 1 confirmed fraud case(s)"
+   ],
+   "uncertainty_items": [
+    {
+     "question": "Did the cardholder make this transaction?",
+     "impact": "Customer denial raises probability significantly; confirmation closes the case",
+     "resolution_method": "VERIFY_WITH_CUSTOMER",
+     "status": "open",
+     "resolved_by": "",
+     "resolution_impact": ""
+    },
+    {
+     "question": "Can the burst of online purchases be explained (gift purchases, etc.)?",
+     "impact": "Legitimate explanation reduces probability",
+     "resolution_method": "VERIFY_WITH_CUSTOMER",
+     "status": "open",
+     "resolved_by": "",
+     "resolution_impact": ""
+    }
+   ],
+   "note": "",
+   "score_breakdown": [
+    {
+     "channel": "trigger_risk_score",
+     "contribution": 0.17,
+     "label": "ML risk score 0.85 (weight 0.17)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "match_flag_anomaly",
+     "contribution": 0.12,
+     "label": "Match-flag anomaly on flagged transaction",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "burst_online_3plus",
+     "contribution": 0.18,
+     "label": "4 online transactions in 48h window",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "prior_fraud_cases",
+     "contribution": 0.2,
+     "label": "1 prior confirmed fraud case(s) on card/customer",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "device_linked_fraud",
+     "contribution": 0.23,
+     "label": "Device appears in 1 confirmed fraud case(s)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "total",
+     "contribution": 0.631,
+     "label": "Combined fraud probability (0.631)",
+     "type": "total"
+    }
+   ]
+  },
+  "nba_initial": [
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "R6: shared device/region/email across multiple cards",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Opens investigation to track the shared origin fraud ring",
+    "why_now": "now because probability 0.63 exceeds the case-creation floor"
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "reason": "R6: shared origin requires report",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701",
+     "EV-c063ea1c",
+     "EV-68488e52"
+    ],
+    "alternatives_rejected": [
+     "GENERATE_REPORT: shared origin across cards requires regulatory disclosure"
+    ],
+    "expected_impact": "Files SAR covering all cards sharing this device/region profile",
+    "why_now": "now because regulatory thresholds are met (probability 0.63, exposure $517.26)"
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "route": "auto",
+    "reason": "R6",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Watches all connected cards for further fraudulent activity",
+    "why_now": "now because shared infrastructure implies correlated exposure across cards"
+   }
+  ],
+  "nba_final": [
+   {
+    "action": "BLOCK_CARD",
+    "route": "L1",
+    "reason": "R2: customer denied the transaction",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701",
+     "EV-c063ea1c",
+     "EV-68488e52"
+    ],
+    "alternatives_rejected": [
+     "MONITOR_CARD: insufficient \u2014 cardholder confirmed fraud; card must be suspended immediately",
+     "VERIFY_WITH_CUSTOMER: already done \u2014 cardholder has denied the transaction"
+    ],
+    "expected_impact": "Prevents further unauthorized charges on the compromised card",
+    "why_now": "now because the cardholder denied the transaction and probability is 0.83 \u2014 delay leaves the card usable"
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "R2",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Creates an official investigation record for compliance and audit trail",
+    "why_now": "now because probability 0.83 exceeds the case-creation floor"
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "reason": "R2: exposure > $1,000 or shared device/region",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701",
+     "EV-c063ea1c",
+     "EV-68488e52"
+    ],
+    "alternatives_rejected": [
+     "GENERATE_REPORT: internal report insufficient \u2014 SAR threshold reached"
+    ],
+    "expected_impact": "Fulfils regulatory obligation to file SAR for confirmed fraud above threshold",
+    "why_now": "now because regulatory thresholds are met (probability 0.83, exposure $517.26)"
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "route": "auto",
+    "reason": "R6: shared origin detected",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701"
+    ],
+    "alternatives_rejected": [],
+    "expected_impact": "Watches connected cards on same device profile for signs of coordinated fraud",
+    "why_now": "now because shared infrastructure implies correlated exposure across cards"
+   }
+  ],
+  "nba_what_changed": "Added: BLOCK_CARD",
+  "sar": {
+   "file": true,
+   "reason": "R2: confirmed fraud with exposure > $1,000",
+   "narrative": "Between 2026-09-13 and 2026-09-13, customer SC-03018 and card SC-03018-K948, device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018' were involved in 4 transaction(s) assessed as fraud (card_not_present_fraud pattern) with total exposure $1686.36. The flagged transaction 4012167 of $517.26 (online, product W) is inconsistent with the cardholder's established history. Evidence supporting this assessment comprises 7 items including graph-retrieved transaction history, device records and prior case memory. The activity is suspicious because it matches the card_not_present_fraud pattern with assessed fraud probability 0.83. Actions taken or pending: BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS. This report is filed under policy rule R2.",
+   "subjects": [
+    "SC-03018",
+    "SC-03018-K948",
+    "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-0"
+   ],
+   "total_amount_usd": 1686.36,
+   "activity_dates": [
+    "2026-09-13",
+    "2026-09-13"
+   ]
+  },
+  "written_to_graph": true,
+  "graph_case_id": "CASE-2026-CASE-018",
+  "approvals": [
+   {
+    "approval_id": "APR-fc539b55",
+    "case_id": "CASE-018",
+    "action": "BLOCK_CARD",
+    "reason": "R2: customer denied the transaction",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701",
+     "EV-c063ea1c",
+     "EV-68488e52",
+     "EV-b0cc5b6c",
+     "EV-5586bcff"
+    ],
+    "policy_ref": "R2: customer denied the transaction",
+    "required_route": "L1",
+    "status": "pending",
+    "requested_at": "2026-10-24T01:03:32.371510Z",
+    "decided_at": null,
+    "approver": null
+   },
+   {
+    "approval_id": "APR-82caaa18",
+    "case_id": "CASE-018",
+    "action": "FILE_REPORT",
+    "reason": "R2: exposure > $1,000 or shared device/region",
+    "evidence_ids": [
+     "EV-c0877551",
+     "EV-a6a2dab4",
+     "EV-85da5701",
+     "EV-c063ea1c",
+     "EV-68488e52",
+     "EV-b0cc5b6c",
+     "EV-5586bcff"
+    ],
+    "policy_ref": "R2: exposure > $1,000 or shared device/region",
+    "required_route": "L2",
+    "status": "pending",
+    "requested_at": "2026-10-24T01:03:32.373124Z",
+    "decided_at": null,
+    "approver": null
+   }
+  ],
+  "action_results": [
+   {
+    "action": "BLOCK_CARD",
+    "status": "pending_approval",
+    "timestamp": "2026-10-24T01:03:32.372005Z",
+    "result": "Awaiting L1 approval",
+    "case_id": "CASE-018",
+    "approval_ref": "APR-fc539b55"
+   },
+   {
+    "action": "CREATE_CASE",
+    "status": "executed",
+    "timestamp": "2026-10-24T01:03:32.372531Z",
+    "result": "Executed by agent under policy route=auto (R2)",
+    "case_id": "CASE-018",
+    "approval_ref": ""
+   },
+   {
+    "action": "FILE_REPORT",
+    "status": "pending_approval",
+    "timestamp": "2026-10-24T01:03:32.373695Z",
+    "result": "Awaiting L2 approval",
+    "case_id": "CASE-018",
+    "approval_ref": "APR-82caaa18"
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "status": "executed",
+    "timestamp": "2026-10-24T01:03:32.374597Z",
+    "result": "Executed by agent under policy route=auto (R6: shared origin detected)",
+    "case_id": "CASE-018",
+    "approval_ref": ""
+   }
+  ],
+  "graph_backend": "local",
+  "mcp_status": "not_configured",
+  "llm_used": false,
+  "model_proposal": null,
+  "policy_decision": {
+   "verdict": "fraud",
+   "pattern": "card_not_present_fraud",
+   "fraud_probability": 0.834,
+   "actions": [
+    "BLOCK_CARD",
+    "CREATE_CASE",
+    "FILE_REPORT",
+    "MONITOR_CONNECTED_CARDS"
+   ],
+   "decided_by": "deterministic policy engine (rules R1-R10)"
+  },
+  "model_agreed": false,
+  "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+  "verification_draft": null,
+  "model_usage": {},
+  "summary": "Case CASE-018 investigated card_not_present_fraud activity on card SC-03018-K948 (customer SC-03018) around transaction 4012167 ($517.26, online). Assessed fraud probability 0.83 (CRITICAL risk) from 7 evidence items across 7 independent evidence families. Key signals: 4 online transactions in 48h window; 1 prior confirmed fraud case(s) on card/customer; device also used in 1 confirmed fraud case(s). Additional evidence requested (customer_validation, information value 0.75); response: Customer states they did not make these purchases and still has the card in their possession. Final actions: BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS.",
+  "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
+  "tool_calls": 16,
+  "tokens_used": 0,
+  "latency_s": 0.14
+ },
+ "graph": {
+  "case_id": "CASE-018",
+  "nodes": [
+   {
+    "id": "SC-03018",
+    "label": "Customer: SC-03018",
+    "type": "Customer",
+    "metadata": {
+     "customer_id": "SC-03018",
+     "role": "Cardholder Account Owner",
+     "relevance": "Customer identity anchor for card SC-03018-K948; past investigation and dispute history attached here.",
+     "evidence_ids": [
+      "EV-c0877551",
+      "EV-5586bcff"
+     ]
+    }
+   },
+   {
+    "id": "SC-03018-K948",
+    "label": "Card: SC-03018-K948",
+    "type": "Card",
+    "metadata": {
+     "card_id": "SC-03018-K948",
+     "role": "Payment Instrument",
+     "relevance": "Primary card under review; used in flagged transaction #4012167 and 48h activity window.",
+     "evidence_ids": [
+      "EV-c0877551",
+      "EV-a6a2dab4"
+     ]
+    }
+   },
+   {
+    "id": "4012167",
+    "label": "Flagged Txn: #4012167",
+    "type": "FlaggedTransaction",
+    "metadata": {
+     "txn_id": "4012167",
+     "amount": 1686.36,
+     "risk_score": 0.85,
+     "is_flagged": true,
+     "role": "Trigger Alert Transaction",
+     "relevance": "Suspicious transaction #4012167 triggered the alert (Risk Score: 0.85).",
+     "evidence_ids": [
+      "EV-c0877551",
+      "EV-85da5701"
+     ]
+    }
+   },
+   {
+    "id": "4012168",
+    "label": "Txn: #4012168",
+    "type": "Transaction",
+    "metadata": {
+     "txn_id": "4012168",
+     "affected": true,
+     "role": "Related Suspicious Transaction",
+     "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
+     "evidence_ids": [
+      "EV-85da5701"
+     ]
+    }
+   },
+   {
+    "id": "4012169",
+    "label": "Txn: #4012169",
+    "type": "Transaction",
+    "metadata": {
+     "txn_id": "4012169",
+     "affected": true,
+     "role": "Related Suspicious Transaction",
+     "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
+     "evidence_ids": [
+      "EV-85da5701"
+     ]
+    }
+   },
+   {
+    "id": "4012170",
+    "label": "Txn: #4012170",
+    "type": "Transaction",
+    "metadata": {
+     "txn_id": "4012170",
+     "affected": true,
+     "role": "Related Suspicious Transaction",
+     "relevance": "Correlated transaction within the 48h fraudulent activity burst.",
+     "evidence_ids": [
+      "EV-85da5701"
+     ]
+    }
+   },
+   {
+    "id": "DEV-Samsung SM-G973F map400 Playlist",
+    "label": "Device: Samsung SM-G973F map400 ...",
+    "type": "DeviceProfile",
+    "metadata": {
+     "full_device": "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018",
+     "role": "Client Hardware Fingerprint",
+     "relevance": "Hardware & OS fingerprint captured during transaction: Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018.",
+     "evidence_ids": []
+    }
+   },
+   {
+    "id": "CC-4319",
+    "label": "Prior Case: CC-4319",
+    "type": "ClosedCase",
+    "metadata": {
+     "case_id": "CC-4319",
+     "role": "Historical Fraud Precedent",
+     "relevance": "Historical confirmed fraud case CC-4319 establishing behavioural precedent in TigerGraph memory.",
+     "evidence_ids": [
+      "EV-c063ea1c",
+      "EV-68488e52",
+      "EV-b0cc5b6c"
+     ]
+    }
+   },
+   {
+    "id": "CC-4317",
+    "label": "Prior Case: CC-4317",
+    "type": "ClosedCase",
+    "metadata": {
+     "case_id": "CC-4317",
+     "role": "Historical Fraud Precedent",
+     "relevance": "Historical confirmed fraud case CC-4317 establishing behavioural precedent in TigerGraph memory.",
+     "evidence_ids": [
+      "EV-b0cc5b6c"
+     ]
+    }
+   },
+   {
+    "id": "CC-4316",
+    "label": "Prior Case: CC-4316",
+    "type": "ClosedCase",
+    "metadata": {
+     "case_id": "CC-4316",
+     "role": "Historical Fraud Precedent",
+     "relevance": "Historical confirmed fraud case CC-4316 establishing behavioural precedent in TigerGraph memory.",
+     "evidence_ids": [
+      "EV-b0cc5b6c"
+     ]
+    }
+   },
+   {
+    "id": "CC-4314",
+    "label": "Prior Case: CC-4314",
+    "type": "ClosedCase",
+    "metadata": {
+     "case_id": "CC-4314",
+     "role": "Historical Fraud Precedent",
+     "relevance": "Historical confirmed fraud case CC-4314 establishing behavioural precedent in TigerGraph memory.",
+     "evidence_ids": [
+      "EV-b0cc5b6c"
+     ]
+    }
+   },
+   {
+    "id": "CC-4318",
+    "label": "Prior Case: CC-4318",
+    "type": "ClosedCase",
+    "metadata": {
+     "case_id": "CC-4318",
+     "role": "Historical Fraud Precedent",
+     "relevance": "Historical confirmed fraud case CC-4318 establishing behavioural precedent in TigerGraph memory.",
+     "evidence_ids": [
+      "EV-b0cc5b6c"
+     ]
+    }
+   },
+   {
+    "id": "CASE-2026-CASE-018",
+    "label": "Graph Case: CASE-2026-CASE-018",
+    "type": "InvestigationCase",
+    "metadata": {
+     "status": "closed_fraud",
+     "verdict": "fraud",
+     "probability": 0.834,
+     "written_to_graph": true,
+     "role": "Durable Graph Investigation Record",
+     "relevance": "Official TigerGraph InvestigationCase vertex tracking verdict (fraud), probability (0.834), and audit trail.",
+     "evidence_ids": [
+      "EV-c0877551",
+      "EV-a6a2dab4",
+      "EV-85da5701",
+      "EV-c063ea1c",
+      "EV-68488e52",
+      "EV-b0cc5b6c",
+      "EV-5586bcff"
+     ]
+    }
+   }
+  ],
+  "links": [
+   {
+    "source": "SC-03018",
+    "target": "SC-03018-K948",
+    "type": "OWNS"
+   },
+   {
+    "source": "SC-03018-K948",
+    "target": "4012167",
+    "type": "MADE"
+   },
+   {
+    "source": "SC-03018-K948",
+    "target": "4012168",
+    "type": "MADE"
+   },
+   {
+    "source": "SC-03018-K948",
+    "target": "4012169",
+    "type": "MADE"
+   },
+   {
+    "source": "SC-03018-K948",
+    "target": "4012170",
+    "type": "MADE"
+   },
+   {
+    "source": "4012167",
+    "target": "DEV-Samsung SM-G973F map400 Playlist",
+    "type": "FROM_DEVICE"
+   },
+   {
+    "source": "CC-4319",
+    "target": "SC-03018",
+    "type": "CC_ON_CUSTOMER"
+   },
+   {
+    "source": "CC-4319",
+    "target": "SC-03018-K948",
+    "type": "CC_ON_CARD"
+   },
+   {
+    "source": "CC-4317",
+    "target": "SC-03018",
+    "type": "CC_ON_CUSTOMER"
+   },
+   {
+    "source": "CC-4317",
+    "target": "SC-03018-K948",
+    "type": "CC_ON_CARD"
+   },
+   {
+    "source": "CC-4316",
+    "target": "SC-03018",
+    "type": "CC_ON_CUSTOMER"
+   },
+   {
+    "source": "CC-4316",
+    "target": "SC-03018-K948",
+    "type": "CC_ON_CARD"
+   },
+   {
+    "source": "CC-4314",
+    "target": "SC-03018",
+    "type": "CC_ON_CUSTOMER"
+   },
+   {
+    "source": "CC-4314",
+    "target": "SC-03018-K948",
+    "type": "CC_ON_CARD"
+   },
+   {
+    "source": "CC-4318",
+    "target": "SC-03018",
+    "type": "CC_ON_CUSTOMER"
+   },
+   {
+    "source": "CC-4318",
+    "target": "SC-03018-K948",
+    "type": "CC_ON_CARD"
+   },
+   {
+    "source": "CASE-2026-CASE-018",
+    "target": "SC-03018-K948",
+    "type": "IC_ON_CARD"
+   },
+   {
+    "source": "CASE-2026-CASE-018",
+    "target": "SC-03018",
+    "type": "IC_FOR_CUSTOMER"
+   },
+   {
+    "source": "CASE-2026-CASE-018",
+    "target": "4012167",
+    "type": "IC_INVOLVES"
+   }
+  ],
+  "counts": {
+   "nodes": 13,
+   "links": 19
+  }
+ },
+ "risk": {
+  "case_id": "CASE-018",
+  "verdict": "fraud",
+  "prior": {
+   "bank_risk_score": 0.85,
+   "source": "transaction_risk_model"
+  },
+  "pre_evidence": {
+   "fraud_probability": 0.631,
+   "confidence": 0.8,
+   "risk_level": "HIGH",
+   "key_signals": [
+    "4 online transactions in 48h window",
+    "1 prior confirmed fraud case(s) on card/customer",
+    "device also used in 1 confirmed fraud case(s)"
+   ],
+   "score_breakdown": [
+    {
+     "channel": "trigger_risk_score",
+     "contribution": 0.17,
+     "label": "ML risk score 0.85 (weight 0.17)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "match_flag_anomaly",
+     "contribution": 0.12,
+     "label": "Match-flag anomaly on flagged transaction",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "burst_online_3plus",
+     "contribution": 0.18,
+     "label": "4 online transactions in 48h window",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "prior_fraud_cases",
+     "contribution": 0.2,
+     "label": "1 prior confirmed fraud case(s) on card/customer",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "device_linked_fraud",
+     "contribution": 0.23,
+     "label": "Device appears in 1 confirmed fraud case(s)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "total",
+     "contribution": 0.631,
+     "label": "Combined fraud probability (0.631)",
+     "type": "total"
+    }
+   ]
+  },
+  "current": {
+   "fraud_probability": 0.834,
+   "confidence": 0.85,
+   "risk_level": "CRITICAL",
+   "key_signals": [
+    "4 online transactions in 48h window",
+    "1 prior confirmed fraud case(s) on card/customer",
+    "device also used in 1 confirmed fraud case(s)",
+    "cardholder denied making the transaction"
+   ],
+   "score_breakdown": [
+    {
+     "channel": "trigger_risk_score",
+     "contribution": 0.17,
+     "label": "ML risk score 0.85 (weight 0.17)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "match_flag_anomaly",
+     "contribution": 0.12,
+     "label": "Match-flag anomaly on flagged transaction",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "burst_online_3plus",
+     "contribution": 0.18,
+     "label": "4 online transactions in 48h window",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "prior_fraud_cases",
+     "contribution": 0.2,
+     "label": "1 prior confirmed fraud case(s) on card/customer",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "device_linked_fraud",
+     "contribution": 0.23,
+     "label": "Device appears in 1 confirmed fraud case(s)",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "customer_denied",
+     "contribution": 0.55,
+     "label": "Cardholder denied making the transaction",
+     "type": "fraud_signal"
+    },
+    {
+     "channel": "total",
+     "contribution": 0.834,
+     "label": "Combined fraud probability (0.834)",
+     "type": "total"
+    }
+   ]
+  },
+  "trajectory": [
+   {
+    "step": 0,
+    "label": "Bank risk score (trigger)",
+    "probability": 0.85,
+    "origin": "bank_model"
+   },
+   {
+    "step": 1,
+    "label": "Graph evidence round (pre-evidence assessment)",
+    "probability": 0.631,
+    "origin": "graph_evidence"
+   },
+   {
+    "step": 2,
+    "label": "Reassessment 1: response to customer validation",
+    "probability": 0.834,
+    "origin": "evidence_response"
+   }
+  ],
+  "evidence_type_counts": {
+   "observed_fact": 6,
+   "derived_inference": 0,
+   "model_score": 1,
+   "total": 7
+  },
+  "methodology": "Noisy-OR channel aggregation with Bayesian likelihood-ratio odds updating for clearing signals; documented methodology DECISIONS.md D7. Probabilities are engine output, not model-synthesised confidence intervals."
+ },
+ "timeline": [
+  {
+   "event_id": "AE-ae3e2f3a",
+   "case_id": "CASE-018",
+   "event_type": "case_created",
+   "state_from": null,
+   "state_to": "TRIGGERED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.238255+00:00"
+  },
+  {
+   "event_id": "AE-38e11c75",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "TRIGGERED",
+   "state_to": "INVESTIGATING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.239271+00:00"
+  },
+  {
+   "event_id": "AE-d6c90384",
+   "case_id": "CASE-018",
+   "event_type": "case_created_in_graph",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "graph_case_id": "CASE-2026-CASE-018"
+   },
+   "timestamp": "2026-10-24 01:03:32.243925+00:00"
+  },
+  {
+   "event_id": "AE-8b9e640a",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "INVESTIGATING",
+   "state_to": "EVIDENCE_GATHERED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.352931+00:00"
+  },
+  {
+   "event_id": "AE-a7fecdb3",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "EVIDENCE_GATHERED",
+   "state_to": "ASSESSING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.354706+00:00"
+  },
+  {
+   "event_id": "AE-b1898632",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "ASSESSING",
+   "state_to": "MORE_EVIDENCE_REQUIRED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.356932+00:00"
+  },
+  {
+   "event_id": "AE-442cd3b9",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "MORE_EVIDENCE_REQUIRED",
+   "state_to": "EVIDENCE_REQUESTED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.359240+00:00"
+  },
+  {
+   "event_id": "AE-54cbf811",
+   "case_id": "CASE-018",
+   "event_type": "evidence_request_selected",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "request_id": "ER-f9df436a",
+    "type": "customer_validation",
+    "info_value": 0.75,
+    "alternatives": [
+     "analyst_info",
+     "external_watchlist"
+    ]
+   },
+   "timestamp": "2026-10-24 01:03:32.362309+00:00"
+  },
+  {
+   "event_id": "AE-c35c7c0d",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "EVIDENCE_REQUESTED",
+   "state_to": "EVIDENCE_RECEIVED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.362867+00:00"
+  },
+  {
+   "event_id": "AE-b0d8b146",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "EVIDENCE_RECEIVED",
+   "state_to": "REASSESSING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.364244+00:00"
+  },
+  {
+   "event_id": "AE-3c32507a",
+   "case_id": "CASE-018",
+   "event_type": "reassessment_performed",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "request_id": "ER-f9df436a",
+    "probability_before": 0.631,
+    "probability_after": 0.834
+   },
+   "timestamp": "2026-10-24 01:03:32.366683+00:00"
+  },
+  {
+   "event_id": "AE-f7a70583",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "REASSESSING",
+   "state_to": "ACTION_RECOMMENDED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.367506+00:00"
+  },
+  {
+   "event_id": "AE-37c426ee",
+   "case_id": "CASE-018",
+   "event_type": "case_written_to_graph",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "graph_case_id": "CASE-2026-CASE-018",
+    "backend": "local"
+   },
+   "timestamp": "2026-10-24 01:03:32.370898+00:00"
+  },
+  {
+   "event_id": "AE-2dd622b6",
+   "case_id": "CASE-018",
+   "event_type": "approval_required",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "BLOCK_CARD",
+    "route": "L1",
+    "approval_id": "APR-fc539b55"
+   },
+   "timestamp": "2026-10-24 01:03:32.372026+00:00"
+  },
+  {
+   "event_id": "AE-82667a9a",
+   "case_id": "CASE-018",
+   "event_type": "action_executed",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "CREATE_CASE"
+   },
+   "timestamp": "2026-10-24 01:03:32.372547+00:00"
+  },
+  {
+   "event_id": "AE-b708c96e",
+   "case_id": "CASE-018",
+   "event_type": "approval_required",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "approval_id": "APR-82caaa18"
+   },
+   "timestamp": "2026-10-24 01:03:32.373712+00:00"
+  },
+  {
+   "event_id": "AE-d8509d5f",
+   "case_id": "CASE-018",
+   "event_type": "action_executed",
+   "state_from": null,
+   "state_to": null,
+   "actor": "agent",
+   "metadata": {
+    "action": "MONITOR_CONNECTED_CARDS"
+   },
+   "timestamp": "2026-10-24 01:03:32.374616+00:00"
+  },
+  {
+   "event_id": "AE-755e9453",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "ACTION_RECOMMENDED",
+   "state_to": "APPROVAL_REQUIRED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.375240+00:00"
+  },
+  {
+   "event_id": "AE-3c9fcb73",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "APPROVAL_REQUIRED",
+   "state_to": "ACTION_EXECUTING",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.378321+00:00"
+  },
+  {
+   "event_id": "AE-88909ad5",
+   "case_id": "CASE-018",
+   "event_type": "state_transition",
+   "state_from": "ACTION_EXECUTING",
+   "state_to": "COMPLETED",
+   "actor": "agent",
+   "metadata": {},
+   "timestamp": "2026-10-24 01:03:32.380168+00:00"
+  }
+ ],
+ "ask": {
+  "case_id": "CASE-018",
+  "question": "What evidence supports this verdict?",
+  "answer": "Not in evidence. This case's deterministic evidence trail covers: trigger:risk_score, query:card_transaction_history(card_id=SC-03018-K948), query:card_window(card_id=SC-03018-K948, hours=48), query:closed_cases_for_customer(customer_id=SC-03018), query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-018 | synth-os-case-018 | synth-browser-case-018 | synth-screen-case-018) (and more); query it directly or re-run with the Nemotron key configured.",
+  "served_by": "deterministic-fallback",
+  "llm_used": false
+ }
+}

@@ -24,6 +24,7 @@ import type {
   LlmStatus,
   RiskAnalysisResponse,
 } from "@/lib/hhgoa";
+import { DEMO_SNAPSHOT, DemoProblem, demoRequest } from "@/lib/demo";
 
 /**
  * Base for the HHGOA API.
@@ -70,6 +71,19 @@ async function request<T>(
   path: string,
   { query, method = "GET", body }: { query?: Query; method?: "GET" | "POST"; body?: unknown } = {},
 ): Promise<T> {
+  // Hosted demo: no backend behind the static deployment, so read the
+  // recorded snapshot written by scripts/export_ui_demo.py.
+  if (DEMO_SNAPSHOT) {
+    try {
+      return await demoRequest<T>(path, { query, method, body });
+    } catch (err) {
+      if (err instanceof DemoProblem) {
+        throw new ApiProblem(err.status, { detail: err.message });
+      }
+      throw err;
+    }
+  }
+
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
 

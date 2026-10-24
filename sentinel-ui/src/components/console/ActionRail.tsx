@@ -17,7 +17,7 @@
 import { useState } from "react";
 
 import { Icon } from "@/components/console/icons";
-import { ConsoleChip, Overline, Panel } from "@/components/console/parts";
+import { ConsoleChip, Panel } from "@/components/console/parts";
 import { actionTone, humanise, routeTone, toneVar } from "@/components/console/vm";
 import type { ActionLineOut } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
