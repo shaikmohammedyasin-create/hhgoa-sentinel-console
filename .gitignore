@@ -65,3 +65,4 @@ sentinel-ui/.next/
 sentinel-ui/out/
 
 sentinel-ui/tsconfig.tsbuildinfo
+pytest-of-*
