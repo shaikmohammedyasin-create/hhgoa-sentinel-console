@@ -41,6 +41,9 @@ export function useCases() {
     queryFn: () => api.cases({ limit: 100 }),
     staleTime: STALE,
     refetchInterval: 5_000,
+    // One retry, not the library's three: a dead backend should surface as an
+    // error in the rail, not as several more seconds of "Loading queue…".
+    retry: 1,
   });
 }
 
@@ -51,6 +54,7 @@ export function useInvestigations() {
     queryFn: () => api.investigations({ limit: 200 }),
     staleTime: STALE,
     refetchInterval: 5_000,
+    retry: 1,
   });
 }
 

@@ -38,10 +38,18 @@ export function Console({ initialCase }: { initialCase?: string }) {
   const [selected, setSelected] = useState(initialCase ?? "");
   const [inboxOpen, setInboxOpen] = useState(params.get("inbox") === "1");
 
-  const { data: rows } = useCases();
-  const { data: summaries } = useInvestigations();
+  const casesQuery = useCases();
+  const summariesQuery = useInvestigations();
+  const rows = casesQuery.data;
+  const summaries = summariesQuery.data;
   const { data: health } = useHealth();
   const { data: llmStatus } = useLlmStatus();
+
+  // Any queue request failing while nothing is on screen means the API is down.
+  // Without this the rail would say "Loading queue…" forever, because
+  // undefined data is all it sees.
+  const queueFailed = casesQuery.isError || summariesQuery.isError;
+  const queueLoading = (casesQuery.isPending || summariesQuery.isPending) && !queueFailed;
 
   // Merge case triggers with any stored investigation results.
   const queue = useMemo<QueueRow[]>(() => {
@@ -125,7 +133,8 @@ export function Console({ initialCase }: { initialCase?: string }) {
           <QueueRail
             rows={queue}
             selected={selected}
-            loading={!rows && !summaries}
+            loading={queueLoading}
+            failed={queueFailed}
             runningCase={selectedRow?.investigated === false ? selected : null}
             onSelect={(id) => {
               setSelected(id);

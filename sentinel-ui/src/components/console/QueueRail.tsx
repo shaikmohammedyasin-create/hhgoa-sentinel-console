@@ -38,6 +38,7 @@ export function QueueRail({
   selected,
   runningCase,
   loading = false,
+  failed = false,
   onSelect,
 }: {
   rows: QueueRow[];
@@ -46,6 +47,8 @@ export function QueueRail({
   /** True until the first queue payload lands; without it an empty rail claims
    *  "No cases." while the fetch is still in flight. */
   loading?: boolean;
+  /** True when the queue request failed, so "Loading…" would be a lie. */
+  failed?: boolean;
   onSelect: (caseId: string) => void;
 }) {
   const ordered = [...rows].sort((a, b) => {
@@ -121,7 +124,11 @@ export function QueueRail({
         })}
         {ordered.length === 0 ? (
           <li className="px-2 py-8 text-center text-caption text-fg-subtle">
-            {loading ? "Loading queue…" : "No cases."}
+            {failed
+              ? "Backend unreachable — is the API running?"
+              : loading
+                ? "Loading queue…"
+                : "No cases."}
           </li>
         ) : null}
       </ul>
