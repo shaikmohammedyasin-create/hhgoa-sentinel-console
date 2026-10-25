@@ -243,7 +243,17 @@ Dead upstream surface removed: `generated/contract.ts`, `lib/role.tsx`,
 `lib/replay.ts`, `lib/format.ts`, `components/ui/*`, `shell/RoleSwitcher.tsx`.
 
 ## Run
-...
+
+```bash
+cd sentinel-ui
+npm install
+# Default: same-origin (the single-URL demo container)
+npm run dev
+
+# Local dev with backend on port 8000:
+NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000 npm run dev
+```
+
 This app talks to the HHGOA backend in this repo. It does not call the
 upstream team's deployed API.
 ```
