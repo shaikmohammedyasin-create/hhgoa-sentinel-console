@@ -24,14 +24,18 @@ PREPARED_DB_URL = os.environ.get("PREPARED_DB_URL", "")
 
 def _ensure_prepared_db() -> None:
     target = Path(settings.prepared_db)
-    if target.exists() or not PREPARED_DB_URL:
+    if target.exists():
         return
-    target.parent.mkdir(parents=True, exist_ok=True)
-    tmp = target.with_suffix(target.suffix + ".part")
-    with urllib.request.urlopen(PREPARED_DB_URL, timeout=600) as resp, open(tmp, "wb") as out:
-        while chunk := resp.read(1 << 20):
-            out.write(chunk)
-    tmp.replace(target)
+    if PREPARED_DB_URL:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        tmp = target.with_suffix(target.suffix + ".part")
+        with urllib.request.urlopen(PREPARED_DB_URL, timeout=600) as resp, open(tmp, "wb") as out:
+            while chunk := resp.read(1 << 20):
+                out.write(chunk)
+        tmp.replace(target)
+    else:
+        from backend.scripts.prepare_data import prepare
+        prepare()
 
 
 @pytest.fixture(autouse=True, scope="session")

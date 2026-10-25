@@ -248,16 +248,16 @@ raw):**
 ================================================================================
 THREE-ARM BASELINE EVALUATION RESULTS (Controlled Synthetic Benchmark)
 ================================================================================
-Metric                    | Arm 1 (Graph Agent)  | Arm 2 (Score Only)   | Arm 3 (Plain Nano)
-------------------------------------------------------------------------------------------
-Verdict Accuracy          | 100.0%                | 90.0%                | 20.0%
-Pattern Accuracy          | 100.0%                | 0.0%                 | 15.0%
-Next-Best-Action (NBA)    | 95.0%                 | 90.0%                | 20.0%
-F1 Score (Fraud)          | 1.0000                | 0.9333               | 0.0000
-Avg Tokens / Case         | 1622.8                | 0.0                  | 258.2
-Avg Latency / Case        | 12.36             s   | 0.001             s  | 4.52              s
-Cost / Case (USD)         | $0.000243             | $0.000000            | $0.000046
-================================================================================
+Metric                                        | Arm 1 (Graph Agent)  | Arm 2 (Score Only)   | Arm 3 (Plain Nano)
+--------------------------------------------------------------------------------------------------------------
+Verdict Accuracy                              | 100.0%                | 90.0%                | 20.0%
+Pattern Accuracy                              | 100.0%                | 0.0%                 | 15.0%
+Next-Best-Action (NBA)                        | 95.0%                 | 90.0%                | 20.0%
+F1 Score (Fraud)                              | 1.0000                | 0.9333               | 0.0000
+Avg Tokens / Case                             | 1622.8                | 0.0                  | 258.2
+Avg Latency / Case                            | 12.36             s   | 0.001             s  | 4.52              s
+Cost / Case (estimated from assumed rates)    | $0.000243             | $0.000000            | $0.000046
+==============================================================================================================
 ```
 
 - Arm 2's cost is $0 by construction (pip reprojection only); Arm 3's 0.9333 F1

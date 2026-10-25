@@ -257,6 +257,7 @@ function CaseFile({ answer, loading }: { answer: AnswerCase | undefined; loading
           exposureUsd={body.exposure_usd}
           connectedCards={body.connected_card_ids.length}
           affectedTxns={body.affected_txn_ids.length}
+          summary={body.summary}
         />
       </Panel>
       <Panel title={`Evidence · ${body.evidence.length}`} bodyClassName="p-3 space-y-2">
@@ -281,6 +282,7 @@ function WhyGrid({
   exposureUsd,
   connectedCards,
   affectedTxns,
+  summary,
 }: {
   verdict: AnswerCase["verdict"];
   fraudProbability: number;
@@ -288,12 +290,16 @@ function WhyGrid({
   exposureUsd: number;
   connectedCards: number;
   affectedTxns: number;
+  summary?: string;
 }) {
+  const isRing = /\bring\b|connected card|shared device|coordinated/i.test(pattern || "");
+  const triggerMatch = /\((\$[\d,]+(?:\.\d+)?)\)/.exec(summary || "");
   const paired: [string, string][] = [
     ["Verdict", verdict],
     ["P(fraud)", fraudProbability.toFixed(3)],
     ["Pattern", humanise(pattern)],
-    ["Exposure", money(exposureUsd)],
+    [isRing ? "Ring Exposure" : "Exposure", money(exposureUsd)],
+    ...(triggerMatch ? [["Trigger Amount", triggerMatch[1]] as [string, string]] : []),
     ["Connected cards", String(connectedCards)],
     ["Affected txns", String(affectedTxns)],
   ];

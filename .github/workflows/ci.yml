@@ -27,9 +27,10 @@ jobs:
       - name: Backend defect gate
         run: python -m ruff check backend scripts tests
 
+      - name: Build local database from synthetic data
+        run: python -m backend.scripts.prepare_data
+
       - name: Run pytest
-        env:
-          PREPARED_DB_URL: https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console/releases/download/data-v1/investigation.db
         run: python -m pytest -q --no-header
 
   sentinel-ui:

@@ -248,7 +248,7 @@ def main(skip_llm: bool) -> int:
           f"engine overruled {ab['engine_overruled_model']}, "
           f"agreement {ab['agreement_rate']}")
     cl = report["cost_latency"]
-    print(f"E. cost/latency         {cl['successes']} ok calls, "
+    print(f"E. cost/latency (estimated from assumed rates)  {cl['successes']} ok calls, "
           f"p50 {cl['latency_ms_p50']} ms, p95 {cl['latency_ms_p95']} ms, "
           f"tokens in {cl['prompt_tokens_total']}, out {cl['completion_tokens_total']}")
     if "plain_llm_baseline" in report:

@@ -95,8 +95,8 @@ Measurements taken live against `https://api.tokenfactory.nebius.com/v1`:
 - **Prompt Guardrail Efficiency**: Clear system prompts enforcing raw JSON output without markdown markdown fences (` ```json `) eliminated parser retries.
 
 ### 3. Model Tier Selection Strategy (Nano vs Super vs Ultra)
-- **Nano (30B)**: Outstanding cost-to-performance ratio for structured classification and schema output ($0.000046/case). Sufficient for pattern hypothesis and verification drafting.
-- **Super (120B)**: Tested head-to-head with Nano on identical case inputs. Super agreed with Nano on pattern (`card_testing`) and confidence (0.85), but required higher compute cost. Nano remains the production choice for high-volume automated triage.
+- **Nano (30B)**: Outstanding cost-to-performance ratio for structured classification and schema output ($0.000046/case, estimated from assumed rates). Sufficient for pattern hypothesis and verification drafting.
+- **Super (120B)**: Tested head-to-head with Nano on identical case inputs. Super agreed with Nano on pattern (`card_testing`) and confidence (0.85), but required higher compute cost (estimated from assumed rates). Nano remains the production choice for high-volume automated triage.
 - **Ultra (550B)**: Essential for natural language audit reporting (SAR narratives) and interactive analyst Q&A. The 550B parameter size provides the reasoning depth required to synthesize conflicting evidence and cite specific transaction IDs accurately without hallucinations.
 
 ### 4. Zero-500 Outage Resilience
