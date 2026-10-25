@@ -25,6 +25,14 @@ def demo_env(monkeypatch, tmp_path):
     return cache_file
 
 
+def test_demo_mode_is_the_shipped_default():
+    """Every doc says DEMO_MODE defaults to 1; a plain `uvicorn` start must
+    serve the committed pack rather than an empty live-mode console."""
+    from backend.config import Settings
+
+    assert Settings.model_fields["demo_mode"].default is True
+
+
 def test_cache_disabled_outside_demo(monkeypatch, tmp_path):
     monkeypatch.setattr(settings, "demo_mode", False)
     monkeypatch.setattr(llm_cache, "_cache_path", lambda: tmp_path / "c.json")

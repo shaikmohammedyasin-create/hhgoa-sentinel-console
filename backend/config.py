@@ -107,9 +107,10 @@ class Settings(BaseSettings):
     max_investigation_rounds: int = 3
 
     # ── Demo mode (judges path) ────────────────────────────────────────────
-    # 1 = serve precomputed case results without TigerGraph. Nemotron calls
-    # stay live but pass through an on-disk cache and spend caps.
-    demo_mode: bool = False
+    # 1 = serve precomputed case results (the default everywhere: Docker,
+    # Render, a plain `uvicorn` start). Set DEMO_MODE=0 to run investigations
+    # live; Nemotron calls then go through the on-disk cache and spend caps.
+    demo_mode: bool = True
     # Demo-mode LLM spend protection: on-disk prompt cache + per-IP hourly
     # rate limit + global daily cap. When the daily cap is reached the app
     # serves cached or deterministic output instead of calling Token Factory.
