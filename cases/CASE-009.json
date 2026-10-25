@@ -9,8 +9,8 @@
     "affected_txn_ids": [
       "4012203",
       "4012204",
-      "4012185",
-      "4012205"
+      "4012205",
+      "4012185"
     ],
     "first_suspicious_txn_id": "4012205",
     "connected_card_ids": [
@@ -31,7 +31,7 @@
     "exposure_usd": 2102.44,
     "evidence": [
       {
-        "evidence_id": "EV-9d1f20ca",
+        "evidence_id": "EV-1ff4cb50",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012185 ($14.50) at 0.48. Coordinated micro-payment ring. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -42,7 +42,7 @@
         ]
       },
       {
-        "evidence_id": "EV-2278aead",
+        "evidence_id": "EV-f83804d1",
         "claim": "3 previous transactions retrieved for card SC-03009-K955 (excluding the flagged transaction). Average amount: $3.00.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03009-K955)",
@@ -51,7 +51,7 @@
         ]
       },
       {
-        "evidence_id": "EV-c261f6ee",
+        "evidence_id": "EV-d4b3c582",
         "claim": "4 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03009-K955, hours=48)",
@@ -63,7 +63,7 @@
         ]
       },
       {
-        "evidence_id": "EV-04fdd351",
+        "evidence_id": "EV-2a6bbd59",
         "claim": "Device profile shared across 17 other card(s); 5 named here and 10 linked to this case: SC-09000-K1, SC-09001-K1, SC-09002-K1, SC-09003-K1, SC-09004-K2.",
         "source": "graph",
         "ref": "query:accounts_sharing_device(device=Windows Desktop MatchOS windows x64 dggfwmdd unit-case-009-ring | synth-os-case-009-ring | synth-browser-case-009 | synth-screen-case-009)",
@@ -81,7 +81,7 @@
         ]
       },
       {
-        "evidence_id": "EV-1a8bba2c",
+        "evidence_id": "EV-1e830632",
         "claim": "Fraud-ring analysis: device component contains 4 confirmed-fraud card(s) (ring size 18).",
         "source": "graph",
         "ref": "query:device_fraud_ring(device=Windows Desktop MatchOS windows x64 dggfwmdd unit-case-009-ring | synth-os-case-009-ring | synth-browser-case-009 | synth-screen-case-009)",
@@ -93,7 +93,7 @@
         ]
       },
       {
-        "evidence_id": "EV-91402c82",
+        "evidence_id": "EV-5bd8c37a",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03009)",
@@ -102,7 +102,7 @@
         ]
       },
       {
-        "evidence_id": "EV-c3dc7ed2",
+        "evidence_id": "EV-224ebd8d",
         "claim": "5 prior closed case(s) retrieved by keyword match over analyst notes (prior patterns: card_testing).",
         "source": "document",
         "ref": "retrieval:keyword(patterns=card_testing)",
@@ -115,10 +115,10 @@
         ]
       },
       {
-        "evidence_id": "EV-22c564e1",
+        "evidence_id": "EV-5ceb1577",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-6b38afb8",
+        "ref": "evidence_request:ER-79bb8122",
         "entity_ids": [
           "SC-03009"
         ]
@@ -132,7 +132,7 @@
       "CC-4304",
       "CC-4305"
     ],
-    "summary": "Case CASE-009 (Card SC-03009-K955): The case was triggered by a real-time risk score of 0.48 on transaction 4012185 ($14.50), flagged as a coordinated micro-payment ring [EV-9d1f20ca]. The flagged card SC-03009-K955 showed 3 prior transactions averaging $3.00 and 4 online transactions within 48 hours of the flagged transaction [EV-2278aead, EV-c261f6ee]. A shared device profile linked 17 other cards, including 5 explicitly named (SC-09000-K1 through SC-09004-K2) and 10 connected to this case [EV-04fdd351]. Fraud-ring analysis confirmed 4 fraud cards within the device component (ring size 18) [EV-1a8bba2c]. The customer denied making the purchases and confirmed card possession [EV-22c564e1]. Prior history includes one cleared legitimate case and five prior cases matching \"card_testing\" pattern [EV-91402c82, EV-c3dc7ed2].",
+    "summary": "The investigation into CASE-009 was triggered by a real-time risk score of 0.48 on transaction 4012185 ($14.50), flagging a coordinated micro-payment ring [EV-1ff4cb50]. The flagged card SC-03009-K955 showed 4 online transactions within 48 hours and a historical average transaction amount of $3.00 [EV-d4b3c582, EV-f83804d1]. Device fingerprint analysis revealed the device profile was shared across 17 other cards, including 10 cards linked to this case (SC-09000-K1 through SC-09004-K2) [EV-2a6bbd59]. Fraud-ring analysis confirmed 4 fraud cards within the device component, with a ring size of 18 [EV-1e830632]. The customer denied making the purchases and confirmed physical possession of the card [EV-5ceb1577]. Prior case review showed one legitimate cleared case for this customer and five prior cases with card_testing patterns [EV-5bd8c37a, EV-224ebd8d].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-009"
   },
@@ -204,7 +204,7 @@
   "sar": {
     "file": true,
     "reason": "R2: confirmed fraud with exposure > $1,000",
-    "narrative": "Suspicious Activity Report for CASE-009 documents a coordinated micro-payment fraud ring involving 10 connected cards (SC-09000-K1 through SC-09009-K2) and a shared device fingerprint across 17 cards [EV-04fdd351, EV-1a8bba2c]. The investigation was initiated when transaction 4012185 ($14.50) received a risk score of 0.48, indicating a coordinated micro-payment ring [EV-9d1f20ca]. Analysis of the primary card SC-03009-K955 revealed anomalous velocity: 4 online transactions within 48 hours against a historical average of $3.00 per transaction [EV-2278aead, EV-c261f6ee]. Device-level linkage exposed a fraud ring of 18 cards with 4 confirmed fraud instances, suggesting organized card-testing activity consistent with prior cases CC-4326, CC-4303, CC-4301, CC-4302, CC-4304 [EV-1a8bba2c, EV-c3dc7ed2]. The customer reported no authorization of the disputed transactions and confirmed physical card possession, supporting unauthorized use [EV-22c564e1]. Total exposure across four affected transactions (4012203, 4012204, 4012185, 4012205) reached $2,102.44 with a fraud probability of 0.808. The pattern is classified as undocumented, though keyword retrieval associates it with card_testing methodologies observed in five prior closed cases [EV-c3dc7ed2]. One prior case for this customer was cleared as legitimate, indicating no persistent customer-level fraud history [EV-91402c82]. The evidence supports a verdict of fraud with recommended card termination and ring-wide monitoring.",
+    "narrative": "A Suspicious Activity Report is warranted for CASE-009 based on evidence of a coordinated micro-payment fraud ring. The investigation identified transaction 4012185 ($14.50) scored at 0.48 risk, part of a pattern involving four affected transactions totaling $2,102.44 in exposure [EV-1ff4cb50]. Device fingerprint analysis linked 10 cards (SC-09000-K1 through SC-09009-K2) to a shared device profile observed across 17 cards total, with 4 confirmed fraud cards in the device component forming a ring of 18 cards [EV-2a6bbd59, EV-1e830632]. The flagged card SC-03009-K955 exhibited anomalous velocity with 4 online transactions in 48 hours, deviating from its $3.00 historical average [EV-d4b3c582, EV-f83804d1]. The customer reported no authorization of the transactions and confirmed physical card possession, supporting unauthorized use [EV-5ceb1577]. Historical review revealed five prior cases with card_testing patterns and one legitimate travel-related case for this customer [EV-224ebd8d, EV-5bd8c37a]. The undocumented pattern designation reflects novel characteristics not matching established typologies, though the device-sharing ring structure is consistent with organized fraud operations. Total exposure of $2,102.44 across four transactions warrants SAR filing under regulatory thresholds for coordinated fraud activity. The case was closed with a fraud verdict at 0.808 probability based on the convergence of device-linkage, velocity anomalies, customer dispute, and ring confirmation. No further action is recommended beyond standard SAR filing and ring monitoring, as the fraud network has been identified and contained.",
     "subjects": [
       "SC-03009",
       "SC-03009-K955",
@@ -221,7 +221,18 @@
     ]
   },
   "nemotron": {
-    "model_proposal": null,
+    "model_proposal": {
+      "pattern": "card_testing",
+      "confidence": 0.92,
+      "evidence_ids": [
+        "EV-1ff4cb50",
+        "EV-f83804d1",
+        "EV-d4b3c582",
+        "EV-2a6bbd59",
+        "EV-224ebd8d"
+      ],
+      "rationale": "Low‑value micro‑payments, many transactions in 48h, shared device across multiple cards, and prior analyst keyword matches to card_testing indicate a coordinated testing ring."
+    },
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "undocumented",
@@ -235,20 +246,27 @@
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
     "model_agreed": false,
-    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+    "model_override_reason": "Policy engine retained 'undocumented' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.92. Engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1441,
-        "completion_tokens": 2016,
+        "prompt_tokens": 1443,
+        "completion_tokens": 1974,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 10765.7,
+        "latency_ms": 5268.3,
+        "cached": false
+      },
+      "pattern_classifier": {
+        "prompt_tokens": 1211,
+        "completion_tokens": 836,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 3322.4,
         "cached": false
       }
     }
   },
   "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
   "tool_calls": 16,
-  "tokens": 2016,
-  "latency_s": 21.83
+  "tokens": 2810,
+  "latency_s": 8.77
 }

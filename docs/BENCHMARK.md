@@ -30,13 +30,12 @@ All numbers below were measured live in this session against the synthetic bench
 |---|---|---|---|
 | **Verdict Accuracy** | **100.0%** (20/20) | 90.0% (18/20) | 20.0% (4/20) |
 | **Pattern Typology Accuracy** | **100.0%** (20/20) | **n/a** *(scalar score has no typology)* | 15.0% (3/20) |
-| **Next-Best-Action (NBA) Accuracy** | **100.0%** (20/20) | 90.0% (18/20) | 20.0% (4/20) |
+| **Next-Best-Action (NBA) Accuracy** | **95.0%** (19/20) | 90.0% (18/20) | 20.0% (4/20) |
 | **F1 Score (Fraud Class)** | **1.0000** | 0.9333 (best at $\tau = 0.70$) | 0.0000 |
-| **Precision** | **1.0000** | 0.8824 | 0.0000 |
-| **Recall** | **1.0000** | 1.0000 | 0.0000 |
-| **Avg Prompt Tokens / Case** | 1,020.0 | 0.0 | 212.0 |
-| **Avg Completion Tokens / Case** | 749.5 | 0.0 | 46.2 |
-| **Avg Latency / Case** | 22.84 s | < 0.001 s | 4.52 s |
+| **Precision** | **1.0000** | 0.9333 | 0.0000 |
+| **Recall** | **1.0000** | 0.9333 | 0.0000 |
+| **Avg Tokens / Case** | 1,809.5 | 0.0 | 258.2 |
+| **Avg Latency / Case** | 9.67 s | < 0.001 s | 4.52 s |
 
 *(Note on pricing: Dollar estimates are omitted because model pricing varies by provider contract; token counts above reflect actual telemetry from Nebius Token Factory call logs recorded in `data/logs/nebius_calls.jsonl` in October 2026).*
 

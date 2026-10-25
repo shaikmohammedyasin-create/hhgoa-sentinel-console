@@ -3,33 +3,35 @@
   "case": {
     "status": "closed_fraud",
     "verdict": "fraud",
-    "fraud_probability": 0.868,
+    "fraud_probability": 0.869,
     "pattern": "card_not_present_new_device",
     "pattern_description": "Device marked New for this account; proxy/anonymous connection",
     "affected_txn_ids": [
-      "4012182",
-      "4012181",
-      "4012180"
+      "4012177",
+      "4012178",
+      "4012179"
     ],
-    "first_suspicious_txn_id": "4012180",
+    "first_suspicious_txn_id": "4012177",
     "connected_card_ids": [],
     "connected_device_profiles": [
-      "Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015"
+      "Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015"
     ],
-    "exposure_usd": 304.1,
+    "exposure_usd": 453.49,
     "evidence": [
       {
-        "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012180 ($120.97, in billing region 'domestic') at 0.83. Review and decide.",
+        "evidence_id": "EV-67695cd9",
+        "claim": "Trigger (risk_score): Real-time model scored transaction 4012177 ($194.42, in billing region 'domestic') at 0.82. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
         "entity_ids": [
           "SC-03015",
           "SC-03015-K952",
-          "4012180"
+          "4012177"
         ]
       },
       {
-        "claim": "3 previous transactions retrieved for card SC-03015-K952. Average amount: $101.37.",
+        "evidence_id": "EV-456fa3a2",
+        "claim": "2 previous transactions retrieved for card SC-03015-K952 (excluding the flagged transaction). Average amount: $129.53.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03015-K952)",
         "entity_ids": [
@@ -37,32 +39,36 @@
         ]
       },
       {
+        "evidence_id": "EV-4b860f6a",
         "claim": "3 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03015-K952, hours=48)",
         "entity_ids": [
-          "4012180",
-          "4012182",
-          "4012181"
+          "4012177",
+          "4012179",
+          "4012178"
         ]
       },
       {
-        "claim": "Device marked 'New' for this account: Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015.",
+        "evidence_id": "EV-d8886480",
+        "claim": "Device marked 'New' for this account: Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015.",
         "source": "graph",
-        "ref": "query:transaction_identity(txn_id=4012180)",
+        "ref": "query:transaction_identity(txn_id=4012177)",
         "entity_ids": [
-          "4012180"
+          "4012177"
         ]
       },
       {
+        "evidence_id": "EV-446b42d3",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
-        "ref": "query:transaction_identity(txn_id=4012180)",
+        "ref": "query:transaction_identity(txn_id=4012177)",
         "entity_ids": [
-          "4012180"
+          "4012177"
         ]
       },
       {
+        "evidence_id": "EV-0ac56caf",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03015 or card SC-03015-K952: CC-4323.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03015)",
@@ -71,30 +77,33 @@
         ]
       },
       {
-        "claim": "Device profile 'Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015' appears in 1 confirmed fraud case(s).",
+        "evidence_id": "EV-965417fd",
+        "claim": "Device profile 'Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015' appears in 1 confirmed fraud case(s).",
         "source": "graph",
-        "ref": "query:closed_cases_by_device(device=Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015)",
+        "ref": "query:closed_cases_by_device(device=Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015)",
         "entity_ids": [
           "CC-4323"
         ]
       },
       {
-        "claim": "6 prior closed case(s) retrieved by pattern (card_not_present_new_device) and keyword match over analyst notes.",
+        "evidence_id": "EV-7607f1e8",
+        "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_new_device' and keyword match over analyst notes (prior patterns: card_not_present_new_device).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_new_device)",
         "entity_ids": [
-          "CC-4321",
-          "CC-4325",
           "CC-4324",
-          "CC-4323",
+          "CC-4321",
           "CC-4320",
-          "CC-4322"
+          "CC-4322",
+          "CC-4323",
+          "CC-4325"
         ]
       },
       {
+        "evidence_id": "EV-39df17e2",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-32fceb9b",
+        "ref": "evidence_request:ER-192f7bd3",
         "entity_ids": [
           "SC-03015"
         ]
@@ -102,13 +111,13 @@
     ],
     "similar_prior_cases": [
       "CC-4323",
-      "CC-4321",
-      "CC-4325",
       "CC-4324",
+      "CC-4321",
       "CC-4320",
-      "CC-4322"
+      "CC-4322",
+      "CC-4325"
     ],
-    "summary": "Case CASE-015 involves three card-not-present transactions (4012180, 4012181, 4012182) on card SC-03015-K952 totaling $304.10 exposure. The real-time risk model scored transaction 4012180 at 0.83 [EV-70087d11]. The transactions originated from a new device (Windows Desktop MatchOS) and an anonymous proxy IP in Argentina [EV-8cb9add3, EV-c756485a]. Velocity analysis shows three online transactions within 48 hours, above the card's $101.37 average [EV-68e9b258, EV-beee32dc]. The device fingerprint appears in a prior confirmed fraud case [EV-839228f3], and the customer has a prior fraud case CC-4323 [EV-06ff48ed]. The customer reports the purchases as unauthorized and confirms physical card possession [EV-9fab82c2]. Pattern retrieval identified six similar prior cases [EV-b38b0b7e].",
+    "summary": "Case CASE-015 (Card SC-03015-K952): The real-time risk model scored transaction 4012177 at 0.82, triggering review [EV-67695cd9]. Investigation revealed the transaction originated from a device marked 'New' for the account with a Linux x86_64 Chrome 96.0 profile containing synthetic identifiers [EV-d8886480] and used an anonymous proxy connection from Argentina [EV-446b42d3]. The card showed three online transactions within 48 hours of the flagged transaction [EV-4b860f6a], with prior transaction history averaging $129.53 [EV-456fa3a2]. The device profile was linked to one prior confirmed fraud case [EV-965417fd], and the customer had one previous fraud case (CC-4323) [EV-0ac56caf]. The customer confirmed they did not make the purchases and retained possession of the card [EV-39df17e2]. Six prior cases sharing the 'card_not_present_new_device' pattern were retrieved for context [EV-7607f1e8].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-015"
   },
@@ -120,12 +129,12 @@
       "status": "received",
       "info_value": 1.0,
       "origin": "simulated",
-      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.87); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.26)",
+      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.87); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.27)",
       "alternatives_considered": [
         {
           "type": "step_up_auth",
           "info_value": 0.5,
-          "decision_relevance": "Outcome A (Authentication fails — device unknown to cardholder) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.84); Outcome B (Authentication succeeds — device is the cardholder's) -> CREATE_CASE, VERIFY_WITH_CUSTOMER (p=0.32)"
+          "decision_relevance": "Outcome A (Authentication fails — device unknown to cardholder) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.84); Outcome B (Authentication succeeds — device is the cardholder's) -> CREATE_CASE, VERIFY_WITH_CUSTOMER (p=0.33)"
         },
         {
           "type": "analyst_info",
@@ -135,7 +144,7 @@
         {
           "type": "external_watchlist",
           "info_value": -0.15,
-          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.76); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.59)"
+          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.77); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.59)"
         }
       ]
     }
@@ -185,16 +194,15 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "Suspicious activity detected on card SC-03015-K952 involving three card-not-present transactions totaling $304.10. Transaction 4012180 ($120.97) triggered a real-time risk score of 0.83 [EV-70087d11]. The transactions originated from a previously unseen device (Windows Desktop MatchOS) and an anonymous proxy IP located in Argentina [EV-8cb9add3, EV-c756485a]. Velocity analysis shows three online transactions within 48 hours, exceeding normal spending patterns [EV-68e9b258, EV-beee32dc]. The device fingerprint matches a device used in a prior confirmed fraud case [EV-839228f3], and the customer has a history of fraud (CC-4323) [EV-06ff48ed]. The customer reports the transactions as unauthorized and confirms physical card possession [EV-9fab82c2]. Pattern matching identifies six prior cases with the same card-not-present new-device pattern [EV-b38b0b7e]. The investigation concluded with a fraud verdict and the case is closed.",
+    "narrative": "This report documents confirmed card-not-present fraud involving customer SC-03015 and card SC-03015-K952 across three transactions (4012177, 4012178, 4012179) totaling $453.49 in exposure. The initial transaction was flagged by the real-time risk model with a score of 0.82 [EV-67695cd9]. Forensic analysis identified a previously unseen device profile — Linux x86_64 Chrome 96.0 with synthetic OS, browser, and screen identifiers — marked as 'New' for the account [EV-d8886480]. The connection was routed through an anonymous proxy located in Argentina [EV-446b42d3], a tactic consistent with identity obfuscation. Velocity analysis showed three online transactions on the card within a 48-hour window [EV-4b860f6a], deviating from the card's historical average of $129.53 per transaction [EV-456fa3a2]. The device profile has been observed in one prior confirmed fraud case [EV-965417fd], and the customer has a fraud history including case CC-4323 [EV-0ac56caf]. The cardholder affirmed they did not authorize the purchases and maintained physical possession of the card [EV-39df17e2]. Pattern analysis retrieved six prior cases exhibiting the same 'card_not_present_new_device' signature [EV-7607f1e8], supporting the fraud determination. The case is closed with a fraud verdict and a model-assessed fraud probability of 0.869.",
     "subjects": [
       "SC-03015",
       "SC-03015-K952",
-      "Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-015 | synth-os-case-0"
+      "Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015"
     ],
-    "total_amount_usd": 304.1,
+    "total_amount_usd": 453.49,
     "activity_dates": [
-      "2026-09-13",
-      "2026-09-13"
+      "2026-09-19"
     ]
   },
   "nemotron": {
@@ -202,7 +210,7 @@
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "card_not_present_new_device",
-      "fraud_probability": 0.868,
+      "fraud_probability": 0.869,
       "actions": [
         "BLOCK_CARD",
         "CREATE_CASE",
@@ -216,13 +224,16 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1384,
-        "completion_tokens": 1706
+        "prompt_tokens": 1404,
+        "completion_tokens": 1133,
+        "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+        "latency_ms": 7827.0,
+        "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.87 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 1706,
-  "latency_s": 12.02
+  "tokens": 1133,
+  "latency_s": 13.0
 }

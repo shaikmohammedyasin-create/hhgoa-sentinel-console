@@ -108,7 +108,7 @@ These files remain byte-for-byte or functionally identical to the upstream fork:
 These files were created from scratch for Sentinel Graph and do not exist upstream:
 1. `sentinel-ui/src/lib/hhgoa.ts` ? Pydantic-mirrored TypeScript types for the HHGOA backend contract (Case, Evidence, NemotronBlock, SarOut, QueueRow, AuditEvent).
 2. `sentinel-ui/src/lib/demo.ts` ? Offline fallback harness for zero-backend operation.
-3. `sentinel-ui/e2e/smoke.mjs` ? Comprehensive 33-check Playwright E2E smoke test suite with multi-browser resolution.
+3. `sentinel-ui/e2e/smoke.mjs` ? Comprehensive 32-check Playwright E2E smoke test suite with multi-browser resolution.
 4. `sentinel-ui/eslint.config.mjs` ? Standalone ESLint 9 configuration enforcing zero warnings.
 5. `sentinel-ui/public/favicon.svg` ? Custom project favicon.
 6. `sentinel-ui/public/demo/*.json` ? 20 precomputed case snapshots exported from verified backend runs.

@@ -96,7 +96,7 @@ Measurements taken live against `https://api.tokenfactory.nebius.com/v1`:
 - **Role 2: Verification Draft (Nano 30B)**: 428 prompt tokens, 568 completion tokens, 6,051 ms latency.
 - **Role 3: Narrative & SAR (Ultra 550B)**: 594 prompt tokens, 919 completion tokens, 4,339 ms latency.
 - **Role 4: Analyst Interactive Q&A (Ultra 550B)**: 649?1,396 prompt tokens, 100?1,200 completion tokens, 1,295?8,175 ms latency.
-- **Full Case Pipeline Wall-Clock**: Average 22.84s per case for multi-hop graph retrieval, Bayesian scoring, policy evaluation, and dual-role LLM inference.
+- **Full Case Pipeline Wall-Clock**: Average 9.67s per case (re-measured 2026-10-25) for multi-hop graph retrieval, Bayesian scoring, policy evaluation, and dual-role LLM inference.
 
 ### 2. JSON Validity & Schema Adherence
 - **100% Valid JSON on First Attempt**: Across both Nano (`NVIDIA-Nemotron-3-Nano-30B-A3B`) and Super (`nemotron-3-super-120b-a12b`), zero JSON parsing failures occurred. Both models adhered strictly to the expected schema (`proposed_pattern`, `confidence`, `rationale`, `supporting_evidence_refs`).

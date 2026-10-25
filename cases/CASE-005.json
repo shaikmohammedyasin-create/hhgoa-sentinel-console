@@ -3,33 +3,34 @@
   "case": {
     "status": "closed_fraud",
     "verdict": "fraud",
-    "fraud_probability": 0.867,
+    "fraud_probability": 0.87,
     "pattern": "card_not_present_new_device",
     "pattern_description": "Device marked New for this account; proxy/anonymous connection",
     "affected_txn_ids": [
-      "4012172",
       "4012171",
-      "4012173"
+      "4012170"
     ],
-    "first_suspicious_txn_id": "4012171",
+    "first_suspicious_txn_id": "4012170",
     "connected_card_ids": [],
     "connected_device_profiles": [
       "Linux x86_64 Chrome 96.0 unit-caseCASE-005 | synth-os-case-005 | synth-browser-case-005 | synth-screen-case-005"
     ],
-    "exposure_usd": 1206.43,
+    "exposure_usd": 683.71,
     "evidence": [
       {
-        "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012171 ($467.56, in billing region 'domestic') at 0.83. Review and decide.",
+        "evidence_id": "EV-43cac9a5",
+        "claim": "Trigger (risk_score): Real-time model scored transaction 4012170 ($430.53, in billing region 'domestic') at 0.85. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
         "entity_ids": [
           "SC-03005",
           "SC-03005-K949",
-          "4012171"
+          "4012170"
         ]
       },
       {
-        "claim": "3 previous transactions retrieved for card SC-03005-K949. Average amount: $402.14.",
+        "evidence_id": "EV-c1f411ab",
+        "claim": "1 previous transactions retrieved for card SC-03005-K949 (excluding the flagged transaction). Average amount: $253.18.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03005-K949)",
         "entity_ids": [
@@ -37,32 +38,35 @@
         ]
       },
       {
-        "claim": "3 online transactions on this card within 48h of the flagged transaction.",
+        "evidence_id": "EV-23176ba1",
+        "claim": "2 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03005-K949, hours=48)",
         "entity_ids": [
-          "4012171",
-          "4012173",
-          "4012172"
+          "4012170",
+          "4012171"
         ]
       },
       {
+        "evidence_id": "EV-c475a073",
         "claim": "Device marked 'New' for this account: Linux x86_64 Chrome 96.0 unit-caseCASE-005 | synth-os-case-005 | synth-browser-case-005 | synth-screen-case-005.",
         "source": "graph",
-        "ref": "query:transaction_identity(txn_id=4012171)",
+        "ref": "query:transaction_identity(txn_id=4012170)",
         "entity_ids": [
-          "4012171"
+          "4012170"
         ]
       },
       {
+        "evidence_id": "EV-ef87540a",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
-        "ref": "query:transaction_identity(txn_id=4012171)",
+        "ref": "query:transaction_identity(txn_id=4012170)",
         "entity_ids": [
-          "4012171"
+          "4012170"
         ]
       },
       {
+        "evidence_id": "EV-da529fde",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03005 or card SC-03005-K949: CC-4320.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03005)",
@@ -71,6 +75,7 @@
         ]
       },
       {
+        "evidence_id": "EV-666ef05f",
         "claim": "Device profile 'Linux x86_64 Chrome 96.0 unit-caseCASE-005 | synth-os-case-005 | synth-browser-case-005 | synth-screen-case-005' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Linux x86_64 Chrome 96.0 unit-caseCASE-005 | synth-os-case-005 | synth-browser-case-005 | synth-screen-case-005)",
@@ -79,22 +84,24 @@
         ]
       },
       {
-        "claim": "6 prior closed case(s) retrieved by pattern (card_not_present_new_device) and keyword match over analyst notes.",
+        "evidence_id": "EV-b9059328",
+        "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_new_device' and keyword match over analyst notes (prior patterns: card_not_present_new_device).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_new_device)",
         "entity_ids": [
-          "CC-4321",
-          "CC-4325",
           "CC-4324",
-          "CC-4323",
+          "CC-4321",
           "CC-4320",
-          "CC-4322"
+          "CC-4322",
+          "CC-4323",
+          "CC-4325"
         ]
       },
       {
+        "evidence_id": "EV-e9d40046",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-134d6291",
+        "ref": "evidence_request:ER-d6e3ace6",
         "entity_ids": [
           "SC-03005"
         ]
@@ -102,13 +109,13 @@
     ],
     "similar_prior_cases": [
       "CC-4320",
-      "CC-4321",
-      "CC-4325",
       "CC-4324",
+      "CC-4321",
+      "CC-4322",
       "CC-4323",
-      "CC-4322"
+      "CC-4325"
     ],
-    "summary": "Case CASE-005 involves three card-not-present transactions (4012171, 4012172, 4012173) on card SC-03005-K949 totaling $1,206.43 exposure. The real-time risk model scored transaction 4012171 at 0.83 [EV-addc089d]. The transactions originated from a new device (Linux x86_64 Chrome 96.0) and an anonymous proxy connection from Argentina [EV-68c6f45c, EV-ec5095a0]. Velocity analysis shows three online transactions within 48 hours, above the card's historical average of $402.14 [EV-5719623a, EV-7e703e2b]. The device fingerprint appears in a prior confirmed fraud case and the customer has one previous fraud case CC-4320 [EV-f406b8be, EV-ba99c0d5]. The customer denies authorizing the purchases and reports the physical card remains in their possession [EV-53683981]. The pattern matches six prior card_not_present_new_device cases [EV-bd50e657].",
+    "summary": "Case CASE-005 (Card SC-03005-K949): Transaction 4012170 ($430.53, domestic) triggered a real-time risk score of 0.85 [EV-43cac9a5]. Card SC-03005-K949 had one prior transaction averaging $253.18 [EV-c1f411ab] and two online transactions within 48 hours of the flagged transaction [EV-23176ba1]. The transaction used a new device profile (Linux x86_64 Chrome 96.0 with case identifiers) [EV-c475a073] and an anonymous proxy connection from Argentina [EV-ef87540a]. Customer SC-03005 had one prior confirmed fraud case CC-4320 [EV-da529fde], and the device profile appears in one confirmed fraud case [EV-666ef05f]. Six prior closed cases match the card_not_present_new_device pattern [EV-b9059328]. The customer denies making the purchases and reports the card still in their possession [EV-e9d40046].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-005"
   },
@@ -120,22 +127,22 @@
       "status": "received",
       "info_value": 1.0,
       "origin": "simulated",
-      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.87); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.26)",
+      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.87); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.27)",
       "alternatives_considered": [
         {
           "type": "step_up_auth",
           "info_value": 0.5,
-          "decision_relevance": "Outcome A (Authentication fails — device unknown to cardholder) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.84); Outcome B (Authentication succeeds — device is the cardholder's) -> CREATE_CASE, VERIFY_WITH_CUSTOMER (p=0.32)"
+          "decision_relevance": "Outcome A (Authentication fails — device unknown to cardholder) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.84); Outcome B (Authentication succeeds — device is the cardholder's) -> CREATE_CASE, VERIFY_WITH_CUSTOMER (p=0.33)"
         },
         {
           "type": "analyst_info",
           "info_value": 0.45,
-          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.78); Outcome B (Analyst reports no related activity) -> CREATE_CASE, VERIFY_WITH_CUSTOMER (p=0.49)"
+          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.78); Outcome B (Analyst reports no related activity) -> CREATE_CASE, VERIFY_WITH_CUSTOMER (p=0.50)"
         },
         {
           "type": "external_watchlist",
           "info_value": -0.15,
-          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.76); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.59)"
+          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.77); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.60)"
         }
       ]
     }
@@ -184,17 +191,16 @@
   },
   "sar": {
     "file": true,
-    "reason": "R2: confirmed fraud with exposure > $1,000",
-    "narrative": "Suspicious Activity Report for CASE-005 documents card-not-present fraud on card SC-03005-K949 with $1,206.43 exposure across three transactions. Real-time risk scoring flagged transaction 4012171 at 0.83 [EV-addc089d]. The transactions were initiated from a previously unseen device (Linux x86_64 Chrome 96.0) and routed through an anonymous proxy IP geolocated to Argentina [EV-68c6f45c, EV-ec5095a0]. Velocity monitoring identified three online transactions within a 48-hour window, exceeding the card's historical transaction average of $402.14 [EV-5719623a, EV-7e703e2b]. The device fingerprint has been linked to a prior confirmed fraud case, and the customer account has a previous fraud case CC-4320 [EV-f406b8be, EV-ba99c0d5]. The cardholder confirms they did not authorize the transactions and retains physical possession of the card [EV-53683981]. This pattern aligns with six prior card_not_present_new_device fraud cases retrieved by pattern and keyword matching [EV-bd50e657]. The investigation supports card reissue and enhanced monitoring for the affected account.",
+    "reason": "R6: confirmed fraud connected to shared device profile or card",
+    "narrative": "Suspicious Activity Report for CASE-005 involving card SC-03005-K949 and transactions 4012170 ($430.53) and 4012171 with total exposure of $683.71. Real-time risk model scored transaction 4012170 at 0.85, triggering review [EV-43cac9a5]. Transaction originated from a previously unseen device profile (Linux x86_64 Chrome 96.0 with synthetic identifiers) [EV-c475a073] via an anonymous proxy connection routed through Argentina [EV-ef87540a]. Card transaction history shows only one prior transaction averaging $253.18 [EV-c1f411ab], yet two online transactions occurred within 48 hours of the flagged transaction [EV-23176ba1]. Customer SC-03005 has one prior confirmed fraud case (CC-4320) [EV-da529fde], and the device profile has been linked to one confirmed fraud case [EV-666ef05f]. Pattern analysis retrieved six prior closed cases matching the card_not_present_new_device pattern [EV-b9059328]. Customer disputes the transactions, stating they did not make the purchases and retain physical possession of the card [EV-e9d40046]. The combination of new device, anonymous proxy, velocity anomaly, prior fraud history, and customer denial supports the fraud verdict.",
     "subjects": [
-      "SC-03005-K949",
       "SC-03005",
-      "Linux x86_64 Chrome 96.0 unit-caseCASE-005 | synth-os-case-005 | synth-browser-c"
+      "SC-03005-K949",
+      "Linux x86_64 Chrome 96.0 unit-caseCASE-005 | synth-os-case-005"
     ],
-    "total_amount_usd": 1206.43,
+    "total_amount_usd": 683.71,
     "activity_dates": [
-      "2026-09-14",
-      "2026-09-14"
+      "2026-09-21"
     ]
   },
   "nemotron": {
@@ -202,17 +208,18 @@
       "pattern": "card_not_present_new_device",
       "confidence": 0.92,
       "evidence_ids": [
-        "EV-68c6f45c",
-        "EV-ec5095a0",
-        "EV-bd50e657",
-        "EV-7e703e2b"
+        "EV-c475a073",
+        "EV-ef87540a",
+        "EV-b9059328",
+        "EV-666ef05f",
+        "EV-da529fde"
       ],
-      "rationale": "Multiple online transactions, new device fingerprint, anonymous proxy, prior fraud case linked to same device pattern, and customer denial indicate card-not-present new device fraud."
+      "rationale": "New device flag, anonymous proxy, prior fraud case, and multiple recent online transactions align with card‑not‑present fraud using a new device pattern."
     },
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "card_not_present_new_device",
-      "fraud_probability": 0.867,
+      "fraud_probability": 0.87,
       "actions": [
         "BLOCK_CARD",
         "CREATE_CASE",
@@ -226,17 +233,23 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1392,
-        "completion_tokens": 1745
+        "prompt_tokens": 1387,
+        "completion_tokens": 1680,
+        "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+        "latency_ms": 4423.0,
+        "cached": false
       },
       "pattern_classifier": {
-        "prompt_tokens": 1274,
-        "completion_tokens": 1000
+        "prompt_tokens": 1280,
+        "completion_tokens": 956,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 3439.9,
+        "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.87 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 1745,
-  "latency_s": 22.77
+  "tokens": 2636,
+  "latency_s": 8.0
 }

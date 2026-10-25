@@ -3,30 +3,31 @@
   "case": {
     "status": "closed_legitimate",
     "verdict": "legitimate",
-    "fraud_probability": 0.05,
+    "fraud_probability": 0.369,
     "pattern": "none",
     "pattern_description": "Case closed as legitimate; no active fraud pattern.",
     "affected_txn_ids": [],
     "first_suspicious_txn_id": "",
     "connected_card_ids": [
-      "SC-00012-K1",
-      "SC-00019-K1",
-      "SC-00036-K1",
-      "SC-00068-K1",
-      "SC-00087-K2",
-      "SC-00094-K1",
-      "SC-00106-K1",
-      "SC-00112-K2",
-      "SC-00116-K1",
-      "SC-00118-K3"
+      "SC-00015-K2",
+      "SC-00030-K1",
+      "SC-00036-K2",
+      "SC-00054-K2",
+      "SC-00069-K1",
+      "SC-00070-K1",
+      "SC-00070-K2",
+      "SC-00072-K1",
+      "SC-00101-K2",
+      "SC-00104-K1"
     ],
     "connected_device_profiles": [
-      "IOS Device (Apple) unit-04116 | Windows 10 | firefox 122.0 | 1920x1080"
+      "IOS Device (Apple) unit-04116 | iOS 16.2 | chrome 123.0 | 412x915"
     ],
     "exposure_usd": 0.0,
     "evidence": [
       {
-        "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012150 ($321.20, in billing region 310) at 0.56. Review and decide.",
+        "evidence_id": "EV-d229052b",
+        "claim": "Trigger (risk_score): Real-time model scored transaction 4012150 ($1450.00, in billing region 310) at 0.86. Emergency medical purchase. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
         "entity_ids": [
@@ -36,31 +37,34 @@
         ]
       },
       {
-        "claim": "1 previous transactions retrieved for card SC-03007-K941. Average amount: $321.20.",
+        "evidence_id": "EV-57b420b8",
+        "claim": "Proxy or anonymous connection used: proxy transparent brazil.",
         "source": "graph",
-        "ref": "query:card_transaction_history(card_id=SC-03007-K941)",
+        "ref": "query:transaction_identity(txn_id=4012150)",
         "entity_ids": [
-          "SC-03007-K941"
+          "4012150"
         ]
       },
       {
-        "claim": "Device profile shared across 20 other card(s): SC-00012-K1, SC-00019-K1, SC-00036-K1, SC-00068-K1, SC-00087-K2.",
+        "evidence_id": "EV-612354e6",
+        "claim": "Device profile shared across 20 other card(s); 5 named here and 10 linked to this case: SC-00015-K2, SC-00030-K1, SC-00036-K2, SC-00054-K2, SC-00069-K1.",
         "source": "graph",
-        "ref": "query:accounts_sharing_device(device=IOS Device (Apple) unit-04116 | Windows 10 | firefox 122.0 | 1920x1080)",
+        "ref": "query:accounts_sharing_device(device=IOS Device (Apple) unit-04116 | iOS 16.2 | chrome 123.0 | 412x915)",
         "entity_ids": [
-          "SC-00012-K1",
-          "SC-00019-K1",
-          "SC-00036-K1",
-          "SC-00068-K1",
-          "SC-00087-K2",
-          "SC-00094-K1",
-          "SC-00106-K1",
-          "SC-00112-K2",
-          "SC-00116-K1",
-          "SC-00118-K3"
+          "SC-00015-K2",
+          "SC-00030-K1",
+          "SC-00036-K2",
+          "SC-00054-K2",
+          "SC-00069-K1",
+          "SC-00070-K1",
+          "SC-00070-K2",
+          "SC-00072-K1",
+          "SC-00101-K2",
+          "SC-00104-K1"
         ]
       },
       {
+        "evidence_id": "EV-d21d410f",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03007)",
@@ -69,9 +73,10 @@
         ]
       },
       {
-        "claim": "Customer response (simulated): Customer confirms they authorized this purchase from their personal account.",
+        "evidence_id": "EV-04215e97",
+        "claim": "Customer response (simulated): No response received within the 24-hour window.",
         "source": "customer",
-        "ref": "evidence_request:ER-40a67531",
+        "ref": "evidence_request:ER-f3b102b3",
         "entity_ids": [
           "SC-03007"
         ]
@@ -80,7 +85,7 @@
     "similar_prior_cases": [
       "CC-4312"
     ],
-    "summary": "The investigation for CASE-007 was triggered by a real-time risk model scoring transaction 4012150 ($321.20, billing region 310) at 0.56 [EV-79c51b8f]. Historical review showed one prior transaction for card SC-03007-K941 with an average amount of $321.20 [EV-2eaa4d54]. Device profiling identified the transaction device (IOS Device (Apple) unit-04116 | Windows 10 | firefox 122.0 | 1920x1080) as shared across 20 other cards, including SC-00012-K1, SC-00019-K1, SC-00036-K1, SC-00068-K1, and SC-00087-K2 [EV-19fa16a3]. A prior closed case for customer SC-03007 had been cleared as legitimate, citing confirmed travel or purchase [EV-28e1b9cc]. The customer confirmed authorizing the purchase from their personal account [EV-0d3da8fb]. Based on the evidence, the case was closed with a legitimate verdict, no fraud pattern identified, and zero exposure.",
+    "summary": "Case CASE-007 (Card SC-03007-K941): The investigation was triggered by a real-time risk score of 0.86 on transaction 4012150 ($1,450, billing region 310) for an emergency medical purchase [EV-d229052b, source: trigger:risk_score]. The transaction used a transparent proxy connection from Brazil [EV-57b420b8, query:transaction_identity]. The device profile (IOS Device unit-04116) was shared across 20 other cards, with five specifically named and ten linked to this case [EV-612354e6, query:accounts_sharing_device]. A prior case for customer SC-03007 was cleared as legitimate based on confirmed travel and purchase [EV-d21d410f, query:closed_cases_for_customer]. The customer did not respond within the 24-hour evidence request window [EV-04215e97, evidence_request:ER-f3b102b3]. The case was closed as legitimate with no fraud pattern identified and zero exposure.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-007"
   },
@@ -88,21 +93,21 @@
     {
       "type": "customer_validation",
       "asked_after_step": 4,
-      "assumed_response": "Customer confirms they authorized this purchase from their personal account.",
+      "assumed_response": "No response received within the 24-hour window.",
       "status": "received",
       "info_value": 1.0,
       "origin": "simulated",
-      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.63); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.05)",
+      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.69); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.08)",
       "alternatives_considered": [
         {
           "type": "analyst_info",
-          "info_value": 0.15,
-          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.42); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.12)"
+          "info_value": -0.1,
+          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.51); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.19)"
         },
         {
           "type": "external_watchlist",
           "info_value": -0.15,
-          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.39); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.17)"
+          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.48); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.26)"
         }
       ]
     }
@@ -127,12 +132,22 @@
     ],
     "final": [
       {
-        "action": "CLOSE_NO_FRAUD",
+        "action": "MONITOR_CARD",
         "route": "auto",
-        "reason": "R3: customer confirmed the transaction"
+        "reason": "R4: no reply within 24 hours"
+      },
+      {
+        "action": "DECLINE_TRANSACTION",
+        "route": "L1",
+        "reason": "R4: decline pending authorization"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R4: exposure > $500, escalate"
       }
     ],
-    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: FILE_REPORT, ESCALATE_TO_ANALYST, CREATE_CASE"
+    "what_changed": "Added: DECLINE_TRANSACTION, MONITOR_CARD; Removed: FILE_REPORT, CREATE_CASE"
   },
   "sar": {
     "file": false,
@@ -147,9 +162,11 @@
     "policy_decision": {
       "verdict": "legitimate",
       "pattern": "none",
-      "fraud_probability": 0.05,
+      "fraud_probability": 0.369,
       "actions": [
-        "CLOSE_NO_FRAUD"
+        "MONITOR_CARD",
+        "DECLINE_TRANSACTION",
+        "ESCALATE_TO_ANALYST"
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
@@ -158,13 +175,16 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1098,
-        "completion_tokens": 1229
+        "prompt_tokens": 1093,
+        "completion_tokens": 1099,
+        "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+        "latency_ms": 3567.2,
+        "cached": false
       }
     }
   },
-  "stop_reason": "Fraud probability 0.05 ≤ 0.15; activity consistent with legitimate use.",
+  "stop_reason": "Borderline probability 0.37; investigation halted per stopping criteria. Escalated for analyst review.",
   "tool_calls": 15,
-  "tokens": 1229,
-  "latency_s": 20.5
+  "tokens": 1099,
+  "latency_s": 7.72
 }

@@ -17,7 +17,7 @@
 ## 0. Quickstart (5 Minutes, Zero Credentials)
 
 ```bash
-git clone PUBLIC_REPO_URL
+git clone https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git
 cd hhgoa-sentinel-console
 docker compose up --build
 # Open http://localhost:8008
@@ -222,7 +222,7 @@ hhgoa-sentinel-console/
 
 ### Method A: Single-Container Docker (Recommended)
 ```bash
-git clone PUBLIC_REPO_URL
+git clone https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git
 cd hhgoa-sentinel-console
 docker compose up --build
 # Open http://localhost:8008
@@ -344,7 +344,7 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
   - Enhanced synthetic data generator with overlapping score distributions ($[0.52, 0.74]$ benign, $[0.65, 0.92]$ fraud) and stress scenarios (`CASE-009` ring FN, `CASE-007` emergency FP).
   - 3-Arm evaluation: Graph Agent ($F_1 = 1.0000$) vs Score-Only ($F_1 = 0.9333$) vs Plain LLM ($F_1 = 0.0000$).
   - Full test suite verified at **355 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
-  - Gitleaks scanned 93 commits: **0 secrets found**.
+  - Gitleaks scanned the full history: **0 secrets found**.
   - Captured 7 high-resolution (1536?1024) UI screenshots in `docs/screenshots/`.
 
 ---

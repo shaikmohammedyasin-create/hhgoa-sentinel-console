@@ -11,7 +11,7 @@ Sentinel Graph can be deployed in two supported modes:
 Judges and evaluators require **no API keys or credentials** to run the complete system:
 
 ```bash
-git clone PUBLIC_REPO_URL
+git clone https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git
 cd hhgoa-sentinel-console
 docker compose up --build
 # Open http://localhost:8008 in your browser

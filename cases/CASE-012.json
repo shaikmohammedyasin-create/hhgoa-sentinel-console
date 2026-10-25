@@ -3,30 +3,31 @@
   "case": {
     "status": "closed_legitimate",
     "verdict": "legitimate",
-    "fraud_probability": 0.071,
+    "fraud_probability": 0.053,
     "pattern": "none",
     "pattern_description": "Case closed as legitimate; no active fraud pattern.",
     "affected_txn_ids": [],
     "first_suspicious_txn_id": "",
     "connected_card_ids": [
-      "SC-00001-K2",
-      "SC-00008-K1",
-      "SC-00039-K1",
-      "SC-00044-K1",
-      "SC-00047-K1",
-      "SC-00061-K3",
-      "SC-00062-K1",
-      "SC-00064-K2",
-      "SC-00073-K1",
-      "SC-00082-K1"
+      "SC-00019-K1",
+      "SC-00021-K2",
+      "SC-00027-K3",
+      "SC-00034-K1",
+      "SC-00036-K1",
+      "SC-00061-K2",
+      "SC-00065-K1",
+      "SC-00067-K1",
+      "SC-00108-K1",
+      "SC-00121-K2"
     ],
     "connected_device_profiles": [
-      "Mac OS X 10_15_5 Firefox 89.0 unit-04117 | iOS 16.2 | edge 123.0 | 390x844"
+      "Linux x86_64 Chrome 96.0 unit-04117 | Android 12 | edge 123.0 | 390x844"
     ],
     "exposure_usd": 0.0,
     "evidence": [
       {
-        "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012151 ($54.72, in billing region 246) at 0.59. Review and decide.",
+        "evidence_id": "EV-44ad2d17",
+        "claim": "Trigger (risk_score): Real-time model scored transaction 4012151 ($465.94, in billing region 246) at 0.69. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
         "entity_ids": [
@@ -36,31 +37,25 @@
         ]
       },
       {
-        "claim": "1 previous transactions retrieved for card SC-03012-K942. Average amount: $54.72.",
+        "evidence_id": "EV-b86326f4",
+        "claim": "Device profile shared across 20 other card(s); 5 named here and 10 linked to this case: SC-00019-K1, SC-00021-K2, SC-00027-K3, SC-00034-K1, SC-00036-K1.",
         "source": "graph",
-        "ref": "query:card_transaction_history(card_id=SC-03012-K942)",
+        "ref": "query:accounts_sharing_device(device=Linux x86_64 Chrome 96.0 unit-04117 | Android 12 | edge 123.0 | 390x844)",
         "entity_ids": [
-          "SC-03012-K942"
+          "SC-00019-K1",
+          "SC-00021-K2",
+          "SC-00027-K3",
+          "SC-00034-K1",
+          "SC-00036-K1",
+          "SC-00061-K2",
+          "SC-00065-K1",
+          "SC-00067-K1",
+          "SC-00108-K1",
+          "SC-00121-K2"
         ]
       },
       {
-        "claim": "Device profile shared across 20 other card(s): SC-00001-K2, SC-00008-K1, SC-00039-K1, SC-00044-K1, SC-00047-K1.",
-        "source": "graph",
-        "ref": "query:accounts_sharing_device(device=Mac OS X 10_15_5 Firefox 89.0 unit-04117 | iOS 16.2 | edge 123.0 | 390x844)",
-        "entity_ids": [
-          "SC-00001-K2",
-          "SC-00008-K1",
-          "SC-00039-K1",
-          "SC-00044-K1",
-          "SC-00047-K1",
-          "SC-00061-K3",
-          "SC-00062-K1",
-          "SC-00064-K2",
-          "SC-00073-K1",
-          "SC-00082-K1"
-        ]
-      },
-      {
+        "evidence_id": "EV-58b0fc41",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03012)",
@@ -69,9 +64,10 @@
         ]
       },
       {
+        "evidence_id": "EV-53ed8668",
         "claim": "Customer response (simulated): Customer confirms they authorized this purchase from their personal account.",
         "source": "customer",
-        "ref": "evidence_request:ER-1ba9016f",
+        "ref": "evidence_request:ER-4fb8f961",
         "entity_ids": [
           "SC-03012"
         ]
@@ -80,7 +76,7 @@
     "similar_prior_cases": [
       "CC-4313"
     ],
-    "summary": "The investigation for CASE-012 was triggered by a real-time risk score of 0.59 on transaction 4012151 ($54.72, billing region 246) [EV-94cde3cf]. The card SC-03012-K942 had one prior transaction with an identical average amount of $54.72 [EV-d864a883]. The device fingerprint (Mac OS X 10_15_5 Firefox 89.0 unit-04117 | iOS 16.2 | edge 123.0 | 390x844) was shared across 20 other cards, including SC-00001-K2, SC-00008-K1, SC-00039-K1, SC-00044-K1, and SC-00047-K1 [EV-508b2946]. The customer had one prior case cleared as legitimate, involving confirmed travel or purchase [EV-6bde2938]. The customer confirmed they authorized the purchase from their personal account [EV-b2255675]. Based on the evidence, the case was closed as legitimate with no fraud exposure.",
+    "summary": "Case CASE-012 (Card SC-03012-K942): The investigation for CASE-012 was triggered by a real-time risk score of 0.69 on transaction 4012151 ($465.94, billing region 246) [EV-44ad2d17, trigger:risk_score]. Device profiling revealed the transaction device (Linux x86_64 Chrome 96.0 unit-04117 | Android 12 | edge 123.0 | 390x844) was shared across 20 other cards, with five cards explicitly named and ten linked to this case [EV-b86326f4, query:accounts_sharing_device]. A prior case for customer SC-03012 had been cleared as legitimate, indicating a history of confirmed travel or purchase [EV-58b0fc41, query:closed_cases_for_customer]. The customer confirmed they authorized the purchase from their personal account [EV-53ed8668, evidence_request:ER-4fb8f961]. Based on this evidence, the case was closed as legitimate with no fraud exposure.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-012"
   },
@@ -92,17 +88,17 @@
       "status": "received",
       "info_value": 1.0,
       "origin": "simulated",
-      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.67); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.07)",
+      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.64); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.05)",
       "alternatives_considered": [
         {
           "type": "analyst_info",
-          "info_value": -0.1,
-          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.48); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.17)"
+          "info_value": 0.15,
+          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.43); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.13)"
         },
         {
           "type": "external_watchlist",
           "info_value": -0.15,
-          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.45); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.23)"
+          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.40); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.18)"
         }
       ]
     }
@@ -132,7 +128,7 @@
         "reason": "R3: customer confirmed the transaction"
       }
     ],
-    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: FILE_REPORT, ESCALATE_TO_ANALYST, CREATE_CASE"
+    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST"
   },
   "sar": {
     "file": false,
@@ -147,16 +143,16 @@
       "pattern": "card_testing",
       "confidence": 0.65,
       "evidence_ids": [
-        "EV-94cde3cf",
-        "EV-d864a883",
-        "EV-508b2946"
+        "EV-b86326f4",
+        "EV-44ad2d17",
+        "EV-53ed8668"
       ],
-      "rationale": "Small $54.72 transaction triggered a risk score, matches recent average amount, and the same device profile is used by many cards, indicating possible testing of stolen card data."
+      "rationale": "Shared device used by many cards and a moderate risk score suggest coordinated testing of stolen card data."
     },
     "policy_decision": {
       "verdict": "legitimate",
       "pattern": "none",
-      "fraud_probability": 0.071,
+      "fraud_probability": 0.053,
       "actions": [
         "CLOSE_NO_FRAUD"
       ],
@@ -167,17 +163,23 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1107,
-        "completion_tokens": 1277
+        "prompt_tokens": 1030,
+        "completion_tokens": 1114,
+        "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+        "latency_ms": 3281.6,
+        "cached": false
       },
       "pattern_classifier": {
-        "prompt_tokens": 947,
-        "completion_tokens": 804
+        "prompt_tokens": 870,
+        "completion_tokens": 925,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 3865.3,
+        "cached": false
       }
     }
   },
-  "stop_reason": "Fraud probability 0.07 ≤ 0.15; activity consistent with legitimate use.",
+  "stop_reason": "Fraud probability 0.05 ≤ 0.15; activity consistent with legitimate use.",
   "tool_calls": 15,
-  "tokens": 1277,
-  "latency_s": 15.67
+  "tokens": 2039,
+  "latency_s": 7.24
 }

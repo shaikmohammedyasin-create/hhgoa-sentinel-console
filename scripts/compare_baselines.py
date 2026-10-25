@@ -24,7 +24,7 @@ OUT = ROOT / "artifacts" / "compare_baselines.json"
 
 THRESHOLDS = [0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85]
 
-# Nebius pricing for Nemotron Nano (indicative Token Factory rates: $0.10/M prompt, $0.20/M completion)
+# Indicative Nemotron Nano rates used ONLY for an order-of-magnitude estimate: $0.10/M prompt, $0.20/M completion. These are assumptions recorded 2026-10-24, not an invoice; no dollar figure is authoritative.
 NANO_COST_PER_M_IN = 0.10
 NANO_COST_PER_M_OUT = 0.20
 

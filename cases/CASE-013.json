@@ -7,28 +7,30 @@
     "pattern": "card_not_present_new_device",
     "pattern_description": "Device marked New for this account; proxy/anonymous connection",
     "affected_txn_ids": [
-      "4012178",
-      "4012179"
+      "4012175",
+      "4012176"
     ],
-    "first_suspicious_txn_id": "4012178",
+    "first_suspicious_txn_id": "4012175",
     "connected_card_ids": [],
     "connected_device_profiles": [
-      "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013"
+      "Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013"
     ],
-    "exposure_usd": 2005.89,
+    "exposure_usd": 807.36,
     "evidence": [
       {
-        "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012178 ($1215.69, in billing region 'domestic') at 0.85. Review and decide.",
+        "evidence_id": "EV-02ae78a6",
+        "claim": "Trigger (risk_score): Real-time model scored transaction 4012175 ($516.82, in billing region 'domestic') at 0.89. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
         "entity_ids": [
           "SC-03013",
           "SC-03013-K951",
-          "4012178"
+          "4012175"
         ]
       },
       {
-        "claim": "2 previous transactions retrieved for card SC-03013-K951. Average amount: $1002.95.",
+        "evidence_id": "EV-1982ea45",
+        "claim": "1 previous transactions retrieved for card SC-03013-K951 (excluding the flagged transaction). Average amount: $290.54.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03013-K951)",
         "entity_ids": [
@@ -36,31 +38,35 @@
         ]
       },
       {
+        "evidence_id": "EV-c82a1bfe",
         "claim": "2 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03013-K951, hours=48)",
         "entity_ids": [
-          "4012178",
-          "4012179"
+          "4012175",
+          "4012176"
         ]
       },
       {
-        "claim": "Device marked 'New' for this account: Samsung SM-G973F map400 Playlist for Android unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013.",
+        "evidence_id": "EV-26878aa7",
+        "claim": "Device marked 'New' for this account: Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013.",
         "source": "graph",
-        "ref": "query:transaction_identity(txn_id=4012178)",
+        "ref": "query:transaction_identity(txn_id=4012175)",
         "entity_ids": [
-          "4012178"
+          "4012175"
         ]
       },
       {
+        "evidence_id": "EV-bd746ebe",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
-        "ref": "query:transaction_identity(txn_id=4012178)",
+        "ref": "query:transaction_identity(txn_id=4012175)",
         "entity_ids": [
-          "4012178"
+          "4012175"
         ]
       },
       {
+        "evidence_id": "EV-ef4d0d2e",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03013 or card SC-03013-K951: CC-4322.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03013)",
@@ -69,30 +75,33 @@
         ]
       },
       {
-        "claim": "Device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013' appears in 1 confirmed fraud case(s).",
+        "evidence_id": "EV-e24715cf",
+        "claim": "Device profile 'Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013' appears in 1 confirmed fraud case(s).",
         "source": "graph",
-        "ref": "query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013)",
+        "ref": "query:closed_cases_by_device(device=Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013)",
         "entity_ids": [
           "CC-4322"
         ]
       },
       {
-        "claim": "6 prior closed case(s) retrieved by pattern (card_not_present_new_device) and keyword match over analyst notes.",
+        "evidence_id": "EV-9cb41405",
+        "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_new_device' and keyword match over analyst notes (prior patterns: card_not_present_new_device).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_new_device)",
         "entity_ids": [
-          "CC-4321",
-          "CC-4325",
           "CC-4324",
-          "CC-4323",
+          "CC-4321",
           "CC-4320",
-          "CC-4322"
+          "CC-4322",
+          "CC-4323",
+          "CC-4325"
         ]
       },
       {
+        "evidence_id": "EV-239568b8",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-0db6b159",
+        "ref": "evidence_request:ER-5a82cdad",
         "entity_ids": [
           "SC-03013"
         ]
@@ -100,13 +109,13 @@
     ],
     "similar_prior_cases": [
       "CC-4322",
-      "CC-4321",
-      "CC-4325",
       "CC-4324",
+      "CC-4321",
+      "CC-4320",
       "CC-4323",
-      "CC-4320"
+      "CC-4325"
     ],
-    "summary": "Case CASE-013 (Card SC-03013-K951): The real-time risk model scored transaction 4012178 ($1,215.69, domestic) at 0.85, triggering review [EV-f59b3cc7, query:trigger:risk_score]. The card SC-03013-K951 showed two prior transactions averaging $1,002.95 and two online transactions within 48 hours of the flagged transaction [EV-670616e5, query:card_transaction_history; EV-b06a1d71, query:card_window]. The transaction originated from a new device (Samsung SM-G973F map400 Playlist for Android) and an anonymous proxy IP in Argentina [EV-d6a20171, query:transaction_identity; EV-30b53252, query:transaction_identity]. The customer reported they did not make the purchases and still possessed the card [EV-508e977c, evidence_request:ER-0db6b159]. One prior confirmed fraud case (CC-4322) was linked to this customer/card, and the same device profile appeared in one confirmed fraud case [EV-17323360, query:closed_cases_for_customer; EV-33d48d97, query:closed_cases_by_device]. Six prior closed cases matched the card_not_present_new_device pattern [EV-85170f1c, retrieval:pattern+keyword].",
+    "summary": "Case CASE-013 (Card SC-03013-K951): The real-time risk model scored transaction 4012175 at 0.89, triggering review [EV-02ae78a6]. The transaction originated from a new device profile (Mac OS X 10_15_5 Firefox 89.0) and an anonymous proxy connection from Argentina [EV-26878aa7, EV-bd746ebe]. The card SC-03013-K951 had one prior transaction averaging $290.54 and two online transactions within 48 hours of the flagged transaction [EV-1982ea45, EV-c82a1bfe]. The same device profile appeared in a prior confirmed fraud case, and the customer has one prior fraud case CC-4322 [EV-e24715cf, EV-ef4d0d2e]. The customer reported they did not make the purchases and still possess the card [EV-239568b8]. Six prior closed cases share the card_not_present_new_device pattern [EV-9cb41405].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-013"
   },
@@ -182,17 +191,16 @@
   },
   "sar": {
     "file": true,
-    "reason": "R2: confirmed fraud with exposure > $1,000",
-    "narrative": "Suspicious Activity Report for CASE-013 involving card SC-03013-K951 and transactions 4012178 ($1,215.69) and 4012179 (amount not in evidence) totaling $2,005.89 exposure. The real-time risk model assigned a score of 0.85 to transaction 4012178, indicating elevated fraud probability [EV-f59b3cc7]. Transaction 4012178 originated from a previously unseen device (Samsung SM-G973F map400 Playlist for Android) and an anonymous proxy IP located in Argentina, both consistent with card-not-present fraud [EV-d6a20171, EV-30b53252]. The customer confirmed they did not authorize the transactions and retained physical possession of the card [EV-508e977c]. Historical analysis revealed one prior confirmed fraud case (CC-4322) associated with this customer/card and the same device profile appearing in another confirmed fraud case [EV-17323360, EV-33d48d97]. Pattern retrieval identified six prior closed cases sharing the card_not_present_new_device pattern, supporting the classification [EV-85170f1c]. The investigation concluded with a fraud verdict and the case was closed with total exposure of $2,005.89. No further action is recommended beyond standard recovery procedures.",
+    "reason": "R6: confirmed fraud connected to shared device profile or card",
+    "narrative": "Suspicious Activity Report for CASE-013 involving card-not-present fraud on card SC-03013-K951 with exposure of $807.36 across transactions 4012175 and 4012176. The triggering transaction 4012175 for $516.82 was scored at 0.89 by the real-time risk model and originated from a previously unseen device profile (Mac OS X 10_15_5 Firefox 89.0) via an anonymous proxy connection from Argentina [EV-02ae78a6, EV-26878aa7, EV-bd746ebe]. The card exhibited anomalous velocity with two online transactions within 48 hours, deviating from the historical average of $290.54 per transaction [EV-1982ea45, EV-c82a1bfe]. The device fingerprint has been linked to a prior confirmed fraud case, and the customer SC-03013 has a previous fraud case CC-4322 [EV-e24715cf, EV-ef4d0d2e]. The customer confirmed they did not authorize the transactions and retain physical possession of the card [EV-239568b8]. Pattern analysis retrieved six prior closed cases with the same card_not_present_new_device signature, supporting a recurring modus operandi [EV-9cb41405]. The investigation concluded with a fraud verdict and the case is closed.",
     "subjects": [
-      "SC-03013-K951",
       "SC-03013",
-      "Samsung SM-G973F map400 Playlist for Android unit-caseCASE-013 | synth-os-case-0"
+      "SC-03013-K951",
+      "Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013"
     ],
-    "total_amount_usd": 2005.89,
+    "total_amount_usd": 807.36,
     "activity_dates": [
-      "2026-09-14",
-      "2026-09-14"
+      "2026-09-20"
     ]
   },
   "nemotron": {
@@ -214,13 +222,16 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1398,
-        "completion_tokens": 1941
+        "prompt_tokens": 1401,
+        "completion_tokens": 1747,
+        "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+        "latency_ms": 4412.6,
+        "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.85 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 1941,
-  "latency_s": 31.39
+  "tokens": 1747,
+  "latency_s": 9.54
 }

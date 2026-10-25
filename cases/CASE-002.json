@@ -3,7 +3,7 @@
   "case": {
     "status": "closed_legitimate",
     "verdict": "legitimate",
-    "fraud_probability": 0.053,
+    "fraud_probability": 0.05,
     "pattern": "none",
     "pattern_description": "Case closed as legitimate; no active fraud pattern.",
     "affected_txn_ids": [],
@@ -26,7 +26,8 @@
     "exposure_usd": 0.0,
     "evidence": [
       {
-        "claim": "Trigger (risk_score): Trigger (risk_score): Real-time model scored transaction 4012148 ($147.84, in billing region 527) at 0.61. Review and decide.",
+        "evidence_id": "EV-bb7cc45a",
+        "claim": "Trigger (risk_score): Real-time model scored transaction 4012148 ($151.48, in billing region 527) at 0.61. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
         "entity_ids": [
@@ -36,15 +37,8 @@
         ]
       },
       {
-        "claim": "1 previous transactions retrieved for card SC-03002-K939. Average amount: $147.84.",
-        "source": "graph",
-        "ref": "query:card_transaction_history(card_id=SC-03002-K939)",
-        "entity_ids": [
-          "SC-03002-K939"
-        ]
-      },
-      {
-        "claim": "Device profile shared across 20 other card(s): SC-00013-K2, SC-00022-K1, SC-00066-K1, SC-00086-K2, SC-00090-K2.",
+        "evidence_id": "EV-12357a90",
+        "claim": "Device profile shared across 20 other card(s); 5 named here and 10 linked to this case: SC-00013-K2, SC-00022-K1, SC-00066-K1, SC-00086-K2, SC-00090-K2.",
         "source": "graph",
         "ref": "query:accounts_sharing_device(device=IOS Device (Apple) unit-04114 | Windows 11 | firefox 122.0 | 1440x900)",
         "entity_ids": [
@@ -61,6 +55,7 @@
         ]
       },
       {
+        "evidence_id": "EV-d413f22e",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03002)",
@@ -69,9 +64,10 @@
         ]
       },
       {
+        "evidence_id": "EV-c430c545",
         "claim": "Customer response (simulated): Customer confirms they authorized this purchase from their personal account.",
         "source": "customer",
-        "ref": "evidence_request:ER-c3fe3c11",
+        "ref": "evidence_request:ER-3aa709aa",
         "entity_ids": [
           "SC-03002"
         ]
@@ -80,7 +76,7 @@
     "similar_prior_cases": [
       "CC-4310"
     ],
-    "summary": "Case CASE-002 (Card SC-03002-K939): The investigation was triggered by a real-time risk score of 0.61 for transaction 4012148 ($147.84) [EV-578099b6]. The card SC-03002-K939 had one prior transaction with the same average amount [EV-ac05cb8b]. The device profile (IOS Device (Apple) unit-04114 | Windows 11 | firefox 122.0 | 1440x900) was shared across 20 other cards, including several connected to this case [EV-1b2f788a]. A prior case for this customer was cleared as legitimate [EV-4801f796]. The customer confirmed authorizing the purchase [EV-03177d91]. The case was closed as legitimate with no exposure.",
+    "summary": "Case CASE-002 (Card SC-03002-K939): The investigation for CASE-002 was triggered by a real-time risk model scoring transaction 4012148 ($151.48, billing region 527) at 0.61 [EV-bb7cc45a, trigger:risk_score]. Device profiling revealed the transaction's device fingerprint (iOS Device (Apple) unit-04114 | Windows 11 | firefox 122.0 | 1440x900) was shared across 20 other cards, with five cards (SC-00013-K2, SC-00022-K1, SC-00066-K1, SC-00086-K2, SC-00090-K2) explicitly named and ten linked to this case [EV-12357a90, query:accounts_sharing_device]. Historical review showed one prior case for customer SC-03002 had been cleared as legitimate, citing confirmed travel and confirmed purchase [EV-d413f22e, query:closed_cases_for_customer]. The customer subsequently confirmed authorizing the purchase from their personal account [EV-c430c545, evidence_request:ER-3aa709aa]. Based on the device-sharing context, prior legitimate history, and customer confirmation, the case was closed as legitimate with no fraud exposure.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-002"
   },
@@ -92,17 +88,17 @@
       "status": "received",
       "info_value": 1.0,
       "origin": "simulated",
-      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.64); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.05)",
+      "decision_relevance": "Outcome A (Customer denies making the transaction) -> BLOCK_CARD, CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS (p=0.63); Outcome B (Customer confirms making the transaction / legitimate context) -> CLOSE_NO_FRAUD (p=0.05)",
       "alternatives_considered": [
         {
           "type": "analyst_info",
           "info_value": 0.15,
-          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.43); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.13)"
+          "decision_relevance": "Outcome A (Analyst reports related fraud on the shared profile) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.42); Outcome B (Analyst reports no related activity) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.12)"
         },
         {
           "type": "external_watchlist",
           "info_value": -0.15,
-          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.40); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.18)"
+          "decision_relevance": "Outcome A (Watchlist hit on linked identifiers) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.39); Outcome B (No watchlist hits) -> CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST (p=0.17)"
         }
       ]
     }
@@ -132,7 +128,7 @@
         "reason": "R3: customer confirmed the transaction"
       }
     ],
-    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: FILE_REPORT, ESCALATE_TO_ANALYST, CREATE_CASE"
+    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST"
   },
   "sar": {
     "file": false,
@@ -143,28 +139,45 @@
     "activity_dates": []
   },
   "nemotron": {
-    "model_proposal": null,
+    "model_proposal": {
+      "pattern": "card_testing",
+      "confidence": 0.65,
+      "evidence_ids": [
+        "EV-12357a90"
+      ],
+      "rationale": "Shared iOS/Firefox device profile used by many cards indicates possible card testing; risk score 0.61 and customer claim of authorization add context."
+    },
     "policy_decision": {
       "verdict": "legitimate",
       "pattern": "none",
-      "fraud_probability": 0.053,
+      "fraud_probability": 0.05,
       "actions": [
         "CLOSE_NO_FRAUD"
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
     "model_agreed": false,
-    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+    "model_override_reason": "Policy engine retained 'none' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.65. Engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1098,
-        "completion_tokens": 995
+        "prompt_tokens": 1023,
+        "completion_tokens": 1248,
+        "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+        "latency_ms": 5392.1,
+        "cached": false
+      },
+      "pattern_classifier": {
+        "prompt_tokens": 864,
+        "completion_tokens": 861,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 10481.5,
+        "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.05 ≤ 0.15; activity consistent with legitimate use.",
   "tool_calls": 15,
-  "tokens": 995,
-  "latency_s": 14.98
+  "tokens": 2109,
+  "latency_s": 15.97
 }
