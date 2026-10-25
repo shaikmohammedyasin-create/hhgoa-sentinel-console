@@ -15,7 +15,7 @@ import pytest
 
 from backend.config import settings
 
-# The prepared SQLite graph store (174 MB) is runtime data, not source: it is
+# The prepared SQLite graph store (~7 MB) is runtime data, not source: it is
 # gitignored and instead published as a GitHub Release asset. Sessions that
 # declare PREPARED_DB_URL fetch it on demand; sessions without it simply run
 # the store-independent tests (e.g. quick local unit runs).
