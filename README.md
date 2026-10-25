@@ -327,9 +327,7 @@ The Next.js analyst console in `sentinel-ui/` was forked and extensively reworke
 
 ### Attribution & Licence Status
 
-The fork is documented in [`sentinel-ui/NOTICE.md`](./sentinel-ui/NOTICE.md) and [`docs/UI_PROVENANCE.md`](./docs/UI_PROVENANCE.md). The upstream repository (`r-rishit27/hacker_house`, branch `sentinel-v2`, commit `7bcea03`) contains **no LICENSE file**, and no written permission to redistribute or relicense the upstream code is recorded in this repository.
-
-Two candidate final wordings � one for the case where written permission from the upstream authors is granted, one for the case where it is not � are drafted in [`docs/ATTRIBUTION_DRAFT.md`](./docs/ATTRIBUTION_DRAFT.md). **Neither has been applied.** Until one is chosen, this section states only the facts above; it makes no claim of permission and no claim of infringement.
+> **Attribution & Licence.** The console in `sentinel-ui/` is derived from the "Sentinel v2" analyst console by Team CollabUp (Hacker House Goa 2026, `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). The upstream authors granted written permission to fork, modify and redistribute this derivative as part of Sentinel Graph on **<DATE>** (record: [`docs/UPSTREAM_PERMISSION.md`](docs/UPSTREAM_PERMISSION.md)), under the terms recorded there. The upstream repository carries no LICENSE file; this grant is the recorded permission, and this project's own code remains MIT (`LICENSE`, Copyright 2026 Mohammed Yasin Shaik). Files that are unchanged upstream are listed in `docs/UI_PROVENANCE.md` §4(A).
 
 For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./docs/UI_PROVENANCE.md).
 
