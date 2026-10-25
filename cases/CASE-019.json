@@ -19,7 +19,7 @@
     "exposure_usd": 594.31,
     "evidence": [
       {
-        "evidence_id": "EV-c63e0766",
+        "evidence_id": "EV-545cb4ec",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012227 ($412.46, billing mismatch) at 0.89. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -30,7 +30,7 @@
         ]
       },
       {
-        "evidence_id": "EV-7af7e3e1",
+        "evidence_id": "EV-5177e48d",
         "claim": "3 previous transactions retrieved for card SC-03019-K957 (excluding the flagged transaction). Average amount: $74.35.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03019-K957)",
@@ -39,7 +39,7 @@
         ]
       },
       {
-        "evidence_id": "EV-a70e6254",
+        "evidence_id": "EV-2195055c",
         "claim": "3 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03019-K957, hours=48)",
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "evidence_id": "EV-3c5d6577",
+        "evidence_id": "EV-5b21c6fa",
         "claim": "Device marked 'New' for this account: Samsung SM-G973F map400 Playlist for Android unit-caseCASE-019 | synth-os-case-019 | synth-browser-case-019 | synth-screen-case-019.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012227)",
@@ -59,7 +59,7 @@
         ]
       },
       {
-        "evidence_id": "EV-ce6c5bcb",
+        "evidence_id": "EV-ca61c122",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012227)",
@@ -68,7 +68,7 @@
         ]
       },
       {
-        "evidence_id": "EV-17411851",
+        "evidence_id": "EV-7f79d48e",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03019 or card SC-03019-K957: CC-4328.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03019)",
@@ -77,7 +77,7 @@
         ]
       },
       {
-        "evidence_id": "EV-b2ec3377",
+        "evidence_id": "EV-abb90528",
         "claim": "Device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-019 | synth-os-case-019 | synth-browser-case-019 | synth-screen-case-019' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-019 | synth-os-case-019 | synth-browser-case-019 | synth-screen-case-019)",
@@ -86,7 +86,7 @@
         ]
       },
       {
-        "evidence_id": "EV-8289b610",
+        "evidence_id": "EV-c4fc536e",
         "claim": "1 prior closed case(s) retrieved by pattern 'account_takeover' and keyword match over analyst notes (prior patterns: account_takeover).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=account_takeover)",
@@ -95,10 +95,10 @@
         ]
       },
       {
-        "evidence_id": "EV-b5640397",
+        "evidence_id": "EV-08775a39",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-7fe76151",
+        "ref": "evidence_request:ER-f3d46082",
         "entity_ids": [
           "SC-03019"
         ]
@@ -107,7 +107,7 @@
     "similar_prior_cases": [
       "CC-4328"
     ],
-    "summary": "Case CASE-019 was closed as fraud with an account_takeover pattern and 0.90 fraud probability, involving three transactions (4012227, 4012229, 4012230) totaling $594.31 exposure [EV-c63e0766]. The flagged transaction 4012227 ($412.46) triggered a real-time risk score of 0.89 due to billing mismatch [EV-c63e0766]. Transaction 4012227 originated from a new device (Samsung SM-G973F) and an anonymous proxy IP in Argentina [EV-3c5d6577, EV-ce6c5bcb]. The card SC-03019-K957 showed three online transactions within 48 hours of the flagged transaction, with historical average spend of $74.35 [EV-7af7e3e1, EV-a70e6254]. The device profile and customer SC-03019 were each linked to one prior confirmed fraud case (CC-4328) [EV-17411851, EV-b2ec3377]. The customer reported not authorizing the purchases and retaining physical possession of the card [EV-b5640397].",
+    "summary": "Case CASE-019 (Card SC-03019-K957): The real-time risk model flagged transaction 4012227 ($412.46, billing mismatch) with a score of 0.89 [EV-545cb4ec]. The card SC-03019-K957 showed three prior transactions averaging $74.35 [EV-5177e48d] and three online transactions within 48 hours of the flagged transaction [EV-2195055c]. The transaction originated from a new device (Samsung SM-G973F) and an anonymous proxy connection in Argentina [EV-5b21c6fa, EV-ca61c122]. The same device profile appears in a prior confirmed fraud case [EV-abb90528], and the customer SC-03019 has a previous fraud case CC-4328 [EV-7f79d48e]. A pattern-and-keyword retrieval also returned a prior account_takeover case [EV-c4fc536e]. The customer reported they did not make the purchases and still possess the card [EV-08775a39].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-019"
   },
@@ -184,7 +184,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "This report documents suspicious activity consistent with account takeover involving customer SC-03019 and card SC-03019-K957. On the date of transaction 4012227, a real-time risk model assigned a score of 0.89 citing billing mismatch and a transaction amount of $412.46, significantly above the card's historical average of $74.35 [EV-c63e0766, EV-7af7e3e1]. The transaction was initiated from a previously unseen device (Samsung SM-G973F) and routed through an anonymous proxy IP geolocated to Argentina [EV-3c5d6577, EV-ce6c5bcb]. Three online transactions occurred on the card within a 48-hour window, indicating rapid successive misuse [EV-a70e6254]. The device fingerprint has been observed in one prior confirmed fraud case, and the customer profile has one prior confirmed fraud case (CC-4328) [EV-b2ec3377, EV-17411851]. Pattern retrieval confirms alignment with the account_takeover typology [EV-8289b610]. The customer denies authorizing the transactions and confirms physical card possession, supporting unauthorized use [EV-b5640397]. Total exposure across three transactions is $594.31. The activity warrants SAR filing under applicable regulations.",
+    "narrative": "Suspicious Activity Report for CASE-019 involving account takeover pattern. Transaction 4012227 ($412.46) triggered a real-time risk score of 0.89 due to billing mismatch [EV-545cb4ec]. The associated card SC-03019-K957 exhibited anomalous velocity with three online transactions in 48 hours [EV-2195055c] and a historical average transaction amount of $74.35 [EV-5177e48d], indicating deviation from normal spend. The transaction was initiated from a previously unseen device (Samsung SM-G973F) [EV-5b21c6fa] via an anonymous proxy IP located in Argentina [EV-ca61c122], both hallmarks of account takeover. The device fingerprint has been linked to a prior confirmed fraud case [EV-abb90528], and the customer SC-03019 has a history of fraud (case CC-4328) [EV-7f79d48e]. Pattern-based retrieval corroborates the account_takeover classification [EV-c4fc536e]. The customer denies authorizing the transactions and confirms physical card possession [EV-08775a39]. Total exposure across three transactions (4012227, 4012229, 4012230) is $594.31. The evidence supports a finding of fraud consistent with account takeover.",
     "subjects": [
       "SC-03019",
       "SC-03019-K957",
@@ -197,17 +197,7 @@
     ]
   },
   "nemotron": {
-    "model_proposal": {
-      "pattern": "account_takeover",
-      "confidence": 0.9,
-      "evidence_ids": [
-        "EV-17411851",
-        "EV-b2ec3377",
-        "EV-b5640397",
-        "EV-8289b610"
-      ],
-      "rationale": "Multiple prior fraud cases link the customer and device to known account takeover activity; recent transaction shows new device, proxy use, and online purchases, matching takeover pattern."
-    },
+    "model_proposal": null,
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "account_takeover",
@@ -220,28 +210,22 @@
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
-    "model_agreed": true,
-    "model_override_reason": "",
+    "model_agreed": false,
+    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1365,
-        "completion_tokens": 1890,
+        "prompt_tokens": 1366,
+        "completion_tokens": 1808,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 5751.8,
-        "cached": false
-      },
-      "pattern_classifier": {
-        "prompt_tokens": 1284,
-        "completion_tokens": 774,
-        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-        "latency_ms": 2892.9,
+        "latency_ms": 4796.9,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "Fraud probability 0.90 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 2664,
-  "latency_s": 9.08
+  "tokens": 1808,
+  "latency_s": 12.57
 }

@@ -7,10 +7,10 @@
     "pattern": "undocumented",
     "pattern_description": "The policy engine's rules did not match this activity to any of the five named fraud patterns, but the evidence shows coordinated abuse across accounts: 17 other card(s) share the device profile used here. It is reported as undocumented rather than forced into a known category, per policy R9.",
     "affected_txn_ids": [
-      "4012185",
       "4012203",
       "4012204",
-      "4012205"
+      "4012205",
+      "4012185"
     ],
     "first_suspicious_txn_id": "4012205",
     "connected_card_ids": [
@@ -31,7 +31,7 @@
     "exposure_usd": 23.51,
     "evidence": [
       {
-        "evidence_id": "EV-0ec71b8d",
+        "evidence_id": "EV-0048fc41",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012185 ($14.50) at 0.48. Coordinated micro-payment ring. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -42,7 +42,7 @@
         ]
       },
       {
-        "evidence_id": "EV-6db89be6",
+        "evidence_id": "EV-f21cf11a",
         "claim": "3 previous transactions retrieved for card SC-03009-K955 (excluding the flagged transaction). Average amount: $3.00.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03009-K955)",
@@ -51,7 +51,7 @@
         ]
       },
       {
-        "evidence_id": "EV-2e64af3d",
+        "evidence_id": "EV-6473140c",
         "claim": "4 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03009-K955, hours=48)",
@@ -63,7 +63,7 @@
         ]
       },
       {
-        "evidence_id": "EV-74a90e3d",
+        "evidence_id": "EV-64adb530",
         "claim": "Device profile shared across 17 other card(s); 5 named here and 10 linked to this case: SC-09000-K1, SC-09001-K1, SC-09002-K1, SC-09003-K1, SC-09004-K2.",
         "source": "graph",
         "ref": "query:accounts_sharing_device(device=Windows Desktop MatchOS windows x64 dggfwmdd unit-case-009-ring | synth-os-case-009-ring | synth-browser-case-009 | synth-screen-case-009)",
@@ -81,7 +81,7 @@
         ]
       },
       {
-        "evidence_id": "EV-5dcd914f",
+        "evidence_id": "EV-d6ec8e61",
         "claim": "Fraud-ring analysis: device component contains 4 confirmed-fraud card(s) (ring size 18).",
         "source": "graph",
         "ref": "query:device_fraud_ring(device=Windows Desktop MatchOS windows x64 dggfwmdd unit-case-009-ring | synth-os-case-009-ring | synth-browser-case-009 | synth-screen-case-009)",
@@ -93,7 +93,7 @@
         ]
       },
       {
-        "evidence_id": "EV-de456c89",
+        "evidence_id": "EV-d1db0752",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03009)",
@@ -102,7 +102,7 @@
         ]
       },
       {
-        "evidence_id": "EV-660eadb3",
+        "evidence_id": "EV-03784f09",
         "claim": "5 prior closed case(s) retrieved by keyword match over analyst notes (prior patterns: card_testing).",
         "source": "document",
         "ref": "retrieval:keyword(patterns=card_testing)",
@@ -115,10 +115,10 @@
         ]
       },
       {
-        "evidence_id": "EV-6e807dc0",
+        "evidence_id": "EV-4a7078bb",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-7ba3286c",
+        "ref": "evidence_request:ER-4a89bb01",
         "entity_ids": [
           "SC-03009"
         ]
@@ -132,7 +132,7 @@
       "CC-4304",
       "CC-4305"
     ],
-    "summary": "Case CASE-009 (Card SC-03009-K955): The investigation was triggered by a real-time risk score of 0.48 on transaction 4012185 ($14.50), flagged as a coordinated micro-payment ring [EV-0ec71b8d]. The flagged card SC-03009-K955 showed 4 online transactions within 48 hours and a historical average of $3.00 across 3 prior transactions [EV-6db89be6, EV-2e64af3d]. Device fingerprint analysis revealed the same device profile shared across 17 other cards, including 5 explicitly named (SC-09000-K1 through SC-09004-K2) and 10 linked to this case [EV-74a90e3d]. Fraud-ring analysis confirmed 4 fraud-confirmed cards within the device component, with a ring size of 18 [EV-5dcd914f]. The customer denied making the purchases and confirmed physical card possession [EV-6e807dc0]. Prior history includes one cleared legitimate case for this customer [EV-de456c89] and five prior closed cases matching the card_testing pattern [EV-660eadb3].",
+    "summary": "Case CASE-009 (Card SC-03009-K955): The case involves a coordinated micro-payment ring detected via real-time risk scoring of transaction 4012185 ($14.50) at 0.48 [EV-0048fc41]. Four affected transactions total $23.51 exposure across ten connected cards. Device fingerprint analysis reveals a shared Windows Desktop profile across 17 cards, including five explicitly named and ten linked to this case, with four confirmed-fraud cards in a ring of size 18 [EV-64adb530, EV-d6ec8e61]. The flagged card SC-03009-K955 showed four online transactions within 48 hours and a low historical average of $3.00 [EV-f21cf11a, EV-6473140c]. Customer denies making the purchases and reports card still in possession [EV-4a7078bb]. Prior case history includes one cleared legitimate case and five keyword-matched cases with card_testing pattern [EV-d1db0752, EV-03784f09].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-009"
   },
@@ -204,7 +204,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "A Suspicious Activity Report is warranted for CASE-009 based on evidence of a coordinated micro-payment fraud ring. The real-time model scored transaction 4012185 at 0.48 risk, identifying a micro-payment pattern across four transactions totaling $23.51 in exposure [EV-0ec71b8d]. Device fingerprint analysis linked the activity to a shared device profile across 17 cards, with 10 cards directly connected to this case and 4 confirmed fraud cards within the device component (ring size 18) [EV-74a90e3d, EV-5dcd914f]. The affected card SC-03009-K955 exhibited anomalous velocity with 4 online transactions in 48 hours, deviating from its historical $3.00 average [EV-6db89be6, EV-2e64af3d]. The customer reported no authorization of the transactions and confirmed physical card possession, supporting card-not-present fraud [EV-6e807dc0]. Prior case retrieval shows a pattern consistent with card_testing across five similar closed cases [EV-660eadb3], while one prior case for this customer was cleared as legitimate [EV-de456c89]. The undocumented pattern designation and 0.775 fraud probability further support the fraud verdict. This activity exhibits hallmarks of organized card-testing and micro-laundering through a shared device infrastructure.",
+    "narrative": "Suspicious Activity Report for CASE-009 documents a coordinated micro-payment fraud ring involving ten connected cards and four transactions totaling $23.51. Real-time risk scoring flagged transaction 4012185 ($14.50) at 0.48 with a coordinated micro-payment ring indicator [EV-0048fc41]. Device fingerprint analysis identified a shared Windows Desktop profile (Windows Desktop MatchOS windows x64 dggfwmdd unit-case-009-ring | synth-os-case-009-ring | synth-browser-case-009 | synth-screen-case-009) across 17 cards, including five explicitly named cards (SC-09000-K1 through SC-09004-K2) and ten cards connected to this case [EV-64adb530]. Fraud-ring analysis confirmed four fraud cards within this device component, indicating a ring size of 18 [EV-d6ec8e61]. The primary card SC-03009-K955 exhibited anomalous velocity with four online transactions within 48 hours against a historical average of $3.00 per transaction [EV-f21cf11a, EV-6473140c]. Customer explicitly denied authorizing the transactions and confirmed physical card possession [EV-4a7078bb]. Prior case review revealed one previously cleared legitimate case for this customer and five historical cases matching the card_testing pattern [EV-d1db0752, EV-03784f09]. The undocumented pattern classification and 0.775 fraud probability support the fraud verdict. Total exposure of $23.51 across four transactions (4012203, 4012204, 4012205, 4012185) warrants SAR filing. The device-sharing cluster and confirmed fraud cards suggest organized synthetic identity testing.",
     "subjects": [
       "SC-03009",
       "SC-03009-K955",
@@ -240,15 +240,16 @@
     "model_usage": {
       "case_narrative_and_sar_draft": {
         "prompt_tokens": 1439,
-        "completion_tokens": 1799,
+        "completion_tokens": 1893,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 4944.8,
+        "latency_ms": 5121.1,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
   "tool_calls": 16,
-  "tokens": 1799,
-  "latency_s": 11.07
+  "tokens": 1893,
+  "latency_s": 10.45
 }

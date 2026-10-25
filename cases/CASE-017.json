@@ -7,9 +7,9 @@
     "pattern": "card_not_present_fraud",
     "pattern_description": "Burst of 3 online transactions within 48h",
     "affected_txn_ids": [
-      "4012164",
+      "4012165",
       "4012166",
-      "4012165"
+      "4012164"
     ],
     "first_suspicious_txn_id": "4012164",
     "connected_card_ids": [],
@@ -19,7 +19,7 @@
     "exposure_usd": 586.82,
     "evidence": [
       {
-        "evidence_id": "EV-92b63758",
+        "evidence_id": "EV-46cf9f5c",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012164 ($220.38, in billing region 'domestic') at 0.81. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -30,7 +30,7 @@
         ]
       },
       {
-        "evidence_id": "EV-500a2346",
+        "evidence_id": "EV-db5481d5",
         "claim": "2 previous transactions retrieved for card SC-03017-K947 (excluding the flagged transaction). Average amount: $183.22.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03017-K947)",
@@ -39,7 +39,7 @@
         ]
       },
       {
-        "evidence_id": "EV-a0d5694d",
+        "evidence_id": "EV-fe797bed",
         "claim": "3 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03017-K947, hours=48)",
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "evidence_id": "EV-68108d82",
+        "evidence_id": "EV-b8fe6461",
         "claim": "Proxy or anonymous connection used: proxy transparent spain.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012164)",
@@ -59,7 +59,7 @@
         ]
       },
       {
-        "evidence_id": "EV-7d4cc654",
+        "evidence_id": "EV-fcb16281",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03017 or card SC-03017-K947: CC-4318.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03017)",
@@ -68,7 +68,7 @@
         ]
       },
       {
-        "evidence_id": "EV-2c37173a",
+        "evidence_id": "EV-c576468b",
         "claim": "Device profile 'Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-017 | synth-os-case-017 | synth-browser-case-017 | synth-screen-case-017' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Windows Desktop MatchOS windows x64 dggfwmdd unit-caseCASE-017 | synth-os-case-017 | synth-browser-case-017 | synth-screen-case-017)",
@@ -77,7 +77,7 @@
         ]
       },
       {
-        "evidence_id": "EV-3cbb3090",
+        "evidence_id": "EV-358e0791",
         "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_fraud' and keyword match over analyst notes (prior patterns: card_not_present_fraud).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_fraud)",
@@ -91,10 +91,10 @@
         ]
       },
       {
-        "evidence_id": "EV-c8fb4e85",
+        "evidence_id": "EV-fca2852d",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-3a480a23",
+        "ref": "evidence_request:ER-35d40ac1",
         "entity_ids": [
           "SC-03017"
         ]
@@ -108,7 +108,7 @@
       "CC-4314",
       "CC-4317"
     ],
-    "summary": "Case CASE-017 (Card SC-03017-K947): The investigation was triggered by a real-time risk score of 0.81 on transaction 4012164 ($220.38, domestic) [EV-92b63758]. The card SC-03017-K947 showed two prior transactions averaging $183.22 [EV-500a2346] and three online transactions within 48 hours of the flagged transaction [EV-a0d5694d]. Transaction 4012164 originated from a proxy transparent Spain connection [EV-68108d82]. The customer SC-03017 had one prior confirmed fraud case CC-4318 [EV-7d4cc654], and the device profile used appears in one confirmed fraud case [EV-2c37173a]. Six prior closed cases matching the card_not_present_fraud pattern were retrieved for reference [EV-3cbb3090]. The customer disputes the transactions, stating they did not make the purchases and still possess the card [EV-c8fb4e85].",
+    "summary": "Case CASE-017 (Card SC-03017-K947): The case was triggered by a real-time risk score of 0.81 on transaction 4012164 ($220.38 domestic) [EV-46cf9f5c]. Investigation revealed three online transactions within 48 hours on card SC-03017-K947 [EV-fe797bed], with a proxy/anonymous connection from Spain used for the flagged transaction [EV-b8fe6461]. The device profile was linked to one prior confirmed fraud case [EV-c576468b], and the customer had one prior fraud case CC-4318 [EV-fcb16281]. Customer confirmed they did not make the purchases and retained physical card possession [EV-fca2852d]. Pattern analysis retrieved six prior card-not-present fraud cases [EV-358e0791]. Total exposure across three transactions (4012164, 4012165, 4012166) was $586.82.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-017"
   },
@@ -180,7 +180,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "This Suspicious Activity Report documents confirmed card-not-present fraud on card SC-03017-K947 (customer SC-03017) involving three transactions totaling $586.82 exposure. The initial alert arose from a real-time model score of 0.81 on transaction 4012164 [EV-92b63758]. Analysis revealed the transaction used a proxy transparent Spain connection [EV-68108d82] and occurred amid a cluster of three online transactions within 48 hours [EV-a0d5694d], deviating from the card's historical average of $183.22 [EV-500a2346]. The device fingerprint matches a profile seen in a prior confirmed fraud case [EV-2c37173a], and the customer has a previous fraud case CC-4318 on record [EV-7d4cc654]. The customer affirms they did not authorize the purchases and retains physical possession of the card [EV-c8fb4e85]. Six prior card-not-present fraud cases were reviewed for pattern consistency [EV-3cbb3090]. The case is closed with a fraud verdict and referred for recovery and card reissue.",
+    "narrative": "Suspicious Activity Report for CASE-017 involving card-not-present fraud pattern. Transaction 4012164 ($220.38) triggered real-time risk scoring at 0.81 [EV-46cf9f5c]. The transaction originated from a proxy/anonymous connection in Spain [EV-b8fe6461], and the associated device profile has appeared in a prior confirmed fraud case [EV-c576468b]. Within 48 hours, three online transactions occurred on card SC-03017-K947 [EV-fe797bed], with two prior transactions averaging $183.22 [EV-db5481d5]. Customer SC-03017 reported no authorization of these purchases and confirmed physical card retention [EV-fca2852d]. The customer has a prior confirmed fraud case CC-4318 [EV-fcb16281]. Pattern matching retrieved six prior card-not-present fraud cases for reference [EV-358e0791]. Total fraudulent exposure across transactions 4012164, 4012165, and 4012166 amounts to $586.82. The investigation concluded with a fraud verdict consistent with card-not-present fraud typology. No further connected cards were identified in this case.",
     "subjects": [
       "SC-03017",
       "SC-03017-K947",
@@ -192,7 +192,20 @@
     ]
   },
   "nemotron": {
-    "model_proposal": null,
+    "model_proposal": {
+      "pattern": "card_not_present_fraud",
+      "confidence": 0.94,
+      "evidence_ids": [
+        "EV-db5481d5",
+        "EV-fe797bed",
+        "EV-b8fe6461",
+        "EV-fcb16281",
+        "EV-c576468b",
+        "EV-358e0791",
+        "EV-46cf9f5c"
+      ],
+      "rationale": "High risk score, multiple recent online purchases, proxy from Spain, prior confirmed fraud and device profile linked to card_not_present_fraud cases, and customer denies transaction."
+    },
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "card_not_present_fraud",
@@ -205,21 +218,29 @@
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
-    "model_agreed": false,
-    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+    "model_agreed": true,
+    "model_override_reason": "",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1302,
-        "completion_tokens": 991,
+        "prompt_tokens": 1292,
+        "completion_tokens": 1627,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 3423.4,
+        "latency_ms": 4304.3,
+        "cached": false
+      },
+      "pattern_classifier": {
+        "prompt_tokens": 1174,
+        "completion_tokens": 848,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 5056.7,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
   "tool_calls": 16,
-  "tokens": 991,
-  "latency_s": 9.73
+  "tokens": 2475,
+  "latency_s": 9.52
 }

@@ -7,8 +7,8 @@
     "pattern": "card_not_present_fraud",
     "pattern_description": "Burst of 3 online transactions within 48h",
     "affected_txn_ids": [
-      "4012160",
       "4012159",
+      "4012160",
       "4012158"
     ],
     "first_suspicious_txn_id": "4012158",
@@ -19,7 +19,7 @@
     "exposure_usd": 1413.01,
     "evidence": [
       {
-        "evidence_id": "EV-9a5feb6a",
+        "evidence_id": "EV-648ef3c4",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012158 ($589.39, in billing region 'domestic') at 0.88. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -30,7 +30,7 @@
         ]
       },
       {
-        "evidence_id": "EV-19f55f93",
+        "evidence_id": "EV-12a8646e",
         "claim": "2 previous transactions retrieved for card SC-03008-K945 (excluding the flagged transaction). Average amount: $411.81.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03008-K945)",
@@ -39,7 +39,7 @@
         ]
       },
       {
-        "evidence_id": "EV-f77c4e9f",
+        "evidence_id": "EV-5e55c309",
         "claim": "3 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03008-K945, hours=48)",
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "evidence_id": "EV-9d7e381a",
+        "evidence_id": "EV-f3d358ab",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03008 or card SC-03008-K945: CC-4316.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03008)",
@@ -59,7 +59,7 @@
         ]
       },
       {
-        "evidence_id": "EV-a72cfa8e",
+        "evidence_id": "EV-0200b6df",
         "claim": "Device profile 'Linux x86_64 Chrome 96.0 unit-caseCASE-008 | synth-os-case-008 | synth-browser-case-008 | synth-screen-case-008' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Linux x86_64 Chrome 96.0 unit-caseCASE-008 | synth-os-case-008 | synth-browser-case-008 | synth-screen-case-008)",
@@ -68,7 +68,7 @@
         ]
       },
       {
-        "evidence_id": "EV-2e259d62",
+        "evidence_id": "EV-bbb09782",
         "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_fraud' and keyword match over analyst notes (prior patterns: card_not_present_fraud).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_fraud)",
@@ -82,10 +82,10 @@
         ]
       },
       {
-        "evidence_id": "EV-b961b57a",
+        "evidence_id": "EV-9de9acaa",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-717f06f0",
+        "ref": "evidence_request:ER-63f28b50",
         "entity_ids": [
           "SC-03008"
         ]
@@ -99,7 +99,7 @@
       "CC-4317",
       "CC-4318"
     ],
-    "summary": "The investigation closed case CASE-008 as confirmed card-not-present fraud with $1,413.01 exposure across three transactions (4012160, 4012159, 4012158). Real-time scoring flagged transaction 4012158 ($589.39) at 0.88 risk [EV-9a5feb6a]. Card SC-03008-K945 showed two prior transactions averaging $411.81 [EV-19f55f93] and three online transactions within 48 hours of the flagged transaction [EV-f77c4e9f]. One prior fraud case (CC-4316) existed for this customer [EV-9d7e381a], and the device profile appears in a confirmed fraud case [EV-a72cfa8e]. The customer reported not making the purchases and retaining physical card possession [EV-b961b57a].",
+    "summary": "Case CASE-008 (Card SC-03008-K945): The case was triggered by a real-time risk score of 0.88 on transaction 4012158 ($589.39, domestic) [EV-648ef3c4]. Card SC-03008-K945 had two prior transactions averaging $411.81 [EV-12a8646e] and three online transactions within 48 hours of the flagged transaction [EV-5e55c309]. One prior confirmed fraud case (CC-4316) was linked to this customer or card [EV-f3d358ab]. The device profile used appears in one confirmed fraud case [EV-0200b6df]. Six prior closed cases with the card-not-present fraud pattern were retrieved [EV-bbb09782]. The customer reported they did not make the purchases and still possess the card [EV-9de9acaa].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-008"
   },
@@ -171,7 +171,7 @@
   "sar": {
     "file": true,
     "reason": "R2: confirmed fraud with exposure > $1,000",
-    "narrative": "This Suspicious Activity Report documents confirmed card-not-present fraud involving customer SC-03008 and card SC-03008-K945. Three unauthorized transactions (4012160, 4012159, 4012158) totaling $1,413.01 were identified, with the initial trigger transaction 4012158 ($589.39) scoring 0.88 on real-time risk models [EV-9a5feb6a]. The card's transaction history shows two prior transactions averaging $411.81 [EV-19f55f93] and a cluster of three online transactions within 48 hours of the flagged event [EV-f77c4e9f], consistent with rapid-fire testing patterns. A prior confirmed fraud case (CC-4316) exists for this customer [EV-9d7e381a], and the device fingerprint (Linux x86_64 Chrome 96.0) has appeared in another confirmed fraud investigation [EV-a72cfa8e]. Pattern analysis retrieved six prior card-not-present fraud cases for comparative reference [EV-2e259d62]. The customer explicitly denied authorizing the transactions and confirmed physical card retention [EV-b961b57a]. The activity exhibits hallmarks of card-not-present fraud with device reuse and velocity anomalies. The case is closed with fraud verdict and referred for recovery proceedings.",
+    "narrative": "Suspicious Activity Report for CASE-008 involving card-not-present fraud pattern. The investigation was initiated after a real-time model scored transaction 4012158 at 0.88 risk [EV-648ef3c4]. Analysis of card SC-03008-K945 revealed two historical transactions averaging $411.81 [EV-12a8646e] and a cluster of three online transactions within 48 hours [EV-5e55c309], indicating anomalous velocity. The customer has a prior confirmed fraud case (CC-4316) [EV-f3d358ab], and the device fingerprint matches a device seen in another confirmed fraud case [EV-0200b6df]. Pattern retrieval returned six prior card-not-present fraud cases [EV-bbb09782], supporting the classification. The cardholder denies authorizing the transactions and confirms physical possession of the card [EV-9de9acaa]. Total exposure across three transactions (4012158, 4012159, 4012160) is $1,413.01. The case was closed with a fraud verdict and a fraud probability of 0.81. No further action recommended beyond standard recovery procedures.",
     "subjects": [
       "SC-03008",
       "SC-03008-K945",
@@ -187,11 +187,11 @@
       "pattern": "card_not_present_fraud",
       "confidence": 0.9,
       "evidence_ids": [
-        "EV-2e259d62",
-        "EV-9d7e381a",
-        "EV-a72cfa8e"
+        "EV-bbb09782",
+        "EV-f3d358ab",
+        "EV-0200b6df"
       ],
-      "rationale": "Multiple prior card_not_present_fraud cases, device linked to fraud, recent high‑value domestic transactions, and customer denies purchase, indicating card‑not‑present fraud."
+      "rationale": "Multiple prior closed cases tagged card_not_present_fraud, device profile linked to fraud, and recent online transactions suggest remote use without card present."
     },
     "policy_decision": {
       "verdict": "fraud",
@@ -210,23 +210,24 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1242,
-        "completion_tokens": 1922,
+        "prompt_tokens": 1238,
+        "completion_tokens": 1547,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 7044.9,
+        "latency_ms": 4180.6,
         "cached": false
       },
       "pattern_classifier": {
-        "prompt_tokens": 1124,
-        "completion_tokens": 804,
+        "prompt_tokens": 1120,
+        "completion_tokens": 916,
         "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-        "latency_ms": 4752.8,
+        "latency_ms": 5333.4,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
   "tool_calls": 16,
-  "tokens": 2726,
-  "latency_s": 12.0
+  "tokens": 2463,
+  "latency_s": 9.83
 }

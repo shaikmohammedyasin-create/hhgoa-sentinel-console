@@ -7,10 +7,10 @@
     "pattern": "card_not_present_fraud",
     "pattern_description": "Burst of 4 online transactions within 48h",
     "affected_txn_ids": [
+      "4012156",
       "4012154",
       "4012155",
-      "4012157",
-      "4012156"
+      "4012157"
     ],
     "first_suspicious_txn_id": "4012154",
     "connected_card_ids": [],
@@ -20,7 +20,7 @@
     "exposure_usd": 454.42,
     "evidence": [
       {
-        "evidence_id": "EV-aec45c27",
+        "evidence_id": "EV-fbf11f1a",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012154 ($141.90, in billing region 'domestic') at 0.82. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -31,7 +31,7 @@
         ]
       },
       {
-        "evidence_id": "EV-5aa7cca0",
+        "evidence_id": "EV-04c327c5",
         "claim": "3 previous transactions retrieved for card SC-03006-K944 (excluding the flagged transaction). Average amount: $104.17.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03006-K944)",
@@ -40,7 +40,7 @@
         ]
       },
       {
-        "evidence_id": "EV-8a2ecafb",
+        "evidence_id": "EV-01cb8eea",
         "claim": "4 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03006-K944, hours=48)",
@@ -52,7 +52,7 @@
         ]
       },
       {
-        "evidence_id": "EV-47488a27",
+        "evidence_id": "EV-ce73e69b",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03006 or card SC-03006-K944: CC-4315.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03006)",
@@ -61,7 +61,7 @@
         ]
       },
       {
-        "evidence_id": "EV-4630862a",
+        "evidence_id": "EV-168bcde4",
         "claim": "Device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-006 | synth-os-case-006 | synth-browser-case-006 | synth-screen-case-006' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-006 | synth-os-case-006 | synth-browser-case-006 | synth-screen-case-006)",
@@ -70,7 +70,7 @@
         ]
       },
       {
-        "evidence_id": "EV-cabee3d3",
+        "evidence_id": "EV-e9da25a2",
         "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_fraud' and keyword match over analyst notes (prior patterns: card_not_present_fraud).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_fraud)",
@@ -84,10 +84,10 @@
         ]
       },
       {
-        "evidence_id": "EV-92180619",
+        "evidence_id": "EV-156318f2",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-30b8844d",
+        "ref": "evidence_request:ER-c402d2eb",
         "entity_ids": [
           "SC-03006"
         ]
@@ -101,7 +101,7 @@
       "CC-4317",
       "CC-4318"
     ],
-    "summary": "Case CASE-006 (Card SC-03006-K944): The case was triggered by a real-time risk score of 0.82 on transaction 4012154 ($141.90, domestic) [EV-aec45c27]. The card SC-03006-K944 showed 4 online transactions within 48 hours of the flagged transaction, with prior average transaction amount of $104.17 [EV-5aa7cca0, EV-8a2ecafb]. One prior confirmed fraud case (CC-4315) was linked to this customer/card [EV-47488a27], and the device profile appeared in one confirmed fraud case [EV-4630862a]. Six prior closed cases with the same card-not-present fraud pattern were retrieved [EV-cabee3d3]. The customer reported they did not make the purchases and still possessed the card [EV-92180619]. The investigation concluded with a fraud verdict, pattern card_not_present_fraud, probability 0.835, exposure $454.42 across four transactions.",
+    "summary": "Case CASE-006 (Card SC-03006-K944): The case involves card-not-present fraud on card SC-03006-K944 with four affected transactions totaling $454.42 exposure. Real-time risk scoring flagged transaction 4012154 at 0.82 [EV-fbf11f1a]. The card showed 4 online transactions within 48 hours [EV-01cb8eea] against a historical average of $104.17 [EV-04c327c5]. The device profile was linked to a prior confirmed fraud case [EV-168bcde4]. Customer confirmed they did not authorize the purchases and retained physical card possession [EV-156318f2]. Pattern analysis retrieved six prior card-not-present fraud cases [EV-e9da25a2] and one prior case for this customer/card [EV-ce73e69b].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-006"
   },
@@ -173,7 +173,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "Suspicious Activity Report for CASE-006 involving card-not-present fraud on card SC-03006-K944. The real-time model scored transaction 4012154 at 0.82, prompting review [EV-aec45c27]. Analysis revealed 4 online transactions within 48 hours, deviating from the card's historical average of $104.17 [EV-5aa7cca0, EV-8a2ecafb]. The device profile associated with the transactions was linked to a prior confirmed fraud case [EV-4630862a]. The customer confirmed they did not authorize the transactions and retained physical possession of the card [EV-92180619]. Prior fraud case CC-4315 involved the same customer/card, and six historical cases shared the card-not-present pattern [EV-47488a27, EV-cabee3d3]. Total exposure across four transactions (4012154, 4012155, 4012157, 4012156) was $454.42. The investigation supports a fraud determination with probability 0.835. No further action recommended beyond standard fraud recovery procedures.",
+    "narrative": "Suspicious Activity Report for CASE-006 involving card-not-present fraud on card SC-03006-K944. Four unauthorized transactions (4012154, 4012155, 4012156, 4012157) totaling $454.42 were identified. Real-time monitoring scored transaction 4012154 at 0.82 risk, triggering investigation [EV-fbf11f1a]. Transaction velocity analysis revealed four online transactions within 48 hours, significantly exceeding the card's historical average transaction amount of $104.17 [EV-01cb8eea, EV-04c327c5]. The device fingerprint (Samsung SM-G973F) was previously associated with confirmed fraud case CC-4315 [EV-168bcde4]. Customer SC-03006 reported no authorization of the disputed transactions and confirmed physical card retention [EV-156318f2]. Pattern matching identified six prior card-not-present fraud cases with similar characteristics [EV-e9da25a2]. The customer has one prior confirmed fraud case (CC-4315) on record [EV-ce73e69b]. The investigation concluded with a fraud verdict and fraud probability of 0.835. No connected card IDs were identified in this incident. The exposure amount of $454.42 represents the total disputed transaction value. Recommend continued monitoring of the device profile and customer account for potential recurrence.",
     "subjects": [
       "SC-03006",
       "SC-03006-K944",
@@ -189,13 +189,13 @@
       "pattern": "card_not_present_fraud",
       "confidence": 0.9,
       "evidence_ids": [
-        "EV-cabee3d3",
-        "EV-47488a27",
-        "EV-8a2ecafb",
-        "EV-5aa7cca0",
-        "EV-4630862a"
+        "EV-ce73e69b",
+        "EV-168bcde4",
+        "EV-e9da25a2",
+        "EV-04c327c5",
+        "EV-01cb8eea"
       ],
-      "rationale": "Multiple online transactions, prior fraud linked to same card and device, and explicit retrieval of card_not_present_fraud pattern indicate card-not-present fraud."
+      "rationale": "Multiple prior card-not-present fraud cases, same device profile, recent online activity, and customer denies purchase while still possessing card indicate remote misuse."
     },
     "policy_decision": {
       "verdict": "fraud",
@@ -214,23 +214,24 @@
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1254,
-        "completion_tokens": 1603,
+        "prompt_tokens": 1252,
+        "completion_tokens": 1601,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 4315.1,
+        "latency_ms": 4170.3,
         "cached": false
       },
       "pattern_classifier": {
-        "prompt_tokens": 1127,
-        "completion_tokens": 840,
+        "prompt_tokens": 1125,
+        "completion_tokens": 820,
         "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-        "latency_ms": 4622.9,
+        "latency_ms": 5239.1,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
   "tool_calls": 16,
-  "tokens": 2443,
-  "latency_s": 9.26
+  "tokens": 2421,
+  "latency_s": 10.0
 }

@@ -7,9 +7,9 @@
     "pattern": "card_not_present_new_device",
     "pattern_description": "Device marked New for this account; proxy/anonymous connection",
     "affected_txn_ids": [
-      "4012178",
       "4012179",
-      "4012177"
+      "4012177",
+      "4012178"
     ],
     "first_suspicious_txn_id": "4012177",
     "connected_card_ids": [],
@@ -19,7 +19,7 @@
     "exposure_usd": 453.49,
     "evidence": [
       {
-        "evidence_id": "EV-6b17754e",
+        "evidence_id": "EV-8521f876",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012177 ($194.42, in billing region 'domestic') at 0.82. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -30,7 +30,7 @@
         ]
       },
       {
-        "evidence_id": "EV-584c14cb",
+        "evidence_id": "EV-aff470be",
         "claim": "2 previous transactions retrieved for card SC-03015-K952 (excluding the flagged transaction). Average amount: $129.53.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03015-K952)",
@@ -39,7 +39,7 @@
         ]
       },
       {
-        "evidence_id": "EV-2d4d1521",
+        "evidence_id": "EV-2586d295",
         "claim": "3 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03015-K952, hours=48)",
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "evidence_id": "EV-2e815d59",
+        "evidence_id": "EV-37615a0d",
         "claim": "Device marked 'New' for this account: Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012177)",
@@ -59,7 +59,7 @@
         ]
       },
       {
-        "evidence_id": "EV-c548cba1",
+        "evidence_id": "EV-ef1be3ea",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012177)",
@@ -68,7 +68,7 @@
         ]
       },
       {
-        "evidence_id": "EV-43bd77cd",
+        "evidence_id": "EV-3e7e72cb",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03015 or card SC-03015-K952: CC-4323.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03015)",
@@ -77,7 +77,7 @@
         ]
       },
       {
-        "evidence_id": "EV-1a5a2252",
+        "evidence_id": "EV-5b209d10",
         "claim": "Device profile 'Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Linux x86_64 Chrome 96.0 unit-caseCASE-015 | synth-os-case-015 | synth-browser-case-015 | synth-screen-case-015)",
@@ -86,7 +86,7 @@
         ]
       },
       {
-        "evidence_id": "EV-4864afd9",
+        "evidence_id": "EV-67949392",
         "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_new_device' and keyword match over analyst notes (prior patterns: card_not_present_new_device).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_new_device)",
@@ -100,10 +100,10 @@
         ]
       },
       {
-        "evidence_id": "EV-4ebf4d4c",
+        "evidence_id": "EV-c3e04c14",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-a67fd800",
+        "ref": "evidence_request:ER-bc645532",
         "entity_ids": [
           "SC-03015"
         ]
@@ -117,7 +117,7 @@
       "CC-4322",
       "CC-4325"
     ],
-    "summary": "Case CASE-015 involves three card-not-present transactions (4012177, 4012178, 4012179) on card SC-03015-K952 totaling $453.49 in exposure. The real-time risk model scored transaction 4012177 ($194.42, domestic) at 0.82 [EV-6b17754e]. The transaction originated from a previously unseen device (Linux x86_64 Chrome 96.0 with synthetic identifiers) [EV-2e815d59] and used an anonymous proxy connection from Argentina [EV-c548cba1]. Three online transactions occurred within a 48-hour window [EV-2d4d1521], against a prior average transaction amount of $129.53 [EV-584c14cb]. The device profile appears in one prior confirmed fraud case [EV-1a5a2252], and the customer has one prior fraud case (CC-4323) [EV-43bd77cd]. The customer denies authorizing the purchases and reports the physical card remains in their possession [EV-4ebf4d4c]. The pattern matches six prior closed cases of 'card_not_present_new_device' [EV-4864afd9].",
+    "summary": "Case CASE-015 (Card SC-03015-K952): The investigation was triggered by a real-time risk score of 0.82 on transaction 4012177 ($194.42, domestic) [EV-8521f876]. The card (SC-03015-K952) showed two prior transactions averaging $129.53 [EV-aff470be] and three online transactions within 48 hours of the flagged transaction [EV-2586d295]. The flagged transaction originated from a device marked 'New' for this account (Linux x86_64 Chrome 96.0 with synthetic identifiers) [EV-37615a0d] and used an anonymous proxy connection from Argentina [EV-ef1be3ea]. The customer has one prior confirmed fraud case (CC-4323) [EV-3e7e72cb], and the same device profile appears in one confirmed fraud case [EV-5b209d10]. Six prior closed cases share the 'card_not_present_new_device' pattern [EV-67949392]. The customer denied making the purchases and confirmed physical possession of the card [EV-c3e04c14].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-015"
   },
@@ -194,7 +194,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "A Suspicious Activity Report is warranted for customer SC-03015 and card SC-03015-K952. Three card-not-present transactions (4012177, 4012178, 4012179) totaling $453.49 were initiated from a new, previously unobserved device fingerprint (Linux x86_64 Chrome 96.0 with synthetic identifiers) [EV-2e815d59] via an anonymous proxy connection geolocated to Argentina [EV-c548cba1]. The real-time risk model assigned a score of 0.82 to the initial transaction [EV-6b17754e]. Transaction velocity was elevated, with three online purchases occurring within 48 hours [EV-2d4d1521], exceeding the card's historical average of $129.53 per transaction [EV-584c14cb]. The device profile has been linked to one prior confirmed fraud case [EV-1a5a2252], and the customer has a prior fraud history (CC-4323) [EV-43bd77cd]. The cardholder disputes all three charges and confirms physical possession of the card [EV-4ebf4d4c]. This pattern aligns with six prior closed investigations categorized as 'card_not_present_new_device' [EV-4864afd9]. The activity is consistent with account takeover using a new device and anonymized network infrastructure.",
+    "narrative": "This Suspicious Activity Report covers CASE-015, closed with a fraud verdict under the card_not_present_new_device pattern. The investigation identified three affected transactions (4012177, 4012178, 4012179) totaling $453.49 in exposure. The initial alert came from a real-time model scoring transaction 4012177 at 0.82 [EV-8521f876]. Transaction analysis revealed a new device fingerprint (Linux x86_64 Chrome 96.0 with synthetic identifiers) not previously associated with the account [EV-37615a0d] and an anonymous proxy connection routing through Argentina [EV-ef1be3ea]. Velocity checks showed three online transactions within a 48-hour window [EV-2586d295], deviating from the card's historical average of $129.53 over two prior transactions [EV-aff470be]. The customer (SC-03015) has a prior confirmed fraud case (CC-4323) [EV-3e7e72cb], and the device profile has been linked to another confirmed fraud case [EV-5b209d10]. Pattern retrieval returned six prior cases with the same card_not_present_new_device signature [EV-67949392]. The cardholder reported no authorization of the transactions and confirmed the physical card remained in their possession [EV-c3e04c14]. Based on the convergence of new device, proxy usage, velocity anomaly, prior fraud history, and customer denial, the case was substantiated as fraud.",
     "subjects": [
       "SC-03015",
       "SC-03015-K952",
@@ -206,18 +206,7 @@
     ]
   },
   "nemotron": {
-    "model_proposal": {
-      "pattern": "card_not_present_new_device",
-      "confidence": 0.92,
-      "evidence_ids": [
-        "EV-2e815d59",
-        "EV-c548cba1",
-        "EV-4864afd9",
-        "EV-1a5a2252",
-        "EV-43bd77cd"
-      ],
-      "rationale": "New device fingerprint, anonymous proxy, prior fraud cases tied to same device, and pattern matches card_not_present_new_device; customer denies making purchases."
-    },
+    "model_proposal": null,
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "card_not_present_new_device",
@@ -230,28 +219,22 @@
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
-    "model_agreed": true,
-    "model_override_reason": "",
+    "model_agreed": false,
+    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1403,
-        "completion_tokens": 1467,
+        "prompt_tokens": 1402,
+        "completion_tokens": 1175,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 4265.1,
-        "cached": false
-      },
-      "pattern_classifier": {
-        "prompt_tokens": 1286,
-        "completion_tokens": 981,
-        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-        "latency_ms": 4427.9,
+        "latency_ms": 19136.9,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "Fraud probability 0.87 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 2448,
-  "latency_s": 8.97
+  "tokens": 1175,
+  "latency_s": 24.48
 }

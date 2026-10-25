@@ -8,9 +8,9 @@
     "pattern_description": "The policy engine's rules did not match this activity to any of the five named fraud patterns, but the evidence shows coordinated abuse across accounts: 17 other card(s) share the device profile used here. It is reported as undocumented rather than forced into a known category, per policy R9.",
     "affected_txn_ids": [
       "4012224",
-      "4012225",
       "4012226",
-      "4012206"
+      "4012206",
+      "4012225"
     ],
     "first_suspicious_txn_id": "4012226",
     "connected_card_ids": [
@@ -31,7 +31,7 @@
     "exposure_usd": 767.09,
     "evidence": [
       {
-        "evidence_id": "EV-9586eef7",
+        "evidence_id": "EV-43514a99",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012206 ($755.25) at 0.75. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -42,7 +42,7 @@
         ]
       },
       {
-        "evidence_id": "EV-37ebf5eb",
+        "evidence_id": "EV-9d3f5c32",
         "claim": "3 previous transactions retrieved for card SC-03014-K956 (excluding the flagged transaction). Average amount: $3.95.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03014-K956)",
@@ -51,7 +51,7 @@
         ]
       },
       {
-        "evidence_id": "EV-472c03d5",
+        "evidence_id": "EV-99de1297",
         "claim": "4 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03014-K956, hours=48)",
@@ -63,7 +63,7 @@
         ]
       },
       {
-        "evidence_id": "EV-a71fdbd1",
+        "evidence_id": "EV-347737ac",
         "claim": "Device profile shared across 17 other card(s); 5 named here and 10 linked to this case: SC-09000-K1, SC-09001-K1, SC-09002-K1, SC-09003-K1, SC-09004-K1.",
         "source": "graph",
         "ref": "query:accounts_sharing_device(device=Linux x86_64 Chrome 96.0 unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014)",
@@ -81,7 +81,7 @@
         ]
       },
       {
-        "evidence_id": "EV-e32621ad",
+        "evidence_id": "EV-09d194d8",
         "claim": "Fraud-ring analysis: device component contains 4 confirmed-fraud card(s) (ring size 18).",
         "source": "graph",
         "ref": "query:device_fraud_ring(device=Linux x86_64 Chrome 96.0 unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014)",
@@ -93,7 +93,7 @@
         ]
       },
       {
-        "evidence_id": "EV-5e77a046",
+        "evidence_id": "EV-1d3339df",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03014)",
@@ -102,10 +102,10 @@
         ]
       },
       {
-        "evidence_id": "EV-ad04a273",
+        "evidence_id": "EV-5b504842",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-cc263961",
+        "ref": "evidence_request:ER-07554524",
         "entity_ids": [
           "SC-03014"
         ]
@@ -114,7 +114,7 @@
     "similar_prior_cases": [
       "CC-4327"
     ],
-    "summary": "Case CASE-014 (Card SC-03014-K956): The case was triggered by a real-time risk score of 0.75 on transaction 4012206 ($755.25) [EV-9586eef7]. Historical spending for the primary card SC-03014-K956 averaged only $3.95 per transaction, while four online transactions occurred within 48 hours of the flagged transaction [EV-37ebf5eb, EV-472c03d5]. The device fingerprint (Linux x86_64 Chrome 96.0 with synthetic components) is shared across 17 other cards, including ten cards connected to this case (SC-09000-K1 through SC-09009-K1) [EV-a71fdbd1]. Fraud-ring analysis confirms four known fraud cards within the same device component, indicating a ring of 18 cards [EV-e32621ad]. The customer denies authorizing the purchases and reports the physical card remains in their possession [EV-ad04a273]. One prior case for this customer was cleared as legitimate, but the current pattern is undocumented and distinct [EV-5e77a046].",
+    "summary": "Case CASE-014 (Card SC-03014-K956): The investigation covers four transactions (4012224, 4012226, 4012206, 4012225) with a total exposure of $767.09. A real-time risk model scored transaction 4012206 ($755.25) at 0.75 [EV-43514a99]. The flagged card SC-03014-K956 showed a low historical average of $3.95 across three prior transactions but had four online transactions within 48 hours of the flagged event [EV-9d3f5c32, EV-99de1297]. The device profile (Linux x86_64 Chrome 96.0 unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014) is shared across 17 other cards, including ten linked to this case (SC-09000-K1 through SC-09009-K1) [EV-347737ac]. Fraud-ring analysis identifies four confirmed-fraud cards within the same device component (ring size 18) [EV-09d194d8]. The customer states they did not make the purchases and still possesses the card [EV-5b504842]. One prior case for this customer was cleared as legitimate [EV-1d3339df]. The case was closed with a fraud verdict and an undocumented pattern.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-014"
   },
@@ -186,7 +186,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "Suspicious Activity Report for CASE-014 documents a coordinated fraud ring operating through a shared device fingerprint. The device profile \"Linux x86_64 Chrome 96.0 unit-case-014-ring | synth-os-case-014-ring | synth-browser-case-014 | synth-screen-case-014\" links 18 cards, including ten cards directly tied to this investigation (SC-09000-K1 through SC-09009-K1) and four cards with confirmed fraud history [EV-a71fdbd1, EV-e32621ad]. Transaction 4012206 for $755.25 triggered the investigation with a model risk score of 0.75, far exceeding the customer's historical average transaction of $3.95 [EV-9586eef7, EV-37ebf5eb]. Four online transactions on the primary card SC-03014-K956 occurred within a 48-hour window, consistent with rapid-fire testing or monetization of compromised credentials [EV-472c03d5]. The customer explicitly denies making the purchases and confirms physical card possession, supporting account takeover or card-not-present fraud [EV-ad04a273]. Total exposure across four transactions (4012224, 4012225, 4012226, 4012206) is $767.09. The fraud pattern is classified as undocumented, with no matching typology in prior cases, though one similar prior case CC-4327 exists for reference. The device component's synthetic attributes (synth-os, synth-browser, synth-screen) suggest automated or scripted enrollment, a hallmark of organized fraud rings. No evidence of legitimate travel or purchase explanations was found for the flagged transactions. The case is closed with a fraud verdict and a fraud probability of 0.819.",
+    "narrative": "Suspicious activity is indicated by a cluster of ten cards (SC-09000-K1 through SC-09009-K1) sharing an identical device fingerprint with the flagged card SC-03014-K956 [EV-347737ac]. The device component contains four cards with confirmed fraud history, forming a fraud ring of 18 cards [EV-09d194d8]. The flagged transaction 4012206 ($755.25) received a high risk score of 0.75, far exceeding the card's typical transaction average of $3.95 [EV-43514a99, EV-9d3f5c32]. Four online transactions occurred on the flagged card within a 48-hour window, suggesting rapid-fire testing or monetization [EV-99de1297]. The customer denies authorizing the purchases and reports the physical card remains in their possession, consistent with card-not-present fraud [EV-5b504842]. A single prior case for this customer was cleared as legitimate, but the current pattern differs markedly [EV-1d3339df]. The total exposure across four transactions is $767.09. The undocumented pattern and device-linked fraud ring warrant SAR filing.",
     "subjects": [
       "SC-03014",
       "SC-03014-K956",
@@ -203,7 +203,18 @@
     ]
   },
   "nemotron": {
-    "model_proposal": null,
+    "model_proposal": {
+      "pattern": "card_testing",
+      "confidence": 0.85,
+      "evidence_ids": [
+        "EV-9d3f5c32",
+        "EV-99de1297",
+        "EV-347737ac",
+        "EV-09d194d8",
+        "EV-43514a99"
+      ],
+      "rationale": "Low‑value recent transactions, multiple online purchases in 48 h, shared device across many cards, and a high risk score indicate systematic card testing."
+    },
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "undocumented",
@@ -217,20 +228,28 @@
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
     "model_agreed": false,
-    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+    "model_override_reason": "Policy engine retained 'undocumented' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.85. Engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1336,
-        "completion_tokens": 1941,
+        "prompt_tokens": 1343,
+        "completion_tokens": 1560,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 5235.1,
+        "latency_ms": 4206.0,
+        "cached": false
+      },
+      "pattern_classifier": {
+        "prompt_tokens": 1144,
+        "completion_tokens": 959,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 5444.2,
         "cached": false
       }
-    }
+    },
+    "served_by": "live"
   },
   "stop_reason": "stopping criteria met; no further evidence request is decision-relevant",
   "tool_calls": 16,
-  "tokens": 1941,
-  "latency_s": 9.21
+  "tokens": 2519,
+  "latency_s": 9.84
 }
