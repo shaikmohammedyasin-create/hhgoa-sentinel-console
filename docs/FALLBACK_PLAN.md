@@ -127,4 +127,4 @@ If this plan is ever executed:
 1. `python -m backend.scripts.prepare_data`
 2. `uvicorn backend.main:app --port 8008`
 3. Verify `http://localhost:8008/` loads the vanilla frontend directly without Node.js dependencies.
-4. Run `pytest tests/` to confirm all 355 tests pass.
+4. Run `pytest tests/` to confirm all 358 tests pass.

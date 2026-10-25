@@ -48,7 +48,7 @@ Last reconciled with the code: 24 October 2026.
   the UI all report **$14.50**; the case's exposure is $23.51 (the $14.50 charge
   plus three micro-authorizations) and the SAR files under R6 (shared device),
   not R2. The benchmark and baselines were re-run after the fix; Arm 1 remains
-  F1 1.0000 at 1,948.8 tokens and 9.14 s per case.
+  F1 1.0000 at 1,622.8 tokens and 12.36 s per case.
 - The legacy `LLM_PROVIDER` (anthropic/openai/groq) narrative path in
   `backend/llm/client.py` is dormant: default and `.env.example` pin it to
   `none`, and nothing in the Nemotron advisory flow calls it. It should be
@@ -88,7 +88,7 @@ Measurements taken live against `https://api.tokenfactory.nebius.com/v1`:
 - **Role 2: Verification Draft (Nano 30B)**: 428 prompt tokens, 568 completion tokens, 6,051 ms latency.
 - **Role 3: Narrative & SAR (Ultra 550B)**: 594 prompt tokens, 919 completion tokens, 4,339 ms latency.
 - **Role 4: Analyst Interactive Q&A (Ultra 550B)**: 649?1,396 prompt tokens, 100?1,200 completion tokens, 1,295?8,175 ms latency.
-- **Full Case Pipeline Wall-Clock**: Average 9.67s per case (re-measured 2026-10-25) for multi-hop graph retrieval, Bayesian scoring, policy evaluation, and dual-role LLM inference.
+- **Full Case Pipeline Wall-Clock**: Average 12.36s per case (re-measured 2026-10-25) for multi-hop graph retrieval, Bayesian scoring, policy evaluation, and dual-role LLM inference.
 
 ### 2. JSON Validity & Schema Adherence
 - **100% Valid JSON on First Attempt**: Across both Nano (`NVIDIA-Nemotron-3-Nano-30B-A3B`) and Super (`nemotron-3-super-120b-a12b`), zero JSON parsing failures occurred. Both models adhered strictly to the expected schema (`proposed_pattern`, `confidence`, `rationale`, `supporting_evidence_refs`).

@@ -7,7 +7,7 @@
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-15%20App%20Router-black?logo=next.js&logoColor=white" alt="Next.js"></a>
   <a href="https://build.nvidia.com/nvidia"><img src="https://img.shields.io/badge/NVIDIA-Nemotron_3_%7C_Token_Factory-76B900" alt="NVIDIA Nemotron"></a>
-  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-355%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
+  <a href="./docs/TECHNICAL_VALIDATION.md"><img src="https://img.shields.io/badge/Tests-358%20Passed%20%7C%209%20Skipped-2E7D32" alt="Tests"></a>
   <a href="./docs/BENCHMARK.md"><img src="https://img.shields.io/badge/Benchmark-20%2F20%20Verdict%20%7C%203--Arm%20Ablations-2E7D32" alt="Benchmark"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
 </p>
@@ -197,7 +197,7 @@ hhgoa-sentinel-console/
 ?   ??? screenshots/              # 7 high-resolution console screenshots
 ??? scripts/                      # Evaluation, benchmark, and screenshot scripts
 ??? tigergraph/                   # GSQL queries and schema definitions
-??? tests/                        # Pytest suite (355 passed / 9 skipped)
+??? tests/                        # Pytest suite (358 passed / 9 skipped)
 ??? Dockerfile                    # Multi-stage production container build
 ??? docker-compose.yml            # Single-container deployment configuration
 ??? render.yaml                   # Hosted Render Blueprint specification
@@ -266,7 +266,7 @@ NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000 npm run dev
 The repository enforces strict automated quality gates:
 
 ```bash
-# 1. Run Python test suite (355 passed, 9 skipped)
+# 1. Run Python test suite (358 passed, 9 skipped)
 pytest tests/ -q -rs
 
 # 2. Run Python lint gate (0 findings)
@@ -329,7 +329,7 @@ The Next.js analyst console in `sentinel-ui/` was forked and extensively reworke
 
 The fork is documented in [`sentinel-ui/NOTICE.md`](./sentinel-ui/NOTICE.md) and [`docs/UI_PROVENANCE.md`](./docs/UI_PROVENANCE.md). The upstream repository (`r-rishit27/hacker_house`, branch `sentinel-v2`, commit `7bcea03`) contains **no LICENSE file**, and no written permission to redistribute or relicense the upstream code is recorded in this repository.
 
-Two candidate final wordings — one for the case where written permission from the upstream authors is granted, one for the case where it is not — are drafted in [`docs/ATTRIBUTION_DRAFT.md`](./docs/ATTRIBUTION_DRAFT.md). **Neither has been applied.** Until one is chosen, this section states only the facts above; it makes no claim of permission and no claim of infringement.
+Two candidate final wordings ï¿½ one for the case where written permission from the upstream authors is granted, one for the case where it is not ï¿½ are drafted in [`docs/ATTRIBUTION_DRAFT.md`](./docs/ATTRIBUTION_DRAFT.md). **Neither has been applied.** Until one is chosen, this section states only the facts above; it makes no claim of permission and no claim of infringement.
 
 For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./docs/UI_PROVENANCE.md).
 
@@ -346,10 +346,10 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
 - **2026-10-24 ? Stress Testing & Final Submission Hardening**:
   - Enhanced synthetic data generator with overlapping score distributions ($[0.52, 0.74]$ benign, $[0.65, 0.92]$ fraud) and stress scenarios (`CASE-009` ring FN, `CASE-007` emergency FP).
   - 3-Arm evaluation: Graph Agent ($F_1 = 1.0000$) vs Score-Only ($F_1 = 0.9333$) vs Plain LLM ($F_1 = 0.0000$).
-  - Full test suite verified at **355 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
+  - Full test suite verified at **358 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
   - Gitleaks scanned the full history: **0 secrets found**.
   - Captured 7 high-resolution (1536?1024) UI screenshots in `docs/screenshots/`.
-  - **2026-10-25 ? Release hardening**: CASE-009's stress amount now equals `TransactionAmt` in the generator, the CSVs and the answer file ($14.50, exposure $23.51, SAR under R6); benchmark and baselines re-run (Arm 1 F1 1.0000, 1,948.8 tokens/case, 9.14 s/case).
+  - **2026-10-25 ? Release hardening**: CASE-009's stress amount now equals `TransactionAmt` in the generator, the CSVs and the answer file ($14.50, exposure $23.51, SAR under R6); benchmark and baselines re-run (Arm 1 F1 1.0000, 1,622.8 tokens/case, 12.36 s/case).
     A committed Nemotron recording (`cases/_nemotron_cache.json`, 20 cases, recorded 2026-10-25) lets the hosted demo show real model text without a key, labelled `cached live run (2026-10-25)`.
     Added approval-token authorization, a CORS allow-list, the rendered `own-ui` fallback branch, a docker-compose CI gate, and the attribution drafts in `docs/ATTRIBUTION_DRAFT.md`.
 
