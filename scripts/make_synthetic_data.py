@@ -536,6 +536,10 @@ def _plant_syndicate(case_id: str, cust: dict, card: dict) -> dict:
         # Stress scenario (a): Fraud ring made of low-score micro-payments ($14.50, initial score 0.48)
         amount = 14.50
         score = 0.48
+        # The stress amount IS the transaction amount. `_txn_row` already wrote
+        # TransactionAmt from the donor row, so overwrite it here or the trigger
+        # text, the answer file and the graph disagree about the same charge.
+        flagged["TransactionAmt"] = amount
         trigger_txt = (
             f"Trigger (risk_score): Real-time model scored transaction {flagged_id} "
             f"(${amount:.2f}) at {score}. Coordinated micro-payment ring. Review and decide."

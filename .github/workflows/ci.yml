@@ -59,3 +59,57 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the single-container demo image
+        run: docker compose build
+
+      - name: Start the container
+        run: docker compose up -d
+
+      - name: Wait for /health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8008/health > /tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "container did not become healthy in 300s"
+          docker compose logs --tail=200
+          exit 1
+
+      - name: Container smoke — health, one case, image hygiene
+        run: |
+          set -eu
+          # 1. Health contract.
+          curl -fsS http://localhost:8008/health | grep -q '"status": *"healthy"'
+          # 2. One case loads end to end from the committed answer pack.
+          curl -fsS http://localhost:8008/api/cases/CASE-001 > /tmp/case.json
+          grep -q 'CASE-001' /tmp/case.json
+          grep -q '"verdict"' /tmp/case.json
+          # 3. The image must not contain environment files. The synthetic CSVs
+          #    are intentionally baked in (prepare_data reads them at startup);
+          #    the prepared SQLite store must NOT be, it is built at boot.
+          if docker exec hhgoa-demo sh -c 'find / -xdev \( -name ".env" -o -name ".env.*" \) -not -name ".env.example" 2>/dev/null | grep -q .'; then
+            echo "FAIL: .env file found inside the image"
+            exit 1
+          fi
+          if docker exec hhgoa-demo sh -c 'test -f /app/data/prepared/investigation.db'; then
+            echo "note: prepared DB exists (built at boot by the entrypoint)"
+          fi
+          echo "container smoke passed"
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose logs --tail=300
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

@@ -132,3 +132,85 @@ Notes:
 - The older `hhgoa-fraud-api` Render service is still attached to the `HHGoa26-Agentic-Fraud-Investigation` repository and was left untouched.
 - Redeploy the console with `cd sentinel-ui && vercel deploy --prod --yes`; redeploy the API with `render deploys create srv-dbefmsvavr4c73aph5c0 --confirm`.
 - The Vercel project previously served the static snapshot build (`NEXT_PUBLIC_DEMO_DATA=1`); that variable was removed in favour of the live proxy. Re-add it and redeploy to return to snapshot mode.
+
+---
+
+## 7. Keep-alive (free-tier hosted demo)
+
+The Render demo service is on the free plan, which sleeps after inactivity; the
+first request after a pause takes roughly 30-60 s. A 10-minute external check
+keeps the demo warm and doubles as an availability alert.
+
+### Uptime monitor setup (any of these; all free)
+
+**UptimeRobot (recommended)**
+
+1. Create an account at <https://uptimerobot.com>.
+2. **Add New Monitor** → Monitor Type **HTTP(s)**.
+3. Friendly Name: `Sentinel Graph API`.
+4. URL: `https://sentinel-console-api.onrender.com/health` (or the proxied
+   `https://sentinel-ui-nu.vercel.app/health` if you prefer to watch the console
+   path too).
+5. Monitoring Interval: **10 minutes**.
+6. Leave "Alert Contacts" as your email; optionally add the Vercel URL as a
+   second monitor with the same interval.
+7. Save. Expected result: **HTTP 200** with body containing `"status":"healthy"`.
+   A timeout on the first probe usually means the free instance was asleep and
+   is waking — the second probe should pass.
+
+**cron-job.org (alternative)**
+
+1. Create an account at <https://cron-job.org>.
+2. Create a cron job: URL `https://sentinel-console-api.onrender.com/health`,
+   schedule every **10 minutes**, request method GET.
+3. Enable "Save responses" for the first runs so a non-200 status is visible.
+4. Optional: enable failure notifications to your email.
+
+**GitHub Actions (alternative, no third party)**
+
+A scheduled workflow (`.github/workflows/keepalive.yml`) can `curl -fsS` the
+`/health` URL every 10 minutes with `on: schedule: - cron: "*/10 * * * *"`.
+Note that GitHub's scheduler is best-effort and can be delayed by several
+minutes under load; UptimeRobot or cron-job.org is more reliable.
+
+### What the probe proves, and what it does not
+
+- It proves the API process is up and the SQLite graph store opened (`/health`
+  returns `status`, `graph.status`, `app_db`), not that any particular case is
+  correct.
+- It does **not** spend Nemotron credits: `/health` never calls the LLM.
+- It does not protect against Render's monthly free-hour exhaustion — check the
+  Render dashboard's usage if the service starts returning 503/502.
+
+---
+
+## 8. Enabling live Nemotron on the hosted demo (Render dashboard)
+
+The hosted API runs with no key so the demo cannot spend credits. The console
+still shows real Nemotron text because `cases/_nemotron_cache.json` records one
+live run for all 20 cases (`scripts/export_nemotron_cache.py`, recorded
+2026-10-25); the API labels those answers `cached live run (2026-10-25)`.
+
+To turn on **live** calls for the hosted demo:
+
+1. Render Dashboard → **sentinel-console-api** → **Environment** → **Add Environment Variable**.
+2. Add `NEBIUS_API_KEY` = your Nebius Token Factory key. Keep **Secret** checked
+   (it is stored encrypted and never shown again).
+3. Add `LLM_DAILY_CALL_CAP` = `60`.
+4. Add `LLM_CALLS_PER_IP_PER_HOUR` = `10`.
+5. Add `APP_ENV` = `production`.
+   - Consequence: approval decisions without `APPROVAL_TOKEN` are refused with
+     503 (fail-closed), so also add `APPROVAL_TOKEN` if the demo must approve
+     actions; otherwise the demo is read-only, which is the safe default.
+6. **Save Changes** — Render redeploys automatically.
+7. Verify after boot:
+   - `https://sentinel-console-api.onrender.com/health` → `"nebius_available": true`
+   - `https://sentinel-console-api.onrender.com/api/llm/status` → shows the
+     model ids and a call log that grows only when a genuinely new question is
+     asked.
+   - Ask the same question twice; the second answer is served from the on-disk
+     cache (`.env`-free; stored under `data/logs/` on the instance).
+
+Caps are enforced by `backend/api_limits.py`: the per-IP hourly limit returns
+429, the global daily cap returns 503, and both are covered by tests. The
+committed recording is never written to by the API.

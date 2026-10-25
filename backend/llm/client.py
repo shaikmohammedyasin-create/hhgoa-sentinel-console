@@ -1,85 +1,20 @@
 """
-LLM abstraction layer.
+Deterministic text fallbacks for the two free-text fields.
 
-Used ONLY for text generation:
-  - Case summary (2-6 sentences)
-  - SAR narrative (6-12 sentences)
+The submission's only LLM vendor is Nebius Token Factory with NVIDIA Nemotron
+(`backend/llm/nebius_client.py` + `backend/llm/roles.py`). This module keeps the
+template writers used when neither the Nemotron roles nor a cached answer are
+available, so the case summary and SAR narrative are always populated without
+inventing model reasoning.
 
-Probability scores, evidence, policy decisions, and actions are all
-deterministic.  The LLM never makes those decisions.
-
-Falls back to a template when provider = 'none' or when LLM call fails.
+The legacy anthropic / openai / groq provider path was deleted: no configuration
+in this submission could reach it, and it carried dead credential fields.
 """
 from __future__ import annotations
 
-from backend.config import settings
 from backend.logging import get_logger
 
 log = get_logger(__name__)
-
-
-def _call_anthropic(prompt: str) -> tuple[str, int]:
-    import anthropic
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-    msg = client.messages.create(
-        model=settings.llm_model,
-        max_tokens=1024,
-        temperature=settings.llm_temperature,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    tokens = getattr(msg.usage, "input_tokens", 0) + getattr(msg.usage, "output_tokens", 0)
-    return msg.content[0].text.strip(), tokens
-
-
-def _call_openai(prompt: str) -> tuple[str, int]:
-    from openai import OpenAI
-    client = OpenAI(api_key=settings.openai_api_key)
-    resp = client.chat.completions.create(
-        model=settings.openai_model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=1024,
-        temperature=settings.llm_temperature,
-    )
-    text = resp.choices[0].message.content.strip()
-    if resp.choices[0].finish_reason == "length":
-        log.warning("llm.openai.truncated_at_max_tokens")
-    tokens = resp.usage.total_tokens if resp.usage else (len(prompt.split()) + len(text.split()))
-    return text, tokens
-
-
-def _call_groq(prompt: str) -> tuple[str, int]:
-    import httpx
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {settings.groq_api_key}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": settings.groq_model,
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "You are a professional banking fraud and AML compliance officer. "
-                    "Write clear, concise, objective case summaries (2-4 sentences) or "
-                    "formal Suspicious Activity Report (SAR) narratives strictly based on the provided case facts."
-                ),
-            },
-            {"role": "user", "content": prompt},
-        ],
-        "max_tokens": 1024,
-        "temperature": settings.llm_temperature,
-    }
-    with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
-        resp = client.post(url, headers=headers, json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-        choice = data["choices"][0]
-        text = choice["message"]["content"].strip()
-        if choice.get("finish_reason") == "length":
-            log.warning("llm.groq.truncated_at_max_tokens")
-        tokens = data.get("usage", {}).get("total_tokens") or (len(prompt.split()) + len(text.split()))
-        return text, tokens
 
 
 def _template_summary(prompt_hint: str) -> str:
@@ -101,63 +36,15 @@ def _template_sar(prompt_hint: str) -> str:
     )
 
 
-def _provider_available() -> bool:
-    """A real provider is configured and able to be called."""
-    if settings.llm_provider == "none":
-        return False
-    if settings.llm_provider == "anthropic":
-        return bool(settings.anthropic_api_key)
-    if settings.llm_provider == "openai":
-        return bool(settings.openai_api_key)
-    if settings.llm_provider == "groq":
-        return bool(settings.groq_api_key)
-    return False
-
-
 def generate_summary(prompt: str) -> tuple[str, int, bool]:
     """Returns (text, tokens_used, llm_used).
 
-    llm_used is False whenever the text came from the deterministic template —
-    the caller must not present template text as model reasoning.
+    Always the deterministic template with `llm_used=False`: template text must
+    never be presented as model output. The Nemotron path lives in `roles.py`.
     """
-    if not _provider_available():
-        return _template_summary(prompt), 0, False
-    try:
-        if settings.llm_provider == "anthropic":
-            res = _call_anthropic(prompt)
-        elif settings.llm_provider == "groq":
-            res = _call_groq(prompt)
-        else:
-            res = _call_openai(prompt)
-        if isinstance(res, tuple):
-            text, tokens = res
-        else:
-            text = res
-            tokens = len(prompt.split()) + len(text.split())
-        return text, tokens, True
-    except Exception as exc:
-        log.warning("llm.fallback_to_template", error=str(exc))
     return _template_summary(prompt), 0, False
 
 
 def generate_sar_narrative(prompt: str) -> tuple[str, int, bool]:
-    """Returns (narrative_text, tokens_used, llm_used)."""
-    if not _provider_available():
-        return _template_sar(prompt), 0, False
-    try:
-        if settings.llm_provider == "anthropic":
-            res = _call_anthropic(prompt)
-        elif settings.llm_provider == "groq":
-            res = _call_groq(prompt)
-        else:
-            res = _call_openai(prompt)
-        if isinstance(res, tuple):
-            text, tokens = res
-        else:
-            text = res
-            tokens = len(prompt.split()) + len(text.split())
-        return text, tokens, True
-    except Exception as exc:
-        log.warning("llm.sar.fallback", error=str(exc))
+    """Returns (narrative_text, tokens_used, llm_used); same contract as above."""
     return _template_sar(prompt), 0, False
-

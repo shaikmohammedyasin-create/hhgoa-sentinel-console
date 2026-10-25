@@ -182,7 +182,7 @@ export function CasePanel({
             <div className="flex items-center gap-2">
               <Overline>Analyst answer</Overline>
               <span className="font-mono text-[9px] text-fg-subtle">
-                {ask.data.served_by ?? "rules"}
+                {askProvenance(ask.data.served_by, ask.data.llm_used)}
                 {ask.data.llm_used ? " · llm" : ""}
               </span>
             </div>
@@ -359,11 +359,33 @@ function SarPanel({ sar }: { sar: SarOut | undefined }) {
   );
 }
 
+/** Human label for the Ask answer provenance. */
+function askProvenance(servedBy: string | null | undefined, llmUsed: boolean | undefined): string {
+  if (!servedBy) return llmUsed ? "live" : "rules";
+  if (servedBy.startsWith("cached")) return servedBy;
+  if (servedBy === "deterministic-fallback" || servedBy === "deterministic fallback") {
+    return "deterministic fallback";
+  }
+  if (servedBy.startsWith("nvidia/") || servedBy.toLowerCase().includes("nemotron")) return "live";
+  return servedBy;
+}
+
 function NemotronPanel({ nemotron }: { nemotron: NemotronBlock | undefined }) {
   const proposal = nemotron?.model_proposal;
   const policy = nemotron?.policy_decision;
   return (
     <div className="space-y-3">
+      {nemotron?.served_by ? (
+        <div className="flex flex-wrap items-baseline gap-2 rounded-md border border-border bg-surface-2 px-3 py-2">
+          <Overline>Nemotron provenance</Overline>
+          <span className="font-mono text-[10px] text-fg-muted">{nemotron.served_by}</span>
+          {nemotron.recorded_at ? (
+            <span className="font-mono text-[9px] text-fg-subtle">
+              recorded {nemotron.recorded_at}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {proposal ? (
         <Panel
           title="Nemotron proposal"
@@ -411,6 +433,13 @@ function NemotronPanel({ nemotron }: { nemotron: NemotronBlock | undefined }) {
               Nemotron disagreed with the policy: {nemotron.model_override_reason || "no reason given."}
             </div>
           ) : null}
+        </Panel>
+      ) : null}
+
+      {nemotron?.recorded_narrative &&
+      !Object.keys(nemotron?.model_usage ?? {}).some((role) => role.includes("narrative")) ? (
+        <Panel title="Recorded Nemotron narrative" aside={nemotron.recorded_at ?? undefined}>
+          <p className="text-[11.5px] leading-[1.5] text-fg-muted">{nemotron.recorded_narrative}</p>
         </Panel>
       ) : null}
 

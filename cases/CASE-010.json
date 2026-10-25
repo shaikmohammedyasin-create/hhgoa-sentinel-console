@@ -7,9 +7,9 @@
     "pattern": "card_not_present_new_device",
     "pattern_description": "Device marked New for this account; proxy/anonymous connection",
     "affected_txn_ids": [
-      "4012172",
+      "4012174",
       "4012173",
-      "4012174"
+      "4012172"
     ],
     "first_suspicious_txn_id": "4012172",
     "connected_card_ids": [],
@@ -19,7 +19,7 @@
     "exposure_usd": 644.95,
     "evidence": [
       {
-        "evidence_id": "EV-b19b39d7",
+        "evidence_id": "EV-104e2ae8",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012172 ($269.17, in billing region 'domestic') at 0.89. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -30,7 +30,7 @@
         ]
       },
       {
-        "evidence_id": "EV-f6b14e0b",
+        "evidence_id": "EV-0ee83989",
         "claim": "2 previous transactions retrieved for card SC-03010-K950 (excluding the flagged transaction). Average amount: $187.89.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03010-K950)",
@@ -39,7 +39,7 @@
         ]
       },
       {
-        "evidence_id": "EV-6ce8f299",
+        "evidence_id": "EV-0dc0ae34",
         "claim": "3 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03010-K950, hours=48)",
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "evidence_id": "EV-8f5f7230",
+        "evidence_id": "EV-4b512881",
         "claim": "Device marked 'New' for this account: Samsung SM-G973F map400 Playlist for Android unit-caseCASE-010 | synth-os-case-010 | synth-browser-case-010 | synth-screen-case-010.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012172)",
@@ -59,7 +59,7 @@
         ]
       },
       {
-        "evidence_id": "EV-24c7ce5c",
+        "evidence_id": "EV-da6a2eb7",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012172)",
@@ -68,7 +68,7 @@
         ]
       },
       {
-        "evidence_id": "EV-10ecd46f",
+        "evidence_id": "EV-df76a3be",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03010 or card SC-03010-K950: CC-4321.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03010)",
@@ -77,7 +77,7 @@
         ]
       },
       {
-        "evidence_id": "EV-5d0c0ebd",
+        "evidence_id": "EV-d5f801bc",
         "claim": "Device profile 'Samsung SM-G973F map400 Playlist for Android unit-caseCASE-010 | synth-os-case-010 | synth-browser-case-010 | synth-screen-case-010' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Samsung SM-G973F map400 Playlist for Android unit-caseCASE-010 | synth-os-case-010 | synth-browser-case-010 | synth-screen-case-010)",
@@ -86,7 +86,7 @@
         ]
       },
       {
-        "evidence_id": "EV-0191e171",
+        "evidence_id": "EV-6e221a09",
         "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_new_device' and keyword match over analyst notes (prior patterns: card_not_present_new_device).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_new_device)",
@@ -100,10 +100,10 @@
         ]
       },
       {
-        "evidence_id": "EV-4aebde84",
+        "evidence_id": "EV-62955f1a",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-95f09a07",
+        "ref": "evidence_request:ER-81023c32",
         "entity_ids": [
           "SC-03010"
         ]
@@ -117,7 +117,7 @@
       "CC-4323",
       "CC-4325"
     ],
-    "summary": "Case CASE-010 (Card SC-03010-K950): The case was triggered by a real-time risk score of 0.89 on transaction 4012172 ($269.17, domestic) [EV-b19b39d7]. Investigation revealed the transaction originated from a new device (Samsung SM-G973F) and an anonymous proxy connection from Argentina [EV-8f5f7230, EV-24c7ce5c]. The card (SC-03010-K950) showed 3 online transactions within 48 hours, deviating from its historical average of $187.89 over 2 prior transactions [EV-f6b14e0b, EV-6ce8f299]. The device profile was linked to one prior confirmed fraud case, and the customer had one previous fraud case (CC-4321) [EV-5d0c0ebd, EV-10ecd46f]. The customer confirmed they did not authorize the purchases and retained physical possession of the card [EV-4aebde84]. Pattern analysis retrieved 6 prior cases matching 'card_not_present_new_device' [EV-0191e171].",
+    "summary": "Case CASE-010 (Card SC-03010-K950): The real-time risk model scored transaction 4012172 at 0.89, triggering review [EV-104e2ae8]. Investigation revealed three online transactions on card SC-03010-K950 within 48 hours [EV-0dc0ae34], originating from a new device (Samsung SM-G973F) [EV-4b512881] via an anonymous proxy connection from Argentina [EV-da6a2eb7]. The device profile was previously linked to a confirmed fraud case [EV-d5f801bc], and the customer has one prior fraud case (CC-4321) [EV-df76a3be]. The customer denied making the purchases and confirmed card possession [EV-62955f1a]. Six prior cases share the card_not_present_new_device pattern [EV-6e221a09]. The case was closed as fraud with $644.95 exposure across three transactions.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-010"
   },
@@ -194,7 +194,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "A Suspicious Activity Report is warranted for CASE-010 involving card SC-03010-K950 and customer SC-03010. The investigation confirmed fraudulent card-not-present transactions totaling $644.95 across three transactions (4012172, 4012173, 4012174) initiated from a previously unseen device (Samsung SM-G973F map400 Playlist for Android) and an anonymous proxy connection routed through Argentina [EV-8f5f7230, EV-24c7ce5c]. Real-time scoring flagged the initial transaction at 0.89, and velocity analysis identified three online transactions within a 48-hour window, inconsistent with the card's historical pattern of two transactions averaging $187.89 [EV-b19b39d7, EV-f6b14e0b, EV-6ce8f299]. The device fingerprint has been associated with one prior confirmed fraud case, and the customer has a history of one prior fraud case (CC-4321) [EV-5d0c0ebd, EV-10ecd46f]. The customer explicitly denied authorizing the transactions and confirmed physical possession of the card [EV-4aebde84]. The fraud pattern 'card_not_present_new_device' aligns with six prior closed cases, indicating a recurring modus operandi [EV-0191e171]. Total exposure is $644.95 with a model-assessed fraud probability of 0.883. The case is closed with a fraud verdict; funds recovery and card reissuance procedures have been initiated per policy.",
+    "narrative": "Suspicious Activity Report for CASE-010 documents a card-not-present fraud pattern involving three transactions totaling $644.95 on card SC-03010-K950. The triggering transaction 4012172 ($269.17) received a risk score of 0.89 and originated from a previously unseen device (Samsung SM-G973F map400 Playlist for Android) [EV-4b512881] connecting through an anonymous proxy IP geolocated to Argentina [EV-da6a2eb7]. Three online transactions occurred within a 48-hour window [EV-0dc0ae34], deviating from the card's historical average of $187.89 per transaction [EV-0ee83989]. The device fingerprint has been associated with a prior confirmed fraud case [EV-d5f801bc], and the customer (SC-03010) has a previous fraud record (CC-4321) [EV-df76a3be]. The cardholder reported no authorization of the transactions and confirmed physical card retention [EV-62955f1a]. Pattern analysis retrieved six prior cases exhibiting the same card_not_present_new_device signature [EV-6e221a09]. The investigation concluded with a fraud verdict and case closure. The activity is consistent with device spoofing and proxy-enabled card-not-present fraud.",
     "subjects": [
       "SC-03010",
       "SC-03010-K950",
@@ -206,7 +206,18 @@
     ]
   },
   "nemotron": {
-    "model_proposal": null,
+    "model_proposal": {
+      "pattern": "card_not_present_new_device",
+      "confidence": 0.88,
+      "evidence_ids": [
+        "EV-0dc0ae34",
+        "EV-4b512881",
+        "EV-6e221a09",
+        "EV-d5f801bc",
+        "EV-df76a3be"
+      ],
+      "rationale": "Online transactions, new device, proxy use, prior fraud cases, and pattern match indicate card-not-present fraud with a new device."
+    },
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "card_not_present_new_device",
@@ -219,21 +230,28 @@
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
-    "model_agreed": false,
-    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+    "model_agreed": true,
+    "model_override_reason": "",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1413,
-        "completion_tokens": 1842,
+        "prompt_tokens": 1411,
+        "completion_tokens": 1682,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 6325.6,
+        "latency_ms": 4309.5,
+        "cached": false
+      },
+      "pattern_classifier": {
+        "prompt_tokens": 1294,
+        "completion_tokens": 777,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 3035.8,
         "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.88 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 1842,
-  "latency_s": 10.62
+  "tokens": 2459,
+  "latency_s": 7.73
 }

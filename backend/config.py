@@ -51,13 +51,11 @@ class Settings(BaseSettings):
     mcp_url: str = ""
 
     # ── LLM ──────────────────────────────────────────────────────────────────
-    llm_provider: Literal["anthropic", "openai", "groq", "none"] = "none"
-    anthropic_api_key: str = ""
-    llm_model: str = "claude-haiku-4-5-20251001"
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
-    groq_api_key: str = ""
-    groq_model: str = "openai/gpt-oss-120b"
+    # Only `none` exists in this submission; the legacy anthropic/openai/groq
+    # provider path was deleted (see backend/llm/client.py). The field remains
+    # so existing deployments and /health keep reporting it honestly.
+    llm_provider: Literal["none"] = "none"
+    # Call settings for the Nebius Token Factory client (the only LLM vendor).
     llm_timeout_seconds: int = 30
     llm_temperature: float = 0.1
 

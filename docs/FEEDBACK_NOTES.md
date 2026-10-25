@@ -42,21 +42,13 @@ Last reconciled with the code: 24 October 2026.
   the API refuses those writes (benchmark, create-investigation and evidence
   endpoints), and the test suite arms `SENTINEL_PROTECT_CASE_PACK` so a test that
   starts a real investigation fails loudly instead of rewriting the pack.
-- **`CASE-009`'s stress amount is not the designed one.** `scripts/make_synthetic_data.py`
-  writes the designed stress amount ($14.50) into the trailing `amount` column
-  (`flagged["amount"]`, line 549) but never updates `flagged["TransactionAmt"]`,
-  which `_txn_row()` had already written with the donor row's amount. The
-  shipped case is therefore a $2,093.43 charge that the model scores 0.48, not
-  the designed $14.50 micro-payment, and the docs describe the shipped
-  behaviour. Until the data decision is made, the structured `TransactionAmt` is
-  treated as authoritative (exposure, SAR totals, benchmark semantics); the
-  trigger text is the stale copy. Fixing the row would change exposure,
-  `P(fraud)` and the committed benchmark pack, so it is left as a data decision
-  rather than a code change. `cases/CASE-009.json` was regenerated after the
-  writer fixes (tokens 2,016, P(fraud) 0.808, exposure $2,102.44), so its
-  exposure and SAR totals follow `TransactionAmt` while its evidence claim,
-  summary and SAR narrative still quote the trigger's $14.50 — one case, two
-  amounts, until the row is fixed.
+- **`CASE-009`'s stress amount is now consistent (fixed 2026-10-25).** `scripts/make_synthetic_data.py`
+  writes the designed stress amount into `TransactionAmt` as well as the trailing
+  `amount` column, so the trigger text, the transaction row, the answer file and
+  the UI all report **$14.50**; the case's exposure is $23.51 (the $14.50 charge
+  plus three micro-authorizations) and the SAR files under R6 (shared device),
+  not R2. The benchmark and baselines were re-run after the fix; Arm 1 remains
+  F1 1.0000 at 1,948.8 tokens and 9.14 s per case.
 - The legacy `LLM_PROVIDER` (anthropic/openai/groq) narrative path in
   `backend/llm/client.py` is dormant: default and `.env.example` pin it to
   `none`, and nothing in the Nemotron advisory flow calls it. It should be

@@ -7,8 +7,8 @@
     "pattern": "card_not_present_new_device",
     "pattern_description": "Device marked New for this account; proxy/anonymous connection",
     "affected_txn_ids": [
-      "4012175",
-      "4012176"
+      "4012176",
+      "4012175"
     ],
     "first_suspicious_txn_id": "4012175",
     "connected_card_ids": [],
@@ -18,7 +18,7 @@
     "exposure_usd": 807.36,
     "evidence": [
       {
-        "evidence_id": "EV-02ae78a6",
+        "evidence_id": "EV-72b78acd",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012175 ($516.82, in billing region 'domestic') at 0.89. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -29,7 +29,7 @@
         ]
       },
       {
-        "evidence_id": "EV-1982ea45",
+        "evidence_id": "EV-a842cf6b",
         "claim": "1 previous transactions retrieved for card SC-03013-K951 (excluding the flagged transaction). Average amount: $290.54.",
         "source": "graph",
         "ref": "query:card_transaction_history(card_id=SC-03013-K951)",
@@ -38,7 +38,7 @@
         ]
       },
       {
-        "evidence_id": "EV-c82a1bfe",
+        "evidence_id": "EV-113e9f6b",
         "claim": "2 online transactions on this card within 48h of the flagged transaction.",
         "source": "graph",
         "ref": "query:card_window(card_id=SC-03013-K951, hours=48)",
@@ -48,7 +48,7 @@
         ]
       },
       {
-        "evidence_id": "EV-26878aa7",
+        "evidence_id": "EV-9536498b",
         "claim": "Device marked 'New' for this account: Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012175)",
@@ -57,7 +57,7 @@
         ]
       },
       {
-        "evidence_id": "EV-bd746ebe",
+        "evidence_id": "EV-59cdf723",
         "claim": "Proxy or anonymous connection used: IP_PROXY:ANONYMOUS argentina.",
         "source": "graph",
         "ref": "query:transaction_identity(txn_id=4012175)",
@@ -66,7 +66,7 @@
         ]
       },
       {
-        "evidence_id": "EV-ef4d0d2e",
+        "evidence_id": "EV-0d47003e",
         "claim": "1 prior confirmed fraud case(s) found for customer SC-03013 or card SC-03013-K951: CC-4322.",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03013)",
@@ -75,7 +75,7 @@
         ]
       },
       {
-        "evidence_id": "EV-e24715cf",
+        "evidence_id": "EV-d24269dc",
         "claim": "Device profile 'Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013' appears in 1 confirmed fraud case(s).",
         "source": "graph",
         "ref": "query:closed_cases_by_device(device=Mac OS X 10_15_5 Firefox 89.0 unit-caseCASE-013 | synth-os-case-013 | synth-browser-case-013 | synth-screen-case-013)",
@@ -84,7 +84,7 @@
         ]
       },
       {
-        "evidence_id": "EV-9cb41405",
+        "evidence_id": "EV-cee704a2",
         "claim": "6 prior closed case(s) retrieved by pattern 'card_not_present_new_device' and keyword match over analyst notes (prior patterns: card_not_present_new_device).",
         "source": "document",
         "ref": "retrieval:pattern+keyword(pattern=card_not_present_new_device)",
@@ -98,10 +98,10 @@
         ]
       },
       {
-        "evidence_id": "EV-239568b8",
+        "evidence_id": "EV-e768bb21",
         "claim": "Customer response (simulated): Customer states they did not make these purchases and still has the card in their possession.",
         "source": "customer",
-        "ref": "evidence_request:ER-5a82cdad",
+        "ref": "evidence_request:ER-59269544",
         "entity_ids": [
           "SC-03013"
         ]
@@ -115,7 +115,7 @@
       "CC-4323",
       "CC-4325"
     ],
-    "summary": "Case CASE-013 (Card SC-03013-K951): The real-time risk model scored transaction 4012175 at 0.89, triggering review [EV-02ae78a6]. The transaction originated from a new device profile (Mac OS X 10_15_5 Firefox 89.0) and an anonymous proxy connection from Argentina [EV-26878aa7, EV-bd746ebe]. The card SC-03013-K951 had one prior transaction averaging $290.54 and two online transactions within 48 hours of the flagged transaction [EV-1982ea45, EV-c82a1bfe]. The same device profile appeared in a prior confirmed fraud case, and the customer has one prior fraud case CC-4322 [EV-e24715cf, EV-ef4d0d2e]. The customer reported they did not make the purchases and still possess the card [EV-239568b8]. Six prior closed cases share the card_not_present_new_device pattern [EV-9cb41405].",
+    "summary": "Case CASE-013 (Card SC-03013-K951): The real-time risk model scored transaction 4012175 ($516.82, domestic) at 0.89, triggering review [EV-72b78acd]. The card SC-03013-K951 had one prior transaction averaging $290.54 [EV-a842cf6b] and two online transactions within 48 hours of the flagged transaction [EV-113e9f6b]. The transaction originated from a device marked 'New' with a synthetic profile (Mac OS X 10_15_5 Firefox 89.0) [EV-9536498b] and used an anonymous proxy connection from Argentina [EV-59cdf723]. One prior confirmed fraud case (CC-4322) exists for this customer/card [EV-0d47003e], and the same device profile appears in one confirmed fraud case [EV-d24269dc]. Six prior closed cases share the 'card_not_present_new_device' pattern [EV-cee704a2]. The customer reported they did not make the purchases and still possess the card [EV-e768bb21].",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-013"
   },
@@ -192,7 +192,7 @@
   "sar": {
     "file": true,
     "reason": "R6: confirmed fraud connected to shared device profile or card",
-    "narrative": "Suspicious Activity Report for CASE-013 involving card-not-present fraud on card SC-03013-K951 with exposure of $807.36 across transactions 4012175 and 4012176. The triggering transaction 4012175 for $516.82 was scored at 0.89 by the real-time risk model and originated from a previously unseen device profile (Mac OS X 10_15_5 Firefox 89.0) via an anonymous proxy connection from Argentina [EV-02ae78a6, EV-26878aa7, EV-bd746ebe]. The card exhibited anomalous velocity with two online transactions within 48 hours, deviating from the historical average of $290.54 per transaction [EV-1982ea45, EV-c82a1bfe]. The device fingerprint has been linked to a prior confirmed fraud case, and the customer SC-03013 has a previous fraud case CC-4322 [EV-e24715cf, EV-ef4d0d2e]. The customer confirmed they did not authorize the transactions and retain physical possession of the card [EV-239568b8]. Pattern analysis retrieved six prior closed cases with the same card_not_present_new_device signature, supporting a recurring modus operandi [EV-9cb41405]. The investigation concluded with a fraud verdict and the case is closed.",
+    "narrative": "This Suspicious Activity Report covers CASE-013, a confirmed fraud investigation involving card-not-present transactions on a new device. Transaction 4012175 ($516.82) and 4012176 (total exposure $807.36) were flagged by a real-time risk score of 0.89 [EV-72b78acd]. The transactions originated from a previously unseen device profile (Mac OS X 10_15_5 Firefox 89.0 with synthetic identifiers) [EV-9536498b] and an anonymous proxy IP located in Argentina [EV-59cdf723], both indicators of device spoofing and location obfuscation. The card SC-03013-K951 showed anomalous velocity with two online transactions within 48 hours [EV-113e9f6b] against a historical average of $290.54 [EV-a842cf6b]. The customer confirmed they did not authorize the purchases and retained physical possession of the card [EV-e768bb21]. The device profile is linked to one prior confirmed fraud case [EV-d24269dc], and the customer has a prior fraud history (CC-4322) [EV-0d47003e]. Six prior cases exhibit the same card_not_present_new_device pattern [EV-cee704a2], suggesting a recurring modus operandi. The total fraud exposure is $807.36 across two transactions. The case is closed with a fraud verdict and pattern classification of card_not_present_new_device.",
     "subjects": [
       "SC-03013",
       "SC-03013-K951",
@@ -204,7 +204,16 @@
     ]
   },
   "nemotron": {
-    "model_proposal": null,
+    "model_proposal": {
+      "pattern": "card_not_present_new_device",
+      "confidence": 0.85,
+      "evidence_ids": [
+        "EV-cee704a2",
+        "EV-d24269dc",
+        "EV-9536498b"
+      ],
+      "rationale": "New device fingerprint, prior fraud cases linked to same device, and analyst notes referencing card_not_present_new_device pattern indicate card‑not‑present fraud with a novel device."
+    },
     "policy_decision": {
       "verdict": "fraud",
       "pattern": "card_not_present_new_device",
@@ -217,21 +226,28 @@
       ],
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
-    "model_agreed": false,
-    "model_override_reason": "No valid model proposal (model unavailable or output invalid); policy engine decision stands.",
+    "model_agreed": true,
+    "model_override_reason": "",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1401,
-        "completion_tokens": 1747,
+        "prompt_tokens": 1405,
+        "completion_tokens": 1121,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 4412.6,
+        "latency_ms": 3537.3,
+        "cached": false
+      },
+      "pattern_classifier": {
+        "prompt_tokens": 1297,
+        "completion_tokens": 916,
+        "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+        "latency_ms": 5432.8,
         "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.85 ≥ 0.85 with 8 independent evidence families.",
   "tool_calls": 16,
-  "tokens": 1747,
-  "latency_s": 9.54
+  "tokens": 2037,
+  "latency_s": 9.16
 }

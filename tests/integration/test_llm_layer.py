@@ -1,16 +1,16 @@
 """
 Integration checks for the LLM layer and the honesty flag.
 
-The LLM is used only for text generation (summary, SAR narrative).  When no
-provider is configured, output comes from deterministic grounded fallbacks and
-case.llm_used must be False — template text is never presented as model output.
+The submission has one LLM vendor (Nebius Token Factory / NVIDIA Nemotron) and
+its own role module. `backend.llm.client` keeps only the deterministic template
+writers, and `llm_used` must stay False for them â€” template text is never
+presented as model output.
 """
 from __future__ import annotations
 
 from datetime import datetime
 
 from backend.agents.orchestrator import _grounded_sar_narrative, _grounded_summary
-from backend.config import settings
 from backend.llm import client as llm
 from backend.models import (
     Action,
@@ -40,37 +40,26 @@ def _case():
 
 
 class TestLLMHonestyFlag:
-    def test_no_provider_returns_template_and_flag(self):
-        settings.llm_provider = "none"
+    def test_summary_is_template_and_flagged(self):
         text, tokens, used = llm.generate_summary("anything")
         assert used is False
         assert tokens == 0
         assert isinstance(text, str) and len(text) > 0
 
-    def test_sar_no_provider_returns_template_and_flag(self):
-        settings.llm_provider = "none"
+    def test_sar_is_template_and_flagged(self):
         text, tokens, used = llm.generate_sar_narrative("anything")
         assert used is False
         assert tokens == 0
+        assert isinstance(text, str) and len(text) > 0
 
-    def test_provider_available_flag(self, monkeypatch):
-        settings.llm_provider = "anthropic"
-        monkeypatch.setattr(settings, "anthropic_api_key", "test-key-not-real")
-        # Provider IS available, but the call must fail honestly and fall back
-        monkeypatch.setattr(llm, "_call_anthropic",
-                            lambda p: (_ for _ in ()).throw(RuntimeError("no network")))
-        text, tokens, used = llm.generate_summary("prompt")
-        assert used is False  # failed call is a fallback, not a success
-        assert tokens == 0
+    def test_legacy_provider_path_is_gone(self):
+        """No anthropic/openai/groq client, config field or dispatch may return."""
+        import backend.config as config
 
-    def test_provider_available_success(self, monkeypatch):
-        settings.llm_provider = "anthropic"
-        monkeypatch.setattr(settings, "anthropic_api_key", "test-key-not-real")
-        monkeypatch.setattr(llm, "_call_anthropic", lambda p: "LLM OUTPUT")
-        text, tokens, used = llm.generate_summary("prompt text here")
-        assert used is True
-        assert text == "LLM OUTPUT"
-        assert tokens > 0
+        assert "anthropic_api_key" not in config.Settings.model_fields
+        assert "openai_api_key" not in config.Settings.model_fields
+        assert "groq_api_key" not in config.Settings.model_fields
+        assert config.Settings.model_fields["llm_provider"].annotation.__args__ == ("none",)
 
 
 class TestDeterministicFallbacks:

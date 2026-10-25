@@ -10,3 +10,12 @@ useDefault = true
 description = "Token accounting field names, not credentials"
 regexTarget = "match"
 regexes = ['''completion_tokens_total''']
+# Allowlist: local, uncommitted runtime trees that a whole-directory scan walks.
+# `gitleaks git` (history) remains the gate; these paths never enter it.
+[[allowlists]]
+description = "Local runtime files: virtualenv, Next build cache, developer .env"
+paths = [
+  '''\.venv/''',
+  '''sentinel-ui/\.next/''',
+  '''^\.env$''',
+]

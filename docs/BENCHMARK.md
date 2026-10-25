@@ -34,8 +34,8 @@ All numbers below were measured live in this session against the synthetic bench
 | **F1 Score (Fraud Class)** | **1.0000** | 0.9333 (best at $\tau = 0.70$) | 0.0000 |
 | **Precision** | **1.0000** | 0.9333 | 0.0000 |
 | **Recall** | **1.0000** | 0.9333 | 0.0000 |
-| **Avg Tokens / Case** | 1,809.5 | 0.0 | 258.2 |
-| **Avg Latency / Case** | 9.67 s | < 0.001 s | 4.52 s |
+| **Avg Tokens / Case** | 1,948.8 | 0.0 | 258.2 |
+| **Avg Latency / Case** | 9.14 s | < 0.001 s | 4.52 s |
 
 *(Note on pricing: Dollar estimates are omitted because model pricing varies by provider contract; token counts above reflect actual telemetry from Nebius Token Factory call logs recorded in `data/logs/nebius_calls.jsonl` in October 2026).*
 
@@ -46,10 +46,10 @@ All numbers below were measured live in this session against the synthetic bench
 The synthetic benchmark incorporates two specific **constructed stress scenarios** designed to test edge cases where scalar risk scores fundamentally fail:
 
 ### Stress Scenario 1: `CASE-009` ? Card-Testing Ring With a Low-Score Cash-Out (False Negative under ML Score)
-- **Constructed Profile**: Three micro-authorizations ($1.79, $2.29, $4.93) on one card inside six hours, then a $2,093.43 online charge on that same card. The real-time model scores the charge **0.48** and the micro-authorizations 0.70.
-- **Why Arm 2 Fails**: Any threshold $\tau > 0.48$ (including the optimal $\tau = 0.70$) marks the charge legitimate. This is a severe False Negative: the ring's probe payments score high, but the cash-out that follows them does not.
-- **Why Arm 3 Fails**: Without graph context, plain Nemotron sees one isolated charge and none of the ring; it cannot connect the charge to the three probes or to the 17 other cards carrying the same device profile.
-- **How Arm 1 Resolves It**: Device-profile traversal shows the profile shared across 17 other cards, with 4 confirmed-fraud cards in a ring of 18. The policy engine assesses $P(\text{fraud}) \approx 0.81$, keeps the pattern `undocumented` under R9, queues block-card and monitor-connected-cards, and files the SAR under R2 (confirmed fraud, exposure > $1,000).
+- **Constructed Profile**: Three micro-authorizations ($1.79, $2.29, $4.93) on one card inside six hours, then a **$14.50** online charge on that same card — every amount in the row, the trigger text and the answer file now agrees. The real-time model scores the charge **0.48** and the micro-authorizations 0.70.
+- **Why Arm 2 Fails**: Any threshold $\tau > 0.48$ (including the optimal $\tau = 0.70$) marks the charge legitimate. This is a severe False Negative: the ring's probe payments score high, but the small cash-out that follows them does not.
+- **Why Arm 3 Fails**: Without graph context, plain Nemotron sees one isolated $14.50 charge and none of the ring; it cannot connect the charge to the three probes or to the 17 other cards carrying the same device profile.
+- **How Arm 1 Resolves It**: Device-profile traversal shows the profile shared across 17 other cards, with 4 confirmed-fraud cards in a ring of 18. The policy engine assesses $P(\text{fraud}) = 0.775$, keeps the pattern `undocumented` under R9, queues block-card and monitor-connected-cards, and files the SAR under R6 (confirmed fraud connected to a shared device profile). Total exposure is $23.51.
 
 ### Stress Scenario 2: `CASE-007` ? Legitimate Emergency Medical Purchase (False Positive under ML Score)
 - **Constructed Profile**: Large out-of-state hospital transaction ($1,450.00). Due to high dollar amount and geographic anomaly, the raw risk score spikes to **0.86**.

@@ -5,9 +5,9 @@
     "pattern_accuracy": 1.0,
     "nba_accuracy": 0.95,
     "f1": 1.0,
-    "avg_tokens_per_case": 1809.5,
-    "avg_latency_s_per_case": 9.67,
-    "cost_per_case_usd": 0.000271,
+    "avg_tokens_per_case": 1948.8,
+    "avg_latency_s_per_case": 9.14,
+    "cost_per_case_usd": 0.000292,
     "per_case": [
       {
         "case_id": "CASE-001",
@@ -18,8 +18,8 @@
         "label_pattern": "none",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2059,
-        "latency_s": 9.52
+        "tokens": 1995,
+        "latency_s": 15.3
       },
       {
         "case_id": "CASE-002",
@@ -30,8 +30,8 @@
         "label_pattern": "none",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2109,
-        "latency_s": 15.97
+        "tokens": 1984,
+        "latency_s": 7.72
       },
       {
         "case_id": "CASE-003",
@@ -42,8 +42,8 @@
         "label_pattern": "none",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2353,
-        "latency_s": 7.91
+        "tokens": 1525,
+        "latency_s": 5.71
       },
       {
         "case_id": "CASE-004",
@@ -54,8 +54,8 @@
         "label_pattern": "card_not_present_fraud",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1719,
-        "latency_s": 9.5
+        "tokens": 1903,
+        "latency_s": 8.25
       },
       {
         "case_id": "CASE-005",
@@ -66,8 +66,8 @@
         "label_pattern": "card_not_present_new_device",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2636,
-        "latency_s": 8.0
+        "tokens": 1768,
+        "latency_s": 8.67
       },
       {
         "case_id": "CASE-006",
@@ -78,8 +78,8 @@
         "label_pattern": "card_not_present_fraud",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2460,
-        "latency_s": 10.23
+        "tokens": 2443,
+        "latency_s": 9.26
       },
       {
         "case_id": "CASE-007",
@@ -90,8 +90,8 @@
         "label_pattern": "none",
         "pattern_ok": true,
         "nba_ok": false,
-        "tokens": 1099,
-        "latency_s": 7.72
+        "tokens": 991,
+        "latency_s": 6.82
       },
       {
         "case_id": "CASE-008",
@@ -102,8 +102,8 @@
         "label_pattern": "card_not_present_fraud",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1798,
-        "latency_s": 10.6
+        "tokens": 2726,
+        "latency_s": 12.0
       },
       {
         "case_id": "CASE-009",
@@ -114,8 +114,8 @@
         "label_pattern": "undocumented",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2810,
-        "latency_s": 8.77
+        "tokens": 1799,
+        "latency_s": 11.07
       },
       {
         "case_id": "CASE-010",
@@ -126,8 +126,8 @@
         "label_pattern": "card_not_present_new_device",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1842,
-        "latency_s": 10.62
+        "tokens": 2459,
+        "latency_s": 7.73
       },
       {
         "case_id": "CASE-011",
@@ -138,8 +138,8 @@
         "label_pattern": "card_not_present_fraud",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1841,
-        "latency_s": 8.66
+        "tokens": 1752,
+        "latency_s": 8.54
       },
       {
         "case_id": "CASE-012",
@@ -150,8 +150,8 @@
         "label_pattern": "none",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2039,
-        "latency_s": 7.24
+        "tokens": 2298,
+        "latency_s": 7.67
       },
       {
         "case_id": "CASE-013",
@@ -162,8 +162,8 @@
         "label_pattern": "card_not_present_new_device",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1747,
-        "latency_s": 9.54
+        "tokens": 2037,
+        "latency_s": 9.16
       },
       {
         "case_id": "CASE-014",
@@ -174,8 +174,8 @@
         "label_pattern": "undocumented",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 918,
-        "latency_s": 9.81
+        "tokens": 1941,
+        "latency_s": 9.21
       },
       {
         "case_id": "CASE-015",
@@ -186,8 +186,8 @@
         "label_pattern": "card_not_present_new_device",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1133,
-        "latency_s": 13.0
+        "tokens": 2448,
+        "latency_s": 8.97
       },
       {
         "case_id": "CASE-016",
@@ -198,8 +198,8 @@
         "label_pattern": "card_not_present_new_device",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2722,
-        "latency_s": 8.96
+        "tokens": 1574,
+        "latency_s": 10.11
       },
       {
         "case_id": "CASE-017",
@@ -210,8 +210,8 @@
         "label_pattern": "card_not_present_fraud",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1107,
-        "latency_s": 8.68
+        "tokens": 991,
+        "latency_s": 9.73
       },
       {
         "case_id": "CASE-018",
@@ -222,8 +222,8 @@
         "label_pattern": "card_not_present_fraud",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 2390,
-        "latency_s": 9.52
+        "tokens": 2515,
+        "latency_s": 8.33
       },
       {
         "case_id": "CASE-019",
@@ -234,8 +234,8 @@
         "label_pattern": "account_takeover",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 0,
-        "latency_s": 9.35
+        "tokens": 2664,
+        "latency_s": 9.08
       },
       {
         "case_id": "CASE-020",
@@ -246,8 +246,8 @@
         "label_pattern": "card_not_present_new_device",
         "pattern_ok": true,
         "nba_ok": true,
-        "tokens": 1408,
-        "latency_s": 9.81
+        "tokens": 1164,
+        "latency_s": 9.52
       }
     ]
   },

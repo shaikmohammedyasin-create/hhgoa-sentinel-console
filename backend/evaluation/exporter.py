@@ -106,6 +106,10 @@ def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
         },
         # Nemotron advisory layer ("model proposes, policy engine decides").
         # Additive: not part of the graded fields, consumed by the UI.
+        # `served_by` is the honest provenance the UI renders: a case written by
+        # a run that called Nemotron says "live"; a template-only run says
+        # "deterministic fallback". The demo serving layer may replace this with
+        # "cached live run (<date>)" when it serves the committed recording.
         "nemotron": {
             "model_proposal": case.model_proposal,
             "policy_decision": case.policy_decision,
@@ -113,6 +117,7 @@ def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
             "model_override_reason": case.model_override_reason,
             "verification_draft": case.verification_draft,
             "model_usage": case.model_usage,
+            "served_by": "live" if case.model_usage else "deterministic fallback",
         },
         "stop_reason": case.stop_reason,
         "tool_calls": case.tool_calls,

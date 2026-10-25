@@ -24,10 +24,10 @@ docker compose up --build
 To demonstrate why pure LLMs or simple ML risk scores fail without knowledge graphs and policy governance, showcase these three cases:
 
 ### Case 1: `CASE-009` ? Card-Testing Ring With a Low-Score Cash-Out (Constructed Stress Scenario: False Negative under ML Score)
-- **The Setup**: Three micro-authorizations ($1.79, $2.29, $4.93) on one card inside six hours, then a $2,093.43 online charge on the same card. The bank's real-time score for the charge is low (**0.48**).
+- **The Setup**: Three micro-authorizations ($1.79, $2.29, $4.93) on one card inside six hours, then a **$14.50** online charge on the same card. The bank's real-time score for the charge is low (**0.48**).
 - **Why Naive Thresholds Fail**: Any risk score threshold $\tau > 0.48$ dismisses the charge as benign (False Negative), missing the card-testing ring that is already probing this card. Plain LLMs without graph context miss the distributed pattern.
 - **What Sentinel Graph Discovers**: Device-profile traversal shows the profile behind the charge is shared across 17 other credit cards, with 4 confirmed-fraud cards in a ring of 18.
-- **The Decision**: Policy rule R9 keeps the pattern `undocumented` (the evidence fits none of the five named patterns cleanly) and the engine assesses $P(\text{fraud}) \approx 0.81$. Next Best Actions: `block_card`, `file_report` under R2, and `monitor_connected_cards`. When Token Factory is configured, Nemotron proposes pattern `card_testing`; the engine's decision stands and the disagreement is recorded rather than resolved away.
+- **The Decision**: Policy rule R9 keeps the pattern `undocumented` (the evidence fits none of the five named patterns cleanly) and the engine assesses $P(\text{fraud}) = 0.775$. Next Best Actions: `block_card`, `file_report` under R6 (shared device profile), and `monitor_connected_cards`. Total exposure is $23.51. The committed Nemotron recording proposes `card_testing`; the engine's decision stands and the disagreement is recorded rather than resolved away.
 
 ### Case 2: `CASE-007` ? Legitimate Emergency Purchase (Constructed Stress Scenario: False Positive under ML Score)
 - **The Setup**: Large out-of-state hospital payment ($1,450.00). Initial machine learning risk score spikes to **0.86**.

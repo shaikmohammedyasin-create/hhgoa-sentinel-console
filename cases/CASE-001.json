@@ -26,7 +26,7 @@
     "exposure_usd": 0.0,
     "evidence": [
       {
-        "evidence_id": "EV-617b0b3a",
+        "evidence_id": "EV-0ec1b5c7",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012147 ($211.25, in billing region 310) at 0.59. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "evidence_id": "EV-7ae7382f",
+        "evidence_id": "EV-f4bcd0ad",
         "claim": "Device profile shared across 20 other card(s); 5 named here and 10 linked to this case: SC-00021-K1, SC-00029-K2, SC-00072-K1, SC-00076-K1, SC-00080-K1.",
         "source": "graph",
         "ref": "query:accounts_sharing_device(device=Mac OS X 10_15_5 Firefox 89.0 unit-04113 | Windows 11 | edge 123.0 | 390x844)",
@@ -55,7 +55,7 @@
         ]
       },
       {
-        "evidence_id": "EV-fd5a08bc",
+        "evidence_id": "EV-b8816481",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03001)",
@@ -64,10 +64,10 @@
         ]
       },
       {
-        "evidence_id": "EV-ed1049f4",
+        "evidence_id": "EV-d25bb30c",
         "claim": "Customer response (simulated): Customer confirms they authorized this purchase from their personal account.",
         "source": "customer",
-        "ref": "evidence_request:ER-b194bcb3",
+        "ref": "evidence_request:ER-6c0e4cd8",
         "entity_ids": [
           "SC-03001"
         ]
@@ -76,7 +76,7 @@
     "similar_prior_cases": [
       "CC-4309"
     ],
-    "summary": "Case CASE-001 (Card SC-03001-K938): The investigation for CASE-001 was triggered by a real-time risk score of 0.59 on transaction 4012147 ($211.25, billing region 310) [EV-617b0b3a]. The device profile associated with the transaction was found to be shared across 20 other cards, including five cards linked to this case (SC-00021-K1, SC-00029-K2, SC-00072-K1, SC-00076-K1, SC-00080-K1) [EV-7ae7382f]. A prior case for the same customer (SC-03001) had been cleared as legitimate, with confirmed travel and purchase [EV-fd5a08bc]. The customer confirmed they authorized the purchase from their personal account [EV-ed1049f4]. Based on this evidence, the case was closed as legitimate with no fraud pattern identified and zero exposure.",
+    "summary": "Case CASE-001 (Card SC-03001-K938): The investigation for CASE-001 was triggered by a real-time risk score of 0.59 on transaction 4012147 ($211.25, billing region 310) [EV-0ec1b5c7]. Device profiling revealed the same device fingerprint (Mac OS X 10_15_5 Firefox 89.0 unit-04113 | Windows 11 | edge 123.0 | 390x844) shared across 20 other cards, with five explicitly linked to this case [EV-f4bcd0ad]. A prior closed case for customer SC-03001 was cleared as legitimate, citing confirmed travel and purchase [EV-b8816481]. The customer confirmed authorization of the purchase from their personal account [EV-d25bb30c]. Based on this evidence, the case was closed with a legitimate verdict, no fraud pattern identified, and zero exposure.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-001"
   },
@@ -128,7 +128,7 @@
         "reason": "R3: customer confirmed the transaction"
       }
     ],
-    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST"
+    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: CREATE_CASE, ESCALATE_TO_ANALYST, FILE_REPORT"
   },
   "sar": {
     "file": false,
@@ -141,12 +141,12 @@
   "nemotron": {
     "model_proposal": {
       "pattern": "card_testing",
-      "confidence": 0.75,
+      "confidence": 0.6,
       "evidence_ids": [
-        "EV-7ae7382f",
-        "EV-617b0b3a"
+        "EV-f4bcd0ad",
+        "EV-0ec1b5c7"
       ],
-      "rationale": "Shared device profile across many cards indicates coordinated testing; risk score 0.59 and customer authorization do not negate testing behavior."
+      "rationale": "Shared device across many cards (EV-f4bcd0ad) and a moderate risk score transaction (EV-0ec1b5c7) suggest testing multiple cards, matching card_testing pattern."
     },
     "policy_decision": {
       "verdict": "legitimate",
@@ -158,27 +158,27 @@
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
     "model_agreed": false,
-    "model_override_reason": "Policy engine retained 'none' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.75. Engine decision stands.",
+    "model_override_reason": "Policy engine retained 'none' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.60. Engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1031,
-        "completion_tokens": 1072,
+        "prompt_tokens": 1030,
+        "completion_tokens": 1172,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 4640.8,
+        "latency_ms": 10790.8,
         "cached": false
       },
       "pattern_classifier": {
-        "prompt_tokens": 872,
-        "completion_tokens": 987,
+        "prompt_tokens": 871,
+        "completion_tokens": 823,
         "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-        "latency_ms": 4439.0,
+        "latency_ms": 4216.6,
         "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.07 ≤ 0.15; activity consistent with legitimate use.",
   "tool_calls": 15,
-  "tokens": 2059,
-  "latency_s": 9.52
+  "tokens": 1995,
+  "latency_s": 15.3
 }

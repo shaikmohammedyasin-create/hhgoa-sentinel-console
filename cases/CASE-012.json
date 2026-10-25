@@ -26,7 +26,7 @@
     "exposure_usd": 0.0,
     "evidence": [
       {
-        "evidence_id": "EV-44ad2d17",
+        "evidence_id": "EV-3c781a8c",
         "claim": "Trigger (risk_score): Real-time model scored transaction 4012151 ($465.94, in billing region 246) at 0.69. Review and decide.",
         "source": "external",
         "ref": "trigger:risk_score",
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "evidence_id": "EV-b86326f4",
+        "evidence_id": "EV-a17d2cd0",
         "claim": "Device profile shared across 20 other card(s); 5 named here and 10 linked to this case: SC-00019-K1, SC-00021-K2, SC-00027-K3, SC-00034-K1, SC-00036-K1.",
         "source": "graph",
         "ref": "query:accounts_sharing_device(device=Linux x86_64 Chrome 96.0 unit-04117 | Android 12 | edge 123.0 | 390x844)",
@@ -55,7 +55,7 @@
         ]
       },
       {
-        "evidence_id": "EV-58b0fc41",
+        "evidence_id": "EV-9063ca0a",
         "claim": "1 prior case(s) for this customer were cleared as legitimate (e.g., confirmed travel, confirmed purchase).",
         "source": "graph",
         "ref": "query:closed_cases_for_customer(customer_id=SC-03012)",
@@ -64,10 +64,10 @@
         ]
       },
       {
-        "evidence_id": "EV-53ed8668",
+        "evidence_id": "EV-0ba4ebb8",
         "claim": "Customer response (simulated): Customer confirms they authorized this purchase from their personal account.",
         "source": "customer",
-        "ref": "evidence_request:ER-4fb8f961",
+        "ref": "evidence_request:ER-807565f1",
         "entity_ids": [
           "SC-03012"
         ]
@@ -76,7 +76,7 @@
     "similar_prior_cases": [
       "CC-4313"
     ],
-    "summary": "Case CASE-012 (Card SC-03012-K942): The investigation for CASE-012 was triggered by a real-time risk score of 0.69 on transaction 4012151 ($465.94, billing region 246) [EV-44ad2d17, trigger:risk_score]. Device profiling revealed the transaction device (Linux x86_64 Chrome 96.0 unit-04117 | Android 12 | edge 123.0 | 390x844) was shared across 20 other cards, with five cards explicitly named and ten linked to this case [EV-b86326f4, query:accounts_sharing_device]. A prior case for customer SC-03012 had been cleared as legitimate, indicating a history of confirmed travel or purchase [EV-58b0fc41, query:closed_cases_for_customer]. The customer confirmed they authorized the purchase from their personal account [EV-53ed8668, evidence_request:ER-4fb8f961]. Based on this evidence, the case was closed as legitimate with no fraud exposure.",
+    "summary": "Case CASE-012 (Card SC-03012-K942): The investigation was triggered by a real-time risk model scoring transaction 4012151 ($465.94, billing region 246) at 0.69 [EV-3c781a8c, source: trigger:risk_score]. Device profiling revealed the transaction device (Linux x86_64 Chrome 96.0 unit-04117 | Android 12 | edge 123.0 | 390x844) was shared across 20 other cards, with five cards (SC-00019-K1, SC-00021-K2, SC-00027-K3, SC-00034-K1, SC-00036-K1) explicitly linked to this case [EV-a17d2cd0, query:accounts_sharing_device]. Historical review showed one prior case for customer SC-03012 was closed as legitimate, citing confirmed travel and purchase [EV-9063ca0a, query:closed_cases_for_customer]. The customer confirmed they authorized the purchase from their personal account [EV-0ba4ebb8, source: customer evidence_request:ER-807565f1]. Based on the evidence, the case was closed with a legitimate verdict, no fraud pattern identified, and zero exposure.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2026-CASE-012"
   },
@@ -128,7 +128,7 @@
         "reason": "R3: customer confirmed the transaction"
       }
     ],
-    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: CREATE_CASE, FILE_REPORT, ESCALATE_TO_ANALYST"
+    "what_changed": "Added: CLOSE_NO_FRAUD; Removed: CREATE_CASE, ESCALATE_TO_ANALYST, FILE_REPORT"
   },
   "sar": {
     "file": false,
@@ -141,13 +141,14 @@
   "nemotron": {
     "model_proposal": {
       "pattern": "card_testing",
-      "confidence": 0.65,
+      "confidence": 0.78,
       "evidence_ids": [
-        "EV-b86326f4",
-        "EV-44ad2d17",
-        "EV-53ed8668"
+        "EV-3c781a8c",
+        "EV-a17d2cd0",
+        "EV-9063ca0a",
+        "EV-0ba4ebb8"
       ],
-      "rationale": "Shared device used by many cards and a moderate risk score suggest coordinated testing of stolen card data."
+      "rationale": "Multiple cards share a single device profile (EV-a17d2cd0) and a risk-triggered transaction (EV-3c781a8c) occurs; prior legitimate cases exist (EV-9063ca0a) but the coordinated device use suggests testing activity, supported by customer confirmation (EV-0ba4ebb8)."
     },
     "policy_decision": {
       "verdict": "legitimate",
@@ -159,27 +160,27 @@
       "decided_by": "deterministic policy engine (rules R1-R10)"
     },
     "model_agreed": false,
-    "model_override_reason": "Policy engine retained 'none' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.65. Engine decision stands.",
+    "model_override_reason": "Policy engine retained 'none' (evidence-backed, deterministic rules); model proposed 'card_testing' at confidence 0.78. Engine decision stands.",
     "verification_draft": null,
     "model_usage": {
       "case_narrative_and_sar_draft": {
-        "prompt_tokens": 1030,
-        "completion_tokens": 1114,
+        "prompt_tokens": 1029,
+        "completion_tokens": 1345,
         "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-        "latency_ms": 3281.6,
+        "latency_ms": 4048.9,
         "cached": false
       },
       "pattern_classifier": {
-        "prompt_tokens": 870,
-        "completion_tokens": 925,
+        "prompt_tokens": 869,
+        "completion_tokens": 953,
         "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-        "latency_ms": 3865.3,
+        "latency_ms": 3477.1,
         "cached": false
       }
     }
   },
   "stop_reason": "Fraud probability 0.05 ≤ 0.15; activity consistent with legitimate use.",
   "tool_calls": 15,
-  "tokens": 2039,
-  "latency_s": 7.24
+  "tokens": 2298,
+  "latency_s": 7.67
 }

@@ -177,6 +177,15 @@ export interface NemotronBlock {
   model_override_reason: string;
   verification_draft: string | null;
   model_usage: Record<string, ModelUsageEntry>;
+  /** Honest provenance label: "live", "cached live run (<date>)", or
+   *  "deterministic fallback". Filled by the API, not by the raw answer file. */
+  served_by?: string | null;
+  recorded_at?: string | null;
+  recorded_from?: string | null;
+  /** Cached narrative/SAR recorded from a live run, for display only. */
+  recorded_narrative?: string | null;
+  recorded_sar_narrative?: string | null;
+  model_proposal_cached?: boolean;
 }
 
 export interface AnswerCase {

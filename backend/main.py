@@ -246,7 +246,11 @@ def get_investigation(case_id: str):
     if settings.demo_mode:
         answer = _answer_file(case_id)
         if answer is not None:
-            return answer
+            # Label the Nemotron provenance for the UI: a live run of this
+            # process, the committed recording of a real run, or a fallback.
+            from backend.llm import recorded
+
+            return recorded.annotate(answer, case_id)
     payload = app_db.load_investigation(case_id)
     if payload is None:
         raise HTTPException(404, f"Case {case_id} not found")

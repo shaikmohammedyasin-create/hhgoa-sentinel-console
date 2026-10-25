@@ -14,7 +14,8 @@ The `sentinel-ui/` directory originated as a fork of the "Sentinel v2" analyst c
 - **Vendored Commit into this Repo**: `fe56ea9` (2026-10-21)
 - **Upstream License**: **No LICENSE file exists in the upstream repository.**
 - **Legal Posture & Attribution**: Attribution is maintained in `sentinel-ui/NOTICE.md` in good faith.  
-  `TODO: Confirm upstream licensing terms with Team CollabUp.`
+  **Permission: not recorded.** No written grant from the upstream authors exists in this repository. The two candidate final wordings are drafted in
+  [`docs/ATTRIBUTION_DRAFT.md`](ATTRIBUTION_DRAFT.md); neither is applied until the authors answer.
 
 ---
 
