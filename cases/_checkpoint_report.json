@@ -144,7 +144,7 @@
     {
       "case_id": "CASE-009",
       "verdict": "fraud",
-      "fraud_probability": 0.808,
+      "fraud_probability": 0.775,
       "pattern": "undocumented",
       "status": "closed_fraud",
       "written_to_graph": true,
