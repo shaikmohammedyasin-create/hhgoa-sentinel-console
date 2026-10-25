@@ -51,7 +51,7 @@ Raw hits and verdicts:
 | Hit | Verdict |
 |---|---|
 | `README.md:316` forked from "Sentinel v2" by Team CollabUp (`r-rishit27/hacker_house` commit `7bcea03`) | **correct** (attribution) |
-| `README.md:329` `TODO: Confirm upstream licensing terms with Team CollabUp …` | **accurate but unresolved** — the licence question, not a stale number |
+| `README.md` �15 attribution | **replaced (2026-10-25)**: the TODO is gone; README now states the facts and points at `docs/ATTRIBUTION_DRAFT.md` (two variants, neither applied) |
 | `docs/CHANGELOG.md:31` "README test badge updated (278 passed / 9 skipped)" | **correct as history** (describes an old commit; not a current claim) |
 | `docs/DEMO.md:86` `600/600` evidence checkpoints | **correct** (re-verified: 20 cases × 30 checkpoints) |
 | `docs/DEPLOY.md:132` references `HHGoa26-Agentic-Fraud-Investigation` | **correct in context** (old Render service belongs to a different repo and was left untouched) |
