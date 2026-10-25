@@ -1,7 +1,7 @@
 # Fallback UI Restoration Plan (Vanilla Frontend)
 
-> **STATUS: PREPARED ONLY ? DO NOT EXECUTE UNLESS REQUIRED**  
-> This fallback plan provides a zero-risk escape hatch to restore the original 100% bespoke vanilla ES6 frontend if any licensing dispute arises regarding the `sentinel-ui/` Next.js console.
+> **STATUS: EXECUTED ON BRANCH `path-b` (READY-TO-APPLY CLEAN-ROOM ALTERNATIVE)**  
+> On branch `path-b`, this fallback plan is executed in full: `sentinel-ui/` and all external Next.js scaffolding have been deleted, and the 100% bespoke clean-room ES6 frontend (`frontend/`) is mounted directly on FastAPI at `/`. On branch `path-a` (written grant), `sentinel-ui/` remains with upstream attribution.
 
 ---
 

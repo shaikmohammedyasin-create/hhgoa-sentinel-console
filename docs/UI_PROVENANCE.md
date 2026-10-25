@@ -13,9 +13,18 @@ The `sentinel-ui/` directory originated as a fork of the "Sentinel v2" analyst c
 - **Source Branch & Commit**: `sentinel-v2`, commit `7bcea03` (shallow clone, 2026-09-24)
 - **Vendored Commit into this Repo**: `fe56ea9` (2026-10-21)
 - **Upstream License**: **No LICENSE file exists in the upstream repository.**
-- **Legal Posture & Attribution**: Attribution is maintained in `sentinel-ui/NOTICE.md` in good faith.  
-  **Permission: not recorded.** No written grant from the upstream authors exists in this repository. The two candidate final wordings are drafted in
-  [`docs/ATTRIBUTION_DRAFT.md`](ATTRIBUTION_DRAFT.md); neither is applied until the authors answer.
+- **Legal Posture & Attribution**:
+> **Attribution & Licence.** `sentinel-ui/` started from the "Sentinel v2"
+> analyst console by Team CollabUp (Hacker House Goa 2026,
+> `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). The upstream
+> repository carries no LICENSE file, and no written permission to redistribute
+> it was obtained. To keep this submission's licensing unambiguous, the
+> upstream-derived interface has been removed from the evaluated path: the
+> console shipped for evaluation is the project's own clean-room implementation
+> (`frontend/`), and the upstream-derived files are retained only in the git
+> history for provenance (see `docs/UI_PROVENANCE.md` §4).
+> This project's own code is MIT (`LICENSE`, Copyright 2026 Mohammed Yasin
+> Shaik).
 
 ---
 
@@ -130,3 +139,10 @@ The following dead or irrelevant upstream mock files were purged:
 - `src/lib/replay.ts` & `src/lib/format.ts` (dead replay utilities)
 - `src/app/showcase/page.tsx` (mock design showcase)
 - `src/components/ui/*` (14 unused mock atomic components)
+
+
+---
+
+## 4. Shipped Implementation: Path B Clean-Room UI
+
+In branch `path-b`, `sentinel-ui/` has been removed from the working tree. The evaluated console is the project's 100% bespoke, clean-room implementation in `frontend/`, served directly by the FastAPI backend on the single deployment origin (`/`).

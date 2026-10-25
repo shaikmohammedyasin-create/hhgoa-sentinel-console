@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from backend import db as app_db
 from backend.agents.orchestrator import _current_risk, run_investigation
-from backend.config import settings
+from backend.config import ROOT, settings
 from backend.evaluation.exporter import case_to_answer, write_answer_file
 from backend.graph import query_router as graph
 from backend.logging import configure_logging, get_logger
@@ -1349,4 +1349,13 @@ if _UI_PORT:
         if any(path.startswith(p) or path == p.lstrip("/") for p in _API_PREFIXES):
             raise HTTPException(404, f"Not found: /{path}")
         return _proxy_to_ui(path, request)
+
+
+# --- Shipped clean-room vanilla console (own-ui) ---------------------------
+_frontend_dir = ROOT / "frontend"
+if _frontend_dir.is_dir():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=str(_frontend_dir), html=True), name="frontend")
+
 

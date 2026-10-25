@@ -107,20 +107,14 @@ class TestFrontendAPI:
         assert res["status"] == "approved"
         assert res["approver"] == "TestAnalyst-L1"
 
-    def test_no_vanilla_static_frontend_mount(self, client):
-        """The vanilla frontend/ dashboard was removed; the API is frontend-free.
-
-        The Analyst Command Center was deleted (Sentinel UI in sentinel-ui/ is
-        the main interface, served separately). The backend must therefore NOT
-        serve the old root page or its /css and /js assets - it is API-only.
-        """
+    def test_clean_room_frontend_mounted(self, client):
+        """Path B: Clean-room console in frontend/ is served at root on the single FastAPI URL."""
         r_root = client.get("/")
-        # FastAPI returns a 404 JSON problem when no static mount is present.
-        assert r_root.status_code == 404
-        assert r_root.json()["detail"] == "Not Found"
+        assert r_root.status_code == 200
+        assert "FraudLens" in r_root.text
 
         for path in ("/css/style.css", "/js/api.js", "/js/graph.js", "/js/app.js"):
-            assert client.get(path).status_code in (404, 405)
+            assert client.get(path).status_code == 200
 
     def test_get_all_approvals_endpoint(self, client):
         """GET /api/approvals returns list of approvals across cases."""

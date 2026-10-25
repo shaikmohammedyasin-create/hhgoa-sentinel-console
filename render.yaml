@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: hhgoa-fraud-api
+    name: hhgoa-sentinel-console
     runtime: python
     plan: free
     region: oregon
+    # Single-URL deploy: serves both FastAPI backend and clean-room analyst console (frontend/) directly at /
     # Builds the prepared SQLite graph store from the committed synthetic
     # CSVs at deploy time. No data is fetched from an external release;
     # the round's real dataset is never redistributed.

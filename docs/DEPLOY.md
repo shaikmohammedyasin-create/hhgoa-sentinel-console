@@ -1,14 +1,14 @@
 # Deployment & Operations Guide
 
 Sentinel Graph can be deployed in two supported modes:
-1. **Single-Container Docker (Recommended for judges & local evaluation)**: Both the Next.js analyst console and FastAPI backend co-hosted on a single URL (`http://localhost:8008`).
-2. **Hosted Cloud Deployment (Render Blueprint)**: Deployment of the backend API via `render.yaml`.
+1. **Single-Container Docker (Recommended for judges & local evaluation)**: The clean-room Analyst Console (`frontend/`) and FastAPI backend co-hosted on a single URL (`http://localhost:8008`).
+2. **Hosted Cloud Deployment (Render Blueprint)**: Deployment of the unified backend API + UI via `render.yaml`.
 
 ---
 
 ## 1. Quickstart: Single-Container Docker
 
-Judges and evaluators require **no API keys or credentials** to run the complete system:
+Judges and evaluators require **no API keys, credentials, or Node.js runtime** to run the complete system:
 
 ```bash
 git clone https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git
@@ -18,22 +18,20 @@ docker compose up --build
 ```
 
 ### What happens automatically:
-- **One Container, One Port (`:8008`)**: The FastAPI backend listens on port 8000 internally and proxies all non-API web traffic to the co-hosted Next.js standalone server on port 3000. Docker Compose maps this to `http://localhost:8008`.
+- **One Container, One Port (`:8008`)**: The FastAPI backend listens on port 8000 internally and directly serves the clean-room Analyst Command Center at `/` via `StaticFiles`. Docker Compose maps this to `http://localhost:8008`.
 - **Zero-Config Graph Engine**: `prepare_data` automatically builds the local SQLite graph store from committed synthetic CSVs (`data/synthetic/`) containing 12,230 transactions, 4,196 identity records, 28 closed cases, and 20 investigation cases in under 3 seconds.
-- **Default Demo Mode (`DEMO_MODE=1`)**: No `NEBIUS_API_KEY` is required. Precomputed cases (`cases/*.json`) replay the recorded decisions and Nemotron advisory reasoning. If an investigator runs a fresh case without a key, the deterministic policy engine (R1?R10) and Noisy-OR Bayesian scorer still make the definitive decision (`served_by: "deterministic-fallback"`, `llm_used: false`), ensuring zero 500 errors.
+- **Default Demo Mode (`DEMO_MODE=1`)**: No `NEBIUS_API_KEY` is required. Precomputed cases (`cases/*.json`) replay the recorded decisions and Nemotron advisory reasoning. If an investigator runs a fresh case without a key, the deterministic policy engine (R1–R10) and Noisy-OR Bayesian scorer still make the definitive decision (`served_by: "deterministic-fallback"`, `llm_used: false`), ensuring zero 500 errors.
 
 ---
 
 ## 2. Docker Architecture & Build Details
 
-The repository includes a production multi-stage `Dockerfile`:
+The repository includes a lightweight, single-stage `Dockerfile`:
 
-- **Stage 1 (UI Build)**: Uses `node:20-slim` to install dependencies and run `npm run build` in `sentinel-ui`, generating the standalone Next.js bundle (`.next/standalone`).
-- **Stage 2 (Runtime)**: Uses `python:3.12-slim` with Node.js 20 installed.
+- **Single Stage (Python 3.12-slim)**: Requires zero Node.js / npm dependencies.
   - Installs Python dependencies with network retry flags (`--default-timeout=120 --retries 5`).
-  - Copies backend code, synthetic CSVs, prompts, and precomputed cases.
-  - Copies the standalone UI assets into `/app/ui/standalone/`.
-  - Executes `scripts/docker_entrypoint.sh`.
+  - Copies backend code, synthetic CSVs, prompts, precomputed cases, and the clean-room static console (`frontend/`).
+  - Executes `scripts/docker_entrypoint.sh` launching `uvicorn backend.main:app` on port 8000.
 
 ---
 
@@ -121,17 +119,16 @@ for i in {1..25}; do curl -s -o /dev/null -w "%{http_code}
 
 | Component | URL | Where |
 |---|---|---|
-| Console | https://sentinel-ui-nu.vercel.app | Vercel project `sentinel-ui`, production |
+| Console | Unified on Render/Docker (single URL at `/`) | Clean-Room Frontend (`frontend/`) |
 | API | https://sentinel-console-api.onrender.com | Render web service `sentinel-console-api` (free, Oregon) |
 
-The console proxies `/api/*`, `/investigations/*`, `/benchmark/*` and `/health` to the Render service through `NEXT_PUBLIC_API_PROXY_TARGET`, so the browser talks to a single origin and no CORS is involved. The API runs `DEMO_MODE=1` with `GRAPH_BACKEND=local` and builds its SQLite graph from the committed synthetic CSVs during deploy.
+The FastAPI backend directly serves the clean-room Analyst Console (`frontend/`) at root `/` and provides all API endpoints (`/api/*`, `/health`), so the browser talks to a single origin and no CORS or reverse-proxy is involved. The application runs `DEMO_MODE=1` with `GRAPH_BACKEND=local` and builds its SQLite graph from the committed synthetic CSVs during deploy.
 
 Notes:
 
 - Render free instances sleep when idle; the first request after a pause takes roughly 30-60 s to wake.
-- The older `hhgoa-fraud-api` Render service is still attached to the `HHGoa26-Agentic-Fraud-Investigation` repository and was left untouched.
-- Redeploy the console with `cd sentinel-ui && vercel deploy --prod --yes`; redeploy the API with `render deploys create srv-dbefmsvavr4c73aph5c0 --confirm`.
-- The Vercel project previously served the static snapshot build (`NEXT_PUBLIC_DEMO_DATA=1`); that variable was removed in favour of the live proxy. Re-add it and redeploy to return to snapshot mode.
+- Deployments require zero Node.js or Vercel configuration; git push triggers a unified Python build on Render/Docker.
+- Redeploy the unified API + Console service with `render deploys create srv-dbefmsvavr4c73aph5c0 --confirm`.
 
 ---
 

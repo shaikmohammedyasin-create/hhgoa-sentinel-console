@@ -24,7 +24,7 @@ docker compose up --build
 ```
 
 The single-container demo:
-- **Hosted demo**: console at <https://sentinel-ui-nu.vercel.app>, API at <https://sentinel-console-api.onrender.com> (Vercel proxies to Render; `DEMO_MODE=1`).
+- **Hosted demo**: single unified API and clean-room Console at <https://sentinel-console-api.onrender.com> (or local Docker `:8008`; `DEMO_MODE=1`). Shipped UI is 100% bespoke `frontend/` on the single FastAPI origin.
 - **One Container, One URL (`:8008`)**: The FastAPI backend and Next.js console (`sentinel-ui`) are co-hosted inside one container.
 - **Hermetic Synthetic Graph**: Rebuilds the SQLite graph store from committed synthetic CSVs (`data/synthetic/`) in ~3 seconds (`GRAPH_BACKEND=local`). No external cluster required.
 - **Default Demo Mode (`DEMO_MODE=1`)**: every case view, re-run and benchmark endpoint is a replay of `cases/*.json` — no run, no rewrite, no spend. Analyst Q&A is the one live path: answers are cached on disk and capped per IP and per day, so only a genuinely new question reaches Nemotron.
@@ -327,9 +327,17 @@ The Next.js analyst console in `sentinel-ui/` was forked and extensively reworke
 
 ### Attribution & Licence Status
 
-The fork is documented in [`sentinel-ui/NOTICE.md`](./sentinel-ui/NOTICE.md) and [`docs/UI_PROVENANCE.md`](./docs/UI_PROVENANCE.md). The upstream repository (`r-rishit27/hacker_house`, branch `sentinel-v2`, commit `7bcea03`) contains **no LICENSE file**, and no written permission to redistribute or relicense the upstream code is recorded in this repository.
-
-Two candidate final wordings � one for the case where written permission from the upstream authors is granted, one for the case where it is not � are drafted in [`docs/ATTRIBUTION_DRAFT.md`](./docs/ATTRIBUTION_DRAFT.md). **Neither has been applied.** Until one is chosen, this section states only the facts above; it makes no claim of permission and no claim of infringement.
+> **Attribution & Licence.** `sentinel-ui/` started from the "Sentinel v2"
+> analyst console by Team CollabUp (Hacker House Goa 2026,
+> `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). The upstream
+> repository carries no LICENSE file, and no written permission to redistribute
+> it was obtained. To keep this submission's licensing unambiguous, the
+> upstream-derived interface has been removed from the evaluated path: the
+> console shipped for evaluation is the project's own clean-room implementation
+> (`frontend/`), and the upstream-derived files are retained only in the git
+> history for provenance (see `docs/UI_PROVENANCE.md` §4).
+> This project's own code is MIT (`LICENSE`, Copyright 2026 Mohammed Yasin
+> Shaik).
 
 For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./docs/UI_PROVENANCE.md).
 
