@@ -81,7 +81,7 @@ To demonstrate why pure LLMs or simple ML risk scores fail without knowledge gra
 
 | Dimension | Measured Value | Provenance / Verification Command |
 |---|---|---|
-| Automated Test Suite | **354 passed, 9 skipped** (0 failed) | `pytest tests/ -q -rs` |
+| Automated Test Suite | **355 passed, 9 skipped** (0 failed) | `pytest tests/ -q -rs` |
 | Case Accuracy (Synthetic Pack) | **20/20 (100%)** | `python scripts/compare_baselines.py` |
 | Evidence Ledger Checkpoints | **600/600 (100%)** | Verified across all 20 case files via `validate_answers` |
 | 3-Arm Comparison: Graph Agent | **$F_1 = 1.0000$** (100% verdict, 100% pattern, 100% NBA) | `scripts/compare_baselines.py` |
