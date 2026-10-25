@@ -399,6 +399,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const caseHeroNarrative = document.getElementById('caseHeroNarrative');
     if (caseHeroNarrative) caseHeroNarrative.textContent = triggerData.trigger_text || 'No trigger narrative.';
 
+    // Trigger amount: parse the scored-transaction dollar figure out of the
+    // trigger narrative ("scored transaction 4012185 ($14.50) at 0.48") and
+    // show it as its own labeled tile, so the amount that tripped the alert
+    // is visible at a glance instead of buried in the narrative sentence.
+    const triggerAmtEl = document.getElementById('caseHeroTriggerAmt');
+    if (triggerAmtEl) {
+      const triggerAmountMatch = /\((\$[\d,]+(?:\.\d+)?)\)/.exec(triggerData.trigger_text || '');
+      triggerAmtEl.textContent = triggerAmountMatch ? triggerAmountMatch[1] : '\u2014';
+    }
+
     // Fetch full investigation, subgraph, and the committed annotated answer
     try {
       const [fullData, graphData, answer] = await Promise.all([
@@ -519,13 +529,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const caseHeroPattern = document.getElementById('caseHeroPattern');
     if (caseHeroPattern) caseHeroPattern.textContent = patternStr;
 
-    // 4. Exposure
+    // 4. Exposure. When a case's typology is a coordinated ring
+    // (undocumented pattern driven by shared devices / connected cards),
+    // label the tile "Ring Exposure" so the money shown is attributed to the
+    // connected-transaction ring, not to single-transaction exposure.
     const exposureAmt = Number(c.exposure_usd || 0);
     const exposureFormatted = formatMoney(exposureAmt);
     const exposureVal = document.getElementById('exposureVal');
     if (exposureVal) exposureVal.textContent = exposureFormatted;
     const caseHeroExposure = document.getElementById('caseHeroExposure');
     if (caseHeroExposure) caseHeroExposure.textContent = exposureFormatted;
+    const exposureLabelEl = document.getElementById('caseHeroExposureLabel');
+    if (exposureLabelEl) {
+      const ringShaped = /\bring\b|connected card|shared device|coordinated/i
+        .test(c.pattern_description || '');
+      exposureLabelEl.textContent = ringShaped ? 'Ring Exposure' : 'Exposure At Risk';
+    }
 
     // 5. SAR Filing Status
     const sarData = c.sar || {};
@@ -608,6 +627,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (exposureVal) exposureVal.textContent = '$0.00';
     const caseHeroExposure = document.getElementById('caseHeroExposure');
     if (caseHeroExposure) caseHeroExposure.textContent = '$0.00';
+    const exposureLabelEl = document.getElementById('caseHeroExposureLabel');
+    if (exposureLabelEl) exposureLabelEl.textContent = 'Exposure At Risk';
+    const triggerAmtEl = document.getElementById('caseHeroTriggerAmt');
+    if (triggerAmtEl) triggerAmtEl.textContent = '\u2014';
 
     const caseHeroSar = document.getElementById('caseHeroSar');
     if (caseHeroSar) caseHeroSar.textContent = 'Pending';
