@@ -173,6 +173,12 @@ if (await openTab("Case file")) {
 // Timeline: the backend's audit trail, one row per event.
 if (await openTab("Timeline")) {
   check("timeline: audit trail", await seen(page.getByText("Audit timeline")));
+  // The panel renders its heading before the trail resolves; wait for rows.
+  await page
+    .waitForFunction(() => document.querySelectorAll("ol li").length > 0, null, {
+      timeout: 20_000,
+    })
+    .catch(() => {});
   const timelineRows = await page.locator("ol li").count();
   check("timeline rows", timelineRows > 0, `${timelineRows} events`);
 }
