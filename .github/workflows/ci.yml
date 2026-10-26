@@ -89,21 +89,16 @@ jobs:
         env:
           NEXT_PUBLIC_DEMO_DATA: "1"
 
-      - name: Start the standalone production server
-        run: |
-          HOSTNAME=127.0.0.1 PORT=3000 node .next/standalone/server.js > /tmp/sentinel-ui.log 2>&1 &
-          for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          cat /tmp/sentinel-ui.log
-          exit 1
-
       - name: Run canonical UI browser smoke test
-        working-directory: sentinel-ui/e2e
-        run: BASE=http://127.0.0.1:3000 SNAPSHOT=1 node smoke.mjs
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/sentinel-ui.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          BASE=http://127.0.0.1:3000 SNAPSHOT=1 node e2e/smoke.mjs
 
   docker-demo:
     runs-on: ubuntu-latest

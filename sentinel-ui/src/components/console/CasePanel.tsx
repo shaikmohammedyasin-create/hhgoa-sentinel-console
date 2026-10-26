@@ -21,6 +21,7 @@ import { ConsoleChip, Dial, Overline, Panel } from "@/components/console/parts";
 import { Timeline } from "@/components/console/Timeline";
 import {
   humanise,
+  exposureDisplay,
   money,
   sourceIcon,
   sourceTone,
@@ -75,7 +76,9 @@ export function CasePanel({
           <span className="font-mono text-[13px] font-bold tracking-[0.02em]">{row.case_id}</span>
           <ConsoleChip tone={verdictTone(row.verdict)}>{row.verdict ?? "not run"}</ConsoleChip>
           {caseBody?.pattern ? (
-            <ConsoleChip tone="neutral">{humanise(caseBody.pattern)}</ConsoleChip>
+            <ConsoleChip tone={caseBody.pattern === "undocumented" ? "warning" : "neutral"}>
+              {caseBody.pattern === "undocumented" ? "Undocumented (R9 Ring)" : humanise(caseBody.pattern)}
+            </ConsoleChip>
           ) : null}
           <span className="flex-1" />
           <Dial p={hasAnswer ? p : null} size={56} stroke={5} label="fraud" />
@@ -85,7 +88,7 @@ export function CasePanel({
             <Icon name="alert" size={10} style={{ color: toneVar(sourceTone("graph")) }} />
             {humanise(row.trigger_type)}
           </span>
-          <span>{money(row.exposure_usd)}</span>
+          <span>{exposureDisplay(row.exposure_usd, row.verdict)}</span>
           <span className="flex items-center gap-1">
             <Icon name="card" size={10} />
             {row.card_id}
@@ -292,27 +295,34 @@ function WhyGrid({
   affectedTxns: number;
   summary?: string;
 }) {
-  const isRing = /\bring\b|connected card|shared device|coordinated/i.test(pattern || "");
+  const isRing = /\bring\b|connected card|shared device|coordinated|undocumented/i.test(pattern || "");
   const triggerMatch = /\((\$[\d,]+(?:\.\d+)?)\)/.exec(summary || "");
   const paired: [string, string][] = [
     ["Verdict", verdict],
     ["P(fraud)", fraudProbability.toFixed(3)],
-    ["Pattern", humanise(pattern)],
-    [isRing ? "Ring Exposure" : "Exposure", money(exposureUsd)],
+    ["Pattern", pattern === "undocumented" ? "Undocumented (R9 coordinated ring)" : humanise(pattern)],
+    [isRing ? "Ring Exposure" : "Exposure", exposureDisplay(exposureUsd, verdict)],
     ...(triggerMatch ? [["Trigger Amount", triggerMatch[1]] as [string, string]] : []),
     ["Connected cards", String(connectedCards)],
     ["Affected txns", String(affectedTxns)],
   ];
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-      {paired.map(([k, v]) => (
-        <div key={k}>
-          <div className="font-mono text-[9px] uppercase tracking-[0.09em] text-fg-muted">{k}</div>
-          <div className="mt-0.5 truncate font-mono text-[11px] font-semibold" title={v}>
-            {v}
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+        {paired.map(([k, v]) => (
+          <div key={k}>
+            <div className="font-mono text-[9px] uppercase tracking-[0.09em] text-fg-muted">{k}</div>
+            <div className="mt-0.5 truncate font-mono text-[11px] font-semibold" title={v}>
+              {v}
+            </div>
           </div>
+        ))}
+      </div>
+      {pattern === "undocumented" ? (
+        <div className="rounded-md border border-border bg-surface-2 p-2.5 text-[10.5px] leading-relaxed text-fg-muted">
+          <span className="font-semibold text-fg">Pattern definition (Policy R9):</span> Coordinated multi-card syndicate sharing a single device profile. Coded as &ldquo;undocumented&rdquo; per institutional policy R9 to avoid forcing multi-card graph topologies into standard single-card typologies.
         </div>
-      ))}
+      ) : null}
     </div>
   );
 }

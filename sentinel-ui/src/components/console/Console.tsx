@@ -24,7 +24,7 @@ import { GraphCanvasView, canvasSummary } from "@/components/console/GraphCanvas
 import { CasePanel } from "@/components/console/CasePanel";
 import { MonitorView } from "@/components/console/MonitorView";
 import { RingView } from "@/components/console/RingView";
-import { useCanvas, useCases, useHealth, useInvestigations, useLlmStatus, useRisk } from "@/lib/hooks";
+import { useAnswer, useCanvas, useCases, useHealth, useInvestigations, useLlmStatus, useRisk } from "@/lib/hooks";
 import { useDemo } from "@/components/console/useDemo";
 import type { CaseGraph, FraudPattern, QueueRow } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
@@ -32,9 +32,9 @@ import { useSearchParams } from "next/navigation";
 
 type View = "queue" | "case" | "graph" | "monitor" | "ring";
 
-export function Console({ initialCase }: { initialCase?: string }) {
+export function Console({ initialCase, initialView }: { initialCase?: string; initialView?: View }) {
   const params = useSearchParams();
-  const [view, setView] = useState<View>("case");
+  const [view, setView] = useState<View>(initialView ?? "case");
   const [selected, setSelected] = useState(initialCase ?? "");
   const [inboxOpen, setInboxOpen] = useState(params.get("inbox") === "1");
 
@@ -93,6 +93,7 @@ export function Console({ initialCase }: { initialCase?: string }) {
   }, [queue, selected]);
 
   const { data: canvas } = useCanvas(selected, view === "graph" || view === "case");
+  const { data: selectedAnswer } = useAnswer(selected);
   // A replayed answer file carries no stored signal snapshot, so there is no
   // risk decomposition to ask for; requesting it would only 404 in the console.
   const hasStoredRun = Boolean(selectedRow?.investigated) && selectedRow?.source !== "committed";
@@ -117,7 +118,10 @@ export function Console({ initialCase }: { initialCase?: string }) {
       <Masthead
         health={health?.status}
         demoMode={health?.demo_mode}
-        llmAvailable={llmStatus?.available}
+        llmProvenance={
+          selectedAnswer?.nemotron?.served_by ??
+          (llmStatus?.available ? "live" : llmStatus ? "deterministic fallback" : undefined)
+        }
         openInbox={() => setInboxOpen(true)}
         goMonitor={() => setView("monitor")}
         running={demo.running}
@@ -209,7 +213,7 @@ export function Console({ initialCase }: { initialCase?: string }) {
 function Masthead({
   health,
   demoMode,
-  llmAvailable,
+  llmProvenance,
   openInbox,
   goMonitor,
   running,
@@ -218,7 +222,7 @@ function Masthead({
 }: {
   health: string | undefined;
   demoMode: boolean | undefined;
-  llmAvailable: boolean | undefined;
+  llmProvenance: string | null | undefined;
   openInbox: () => void;
   goMonitor: () => void;
   running: boolean;
@@ -226,6 +230,20 @@ function Masthead({
   onStopDemo: () => void;
 }) {
   const tone = DEMO_SNAPSHOT ? "neutral" : health === "healthy" ? "success" : "warning";
+
+  let badgeLabel = "deterministic";
+  let badgeColor = "var(--fg-subtle)";
+  if (llmProvenance === "live") {
+    badgeLabel = "live";
+    badgeColor = "var(--success)";
+  } else if (llmProvenance && (llmProvenance.startsWith("cached") || llmProvenance.includes("recorded"))) {
+    badgeLabel = llmProvenance.replace(/^cached\s+/, "");
+    badgeColor = "var(--accent)";
+  } else if (DEMO_SNAPSHOT || demoMode) {
+    badgeLabel = "recorded live run (2026-10-25)";
+    badgeColor = "var(--accent)";
+  }
+
   return (
     <header className="relative shrink-0 border-b border-border bg-surface">
       <div className="flex h-1 bg-runway" />
@@ -249,14 +267,12 @@ function Masthead({
               ? "demo mode · committed cases"
               : "live backend"}
         </span>
-        {llmAvailable !== undefined ? (
-          <span
-            className="font-mono text-[9px]"
-            style={{ color: llmAvailable ? "var(--success)" : "var(--fg-subtle)" }}
-          >
-            {llmAvailable ? "nebius · nemotron" : "nemotron unavailable"}
-          </span>
-        ) : null}
+        <span
+          className="font-mono text-[9px]"
+          style={{ color: badgeColor }}
+        >
+          {badgeLabel}
+        </span>
         <span className="flex-1" />
         <span role="group" aria-label="Run controls" className="flex items-center gap-1.5">
           <button
@@ -295,7 +311,6 @@ function ViewSwitcher({ view, onSelect }: { view: View; onSelect: (v: View) => v
     { id: "case", label: "case" },
     { id: "graph", label: "graph" },
     { id: "monitor", label: "pack" },
-    { id: "ring", label: "ring" },
   ];
   return (
     <div className="flex items-center gap-0.5" role="group" aria-label="Views">

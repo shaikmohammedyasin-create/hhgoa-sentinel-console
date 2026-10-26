@@ -202,7 +202,7 @@ const packRows = await page.locator("section table tbody tr").count();
 check("pack lists every case", packRows >= 20, `${packRows} rows`);
 check(
   "pack shows measured latency",
-  (await page.getByText(/^\d+\.\ds$/).count()) >= 1,
+  (await page.getByText(/^\d+\.\ds/).count()) >= 1,
 );
 if (SNAPSHOT) {
   // Issue #8: the committed report is a keyed LLM run. A static build must not
@@ -213,10 +213,11 @@ if (SNAPSHOT) {
   );
 }
 
-// ── the ring screen states the absence ───────────────────────────────────────
-await open(views, "ring");
+// ── the ring screen states the absence (code retained, route preserved) ─────
+await page.goto(`${BASE}/ring`, { waitUntil: "networkidle" });
 check("ring heading", await seen(page.getByText("Ring discovery")));
 check("ring states the missing capability", await seen(page.getByText("Not available in this API")));
+await page.goto(BASE, { waitUntil: "networkidle" });
 
 // ── the approvals overlay ────────────────────────────────────────────────────
 await open(controls, "inbox");

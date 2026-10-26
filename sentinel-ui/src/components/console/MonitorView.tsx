@@ -55,7 +55,7 @@ export function MonitorView() {
           <div className="text-[16px] font-bold leading-tight">The pack, scored</div>
           <div className="mt-1.5 font-mono text-[10.5px] text-fg-muted">
             {data.completed} of {data.total_cases} cases completed · {data.elapsed_s.toFixed(0)}s
-            wall clock · {data.results.length} result rows
+            wall clock · {data.results.length} result rows · balanced evaluation pack (15 fraud / 5 legitimate), not real-world prevalence
           </div>
         </div>
         <span className="flex-1" />
@@ -187,7 +187,7 @@ export function MonitorView() {
                       {row.tool_calls}
                     </td>
                     <td className="px-3 py-2.5 font-mono text-[10.5px] tabular-nums text-fg-muted">
-                      {row.latency_s.toFixed(1)}s
+                      {row.latency_s.toFixed(1)}s <span className="font-mono text-[9px] text-fg-subtle">· recorded run</span>
                     </td>
                   </tr>
                 ))}

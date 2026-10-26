@@ -186,6 +186,15 @@ export function money(value: number | null | undefined): string {
   });
 }
 
+export function exposureDisplay(
+  value: number | null | undefined,
+  verdict?: string | null,
+): string {
+  if (verdict === "legitimate") return "none at risk";
+  if (value === null || value === undefined) return "—";
+  return money(value);
+}
+
 export function pct(value: number, digits = 0): string {
   return `${(value * 100).toFixed(digits)}%`;
 }

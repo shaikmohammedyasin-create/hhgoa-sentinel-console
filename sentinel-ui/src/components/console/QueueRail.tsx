@@ -14,7 +14,7 @@
 
 import { Icon } from "@/components/console/icons";
 import { ConsoleChip, Dial, Overline } from "@/components/console/parts";
-import { money, toneVar, triggerIcon, triggerTone, verdictTone } from "@/components/console/vm";
+import { exposureDisplay, toneVar, triggerIcon, triggerTone, verdictTone } from "@/components/console/vm";
 import type { QueueRow } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
 
@@ -106,7 +106,7 @@ export function QueueRail({
                     {live ? "investigating" : (row.verdict ?? "not run")}
                   </ConsoleChip>
                   <span className="font-mono text-[10px] font-medium tabular-nums text-fg-muted">
-                    {money(row.exposure_usd)}
+                    {exposureDisplay(row.exposure_usd, row.verdict)}
                   </span>
                   <span className="flex-1" />
                   <span
