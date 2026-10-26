@@ -117,21 +117,21 @@ for i in {1..25}; do curl -s -o /dev/null -w "%{http_code}
 
 ---
 
-## 6. Currently deployed instances (24 October 2026)
+## 6. Hosted Demo Topology (Blueprint)
 
-| Component | URL | Where |
+The canonical deployment is the single-container Docker demo (`docker compose up`), where the Next.js `sentinel-ui` console and FastAPI backend are co-hosted with unified proxying and local synthetic SQLite graph storage.
+
+For multi-host cloud deployment (e.g., Render + Vercel):
+
+| Component | Target | Details |
 |---|---|---|
-| Console | https://sentinel-ui-nu.vercel.app | Vercel project `sentinel-ui`, production |
-| API | https://sentinel-console-api.onrender.com | Render web service `sentinel-console-api` (free, Oregon) |
+| Console | Vercel (`sentinel-ui`) | Next.js production build, with `NEXT_PUBLIC_API_PROXY_TARGET` pointing to the backend API origin |
+| API | Render (`render.yaml`) | Service name `hhgoa-fraud-api`, Python 3.12, `GRAPH_BACKEND=local`, `DEMO_MODE=1` |
 
-The console proxies `/api/*`, `/investigations/*`, `/benchmark/*` and `/health` to the Render service through `NEXT_PUBLIC_API_PROXY_TARGET`, so the browser talks to a single origin and no CORS is involved. The API runs `DEMO_MODE=1` with `GRAPH_BACKEND=local` and builds its SQLite graph from the committed synthetic CSVs during deploy.
-
-Notes:
-
-- Render free instances sleep when idle; the first request after a pause takes roughly 30-60 s to wake.
-- The older `hhgoa-fraud-api` Render service is still attached to the `HHGoa26-Agentic-Fraud-Investigation` repository and was left untouched.
-- Redeploy the console with `cd sentinel-ui && vercel deploy --prod --yes`; redeploy the API with `render deploys create srv-dbefmsvavr4c73aph5c0 --confirm`.
-- The Vercel project previously served the static snapshot build (`NEXT_PUBLIC_DEMO_DATA=1`); that variable was removed in favour of the live proxy. Re-add it and redeploy to return to snapshot mode.
+Notes on hosted operation:
+- The Render service specification in `render.yaml` provisions `hhgoa-fraud-api`. If hosted on a free Render tier, instances sleep after inactivity and require 30–60 s to spin up on initial access.
+- When deploying the console to Vercel, set `NEXT_PUBLIC_API_PROXY_TARGET` to the live backend URL so API routes are transparently proxied without CORS friction.
+- For air-gapped or zero-backend demonstration, `sentinel-ui` can also be built with `NEXT_PUBLIC_DEMO_DATA=1` to serve directly from committed benchmark snapshots.
 
 ---
 
@@ -148,11 +148,10 @@ keeps the demo warm and doubles as an availability alert.
 1. Create an account at <https://uptimerobot.com>.
 2. **Add New Monitor** → Monitor Type **HTTP(s)**.
 3. Friendly Name: `Sentinel Graph API`.
-4. URL: `https://sentinel-console-api.onrender.com/health` (or the proxied
-   `https://sentinel-ui-nu.vercel.app/health` if you prefer to watch the console
-   path too).
+4. URL: `https://<your-render-service>.onrender.com/health` (or the proxied
+   console `/health` path if you prefer to monitor the frontend).
 5. Monitoring Interval: **10 minutes**.
-6. Leave "Alert Contacts" as your email; optionally add the Vercel URL as a
+6. Leave "Alert Contacts" as your email; optionally add your console URL as a
    second monitor with the same interval.
 7. Save. Expected result: **HTTP 200** with body containing `"status":"healthy"`.
    A timeout on the first probe usually means the free instance was asleep and
@@ -161,7 +160,7 @@ keeps the demo warm and doubles as an availability alert.
 **cron-job.org (alternative)**
 
 1. Create an account at <https://cron-job.org>.
-2. Create a cron job: URL `https://sentinel-console-api.onrender.com/health`,
+2. Create a cron job: URL `https://<your-render-service>.onrender.com/health`,
    schedule every **10 minutes**, request method GET.
 3. Enable "Save responses" for the first runs so a non-200 status is visible.
 4. Optional: enable failure notifications to your email.
@@ -193,7 +192,7 @@ live run for all 20 cases (`scripts/export_nemotron_cache.py`, recorded
 
 To turn on **live** calls for the hosted demo:
 
-1. Render Dashboard → **sentinel-console-api** → **Environment** → **Add Environment Variable**.
+1. Render Dashboard → **hhgoa-fraud-api** → **Environment** → **Add Environment Variable**.
 2. Add `NEBIUS_API_KEY` = your Nebius Token Factory key. Keep **Secret** checked
    (it is stored encrypted and never shown again).
 3. Add `LLM_DAILY_CALL_CAP` = `60`.
@@ -204,8 +203,8 @@ To turn on **live** calls for the hosted demo:
      actions; otherwise the demo is read-only, which is the safe default.
 6. **Save Changes** — Render redeploys automatically.
 7. Verify after boot:
-   - `https://sentinel-console-api.onrender.com/health` → `"nebius_available": true`
-   - `https://sentinel-console-api.onrender.com/api/llm/status` → shows the
+   - `https://<your-render-service>.onrender.com/health` → `"nebius_available": true`
+   - `https://<your-render-service>.onrender.com/api/llm/status` → shows the
      model ids and a call log that grows only when a genuinely new question is
      asked.
    - Ask the same question twice; the second answer is served from the on-disk

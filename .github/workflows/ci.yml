@@ -61,6 +61,50 @@ jobs:
       - name: Build
         run: npm run build
 
+  sentinel-ui-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: sentinel-ui
+    defaults:
+      run:
+        working-directory: sentinel-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: sentinel-ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build static demo snapshot
+        run: npm run build
+        env:
+          NEXT_PUBLIC_DEMO_DATA: "1"
+
+      - name: Start the standalone production server
+        run: |
+          HOSTNAME=127.0.0.1 PORT=3000 node .next/standalone/server.js > /tmp/sentinel-ui.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/sentinel-ui.log
+          exit 1
+
+      - name: Run canonical UI browser smoke test
+        working-directory: sentinel-ui/e2e
+        run: BASE=http://127.0.0.1:3000 SNAPSHOT=1 node smoke.mjs
+
   docker-demo:
     runs-on: ubuntu-latest
     timeout-minutes: 35

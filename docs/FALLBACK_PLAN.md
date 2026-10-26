@@ -1,7 +1,7 @@
-# Fallback UI Restoration Plan (Vanilla Frontend)
+# Fallback UI Restoration Plan (Contingency Architecture / Not Shipped)
 
-> **STATUS: PREPARED ONLY ? DO NOT EXECUTE UNLESS REQUIRED**  
-> This fallback plan provides a zero-risk escape hatch to restore the original 100% bespoke vanilla ES6 frontend if any licensing dispute arises regarding the `sentinel-ui/` Next.js console.
+> **STATUS: EVALUATED CONTINGENCY ONLY — NOT ACTIVE ON `main`**
+> This fallback documentation records the clean-room contingency console evaluated on the separate `own-ui` branch. The canonical production UI on `main` is the Next.js application in `sentinel-ui/`. The fallback console is not merged into `main`, is not deployed to production, and is retained for architectural reference only.
 
 ---
 

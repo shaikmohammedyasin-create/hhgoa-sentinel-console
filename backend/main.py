@@ -73,16 +73,6 @@ async def reject_oversized_bodies(request: Request, call_next):
     return await call_next(request)
 
 
-@app.middleware("http")
-async def add_cache_control_header(request, call_next):
-    response = await call_next(request)
-    if request.url.path.startswith(("/js/", "/css/")) or request.url.path in ("/", "/index.html"):
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-    return response
-
-
 # ─── Request / Response models ────────────────────────────────────────────────
 
 class InvestigationRequest(BaseModel):

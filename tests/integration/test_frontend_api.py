@@ -108,11 +108,11 @@ class TestFrontendAPI:
         assert res["approver"] == "TestAnalyst-L1"
 
     def test_no_vanilla_static_frontend_mount(self, client):
-        """The vanilla frontend/ dashboard was removed; the API is frontend-free.
+        """The canonical UI (Next.js console in sentinel-ui/) is served via proxy.
 
-        The Analyst Command Center was deleted (Sentinel UI in sentinel-ui/ is
-        the main interface, served separately). The backend must therefore NOT
-        serve the old root page or its /css and /js assets - it is API-only.
+        The backend does not mount static frontend assets at root or under /css,
+        /js; those paths should return 404/405. The UI is co-hosted through the
+        UI_PORT proxy (single-container demo) or served separately.
         """
         r_root = client.get("/")
         # FastAPI returns a 404 JSON problem when no static mount is present.

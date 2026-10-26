@@ -43,6 +43,4 @@ upstream team's deployed API.
 
 ---
 
-> **Attribution & Licence.** The console in `sentinel-ui/` is derived from the "Sentinel v2" analyst console by Team CollabUp (Hacker House Goa 2026, `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). The upstream authors granted written permission to fork, modify and redistribute this derivative as part of Sentinel Graph on **<DATE>** (record: [`docs/UPSTREAM_PERMISSION.md`](docs/UPSTREAM_PERMISSION.md)), under the terms recorded there. The upstream repository carries no LICENSE file; this grant is the recorded permission, and this project's own code remains MIT (`LICENSE`, Copyright 2026 Mohammed Yasin Shaik). Files that are unchanged upstream are listed in `docs/UI_PROVENANCE.md` §4(A).
-
-Written grant record: [`docs/UPSTREAM_PERMISSION.md`](../docs/UPSTREAM_PERMISSION.md).
+> **Attribution & Licence.** The console in `sentinel-ui/` is derived from the "Sentinel v2" analyst console by Team CollabUp (Hacker House Goa 2026, `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). This repository does not claim ownership, permission, or a license for upstream-derived material; the upstream repository carries no LICENSE file. Attribution is provided in good faith. This project's original code (backend, agents, GraphRAG engine, Bayesian scorer, contracts, and rewritten UI data layers) remains MIT (`LICENSE`, Copyright 2026 Mohammed Yasin Shaik). See [`docs/UI_PROVENANCE.md`](../docs/UI_PROVENANCE.md) for file-level provenance.

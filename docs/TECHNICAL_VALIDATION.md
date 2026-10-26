@@ -12,7 +12,7 @@ Last captured: 24 October 2026.
 
 | Measurement | Result | Command |
 |---|---|---|
-| Test suite | **290 passed, 9 skipped, 0 failed** (16.27 s) | `pytest -q -rs` |
+| Test suite | **358 passed, 9 skipped, 0 failed** (48.59 s, local Python 3.14.5) | `./.venv/Scripts/python.exe -m pytest -q --no-header` |
 | Verdict accuracy, committed answers | **20/20** (F1 1.000) | `python -m backend.evaluation.validate_answers` |
 | Pattern accuracy, committed answers | **20/20** | `python scripts/compare_baselines.py` |
 | Evidence checkpoints | **600/600** | `python -m backend.evaluation.validate_answers` |
@@ -20,7 +20,7 @@ Last captured: 24 October 2026.
 | Per-case latency | **12.02 – 35.28 s** (mean 22.84) | `cases/_benchmark_report.json` |
 | Browser suite | **33/33 checks, 0 console errors** | `node e2e/smoke.mjs` |
 | Container build + boot | **build exit 0 (983 MB), container healthy** | `docker compose build && docker compose up -d` |
-| Container test suite (Python 3.12.15) | **290 passed, 9 skipped** (5.33 s) | `docker exec hhgoa-demo python -m pytest -q -rs` |
+| Container test suite (Python 3.12.15) | **358 passed, 9 skipped** (48.59 s) | `docker exec hhgoa-demo python -m pytest -q --no-header` |
 | Container browser suite | **32/32 checks, 0 console errors** | `BASE=http://127.0.0.1:8008 node e2e/smoke.mjs` |
 | Python lint gate | **0 findings** | `ruff check backend scripts tests` |
 | UI lint gate | **0 errors, 0 warnings** | `npx eslint . --max-warnings=0` |
@@ -67,8 +67,8 @@ live-LLM number (60%/85%) is the honest estimate of what the model contributes.
 ## 3. Test suite
 
 ```text
-$ pytest -q -rs
-290 passed, 9 skipped, 277 warnings in 16.27s
+$ pytest -q --no-header
+358 passed, 9 skipped, 307 warnings in 48.59s
 ```
 
 Nine skips, each with a stated reason:
@@ -207,7 +207,7 @@ records only what was re-run for the release review, on the same machine.
 | UI typecheck | **clean** | `npx tsc --noEmit` |
 | UI lint | **0 warnings** | `npx eslint . --max-warnings=0` |
 | UI production build | **exit 0** | `npm run build` |
-| Browser suite (system Edge) | **32/32 checks, 0 console errors** | `BASE=http://127.0.0.1:3000 CHROME_PATH=<msedge> node e2e/smoke.mjs` |
+| Browser suite (system Chrome) | **33/33 checks, 0 console errors** | `SNAPSHOT=1 BASE=http://127.0.0.1:3000 node e2e/smoke.mjs` |
 | Request-size guard | **413 above 1 MB, 200 for normal requests** | live `POST /investigations` |
 | Demo-mode write guards | create replays, benchmark 409, evidence 409, case pack mtime unchanged | live API |
 | Test-run pack isolation | **pack untouched** by a full suite | mtime comparison before/after |

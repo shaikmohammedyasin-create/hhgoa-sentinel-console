@@ -87,6 +87,6 @@ To demonstrate why pure LLMs or simple ML risk scores fail without knowledge gra
 | 3-Arm Comparison: Graph Agent | **$F_1 = 1.0000$** (100% verdict, 100% pattern, 100% NBA) | `scripts/compare_baselines.py` |
 | 3-Arm Comparison: Score-Only Baseline | **$F_1 = 0.9333$** (90% verdict, **n/a** pattern, 90% NBA) | Fails on constructed stress cases CASE-007 & CASE-009 |
 | 3-Arm Comparison: Plain Nemotron Nano | **$F_1 = 0.0000$** (20% verdict, 15% pattern) | No-graph ablation arm |
-| Browser Smoke Quality Gate | **32/32 checks passed** (0 console errors) | `node sentinel-ui/e2e/smoke.mjs` |
+| Browser Smoke Quality Gate | **33/33 checks passed** (0 console errors) | `node sentinel-ui/e2e/smoke.mjs` |
 
 > **Real-Dataset Caveat**: On the original hackathon round's real dataset (not redistributed), verdict accuracy was 60% (12/20) and pattern accuracy 85% (17/20). The synthetic benchmark checks pipeline correctness, not real-world accuracy.

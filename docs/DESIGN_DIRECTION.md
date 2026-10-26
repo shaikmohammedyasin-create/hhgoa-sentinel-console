@@ -1,6 +1,8 @@
-# Frontend Design Direction & Evidence Contract
+# Frontend Design Direction & Evidence Contract (Historical)
 
-> Project: **FraudLens &times; Agentic Fraud Investigation Platform**  
+> **Historical Document**: This document records the original design direction for the retired vanilla Analyst Command Center. The canonical production frontend is the Next.js 15 application in `sentinel-ui/`; see [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) and [`sentinel-ui/NOTICE.md`](../sentinel-ui/NOTICE.md) for the active frontend architecture.
+
+> Project: **FraudLens × Agentic Fraud Investigation Platform**
 > Visual Direction: **FraudLens Command Center (TigerGraph Native)**  
 > Reference: [FraudLens TigerGraph](https://github.com/samarthputhraya/fraudlens-tigergraph)
 
@@ -55,9 +57,9 @@
 
 ---
 
-## 4. Verification & Status
+## 4. Verification & Status (Historical Record)
 
-* **HTML Structure**: All required DOM IDs verified present.
-* **JavaScript Syntax**: `node -c` verified for all frontend modules (`api.js`, `graph.js`, `app.js`).
-* **API Integration Tests**: `pytest` passed 250 tests cleanly with 0 regressions.
-* **Runtime Status**: Ready for deployment with full FastAPI static mounting.
+* **HTML Structure**: Verified for the original vanilla interface before retirement.
+* **JavaScript Syntax**: Verified for the historical ES6 modules.
+* **Backend Test Suite**: 358 tests pass cleanly on current `main` (`./.venv/Scripts/python.exe -m pytest -q --no-header`).
+* **Current Production Frontend**: Next.js 15 in `sentinel-ui/`, verified via ESLint (`npm run lint`), TypeScript (`npm run typecheck`), production build (`npm run build`), and browser smoke suite (`node e2e/smoke.mjs`).

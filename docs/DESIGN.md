@@ -1,5 +1,7 @@
 # Design System: FraudLens &times; Agentic Fraud Investigation Platform
 
+> **Historical Document**: This specification records the original design system for the retired vanilla Analyst Command Center and is retained for provenance. The current production frontend is the Next.js 15 application in `sentinel-ui/`; see [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) and [`docs/TECHNICAL_VALIDATION.md`](TECHNICAL_VALIDATION.md) for current implementation and verification.
+
 > Formal product design specification, token taxonomy, and investigative workflow architecture for FraudLens, adapted from the reference architecture ([FraudLens TigerGraph](https://github.com/samarthputhraya/fraudlens-tigergraph)).
 
 ---
@@ -114,9 +116,9 @@ The Case File workspace is organized into focused analytical subtabs:
 
 ---
 
-## 5. Verification & Acceptance Criteria
+## 5. Verification & Acceptance Criteria (Historical Specification)
 
-* **Automated Test Coverage**: 250 passing pytest tests with zero failures.
-* **JavaScript Syntax**: Clean `node -c` validation across `api.js`, `graph.js`, and `app.js`.
+* **Backend Test Suite**: 358 passing pytest tests on current `main` (`./.venv/Scripts/python.exe -m pytest -q --no-header`).
+* **JavaScript Syntax**: Historical ES6 scripts validated with `node -c`.
 * **API Endpoints**: 100% compliant with FastAPI models, including `/api/cases`, `/api/investigations/{id}/full`, `/api/investigations/{id}/graph`, `/api/approvals`, and `/api/reprove`.
-* **Accessibility**: Full semantic landmarks (`role="banner"`, `role="main"`, `role="tablist"`, `role="tab"`, `role="tabpanel"`).
+* **Current Production Frontend**: Next.js 15 console in `sentinel-ui/`, verified via ESLint, TypeScript, and Playwright browser smoke suite.

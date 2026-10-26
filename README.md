@@ -24,8 +24,8 @@ docker compose up --build
 ```
 
 The single-container demo:
-- **Hosted demo**: console at <https://sentinel-ui-nu.vercel.app>, API at <https://sentinel-console-api.onrender.com> (Vercel proxies to Render; `DEMO_MODE=1`).
-- **One Container, One URL (`:8008`)**: The FastAPI backend and Next.js console (`sentinel-ui`) are co-hosted inside one container.
+- **Hosted deployment blueprint**: `render.yaml` provisions the FastAPI service named `hhgoa-fraud-api`; deploy `sentinel-ui/` separately only when a verified API origin is configured. This repository does not claim a currently live hosted URL.
+- **One Container, One URL (`:8008`)**: The FastAPI backend and canonical Next.js console (`sentinel-ui`) are co-hosted inside one container.
 - **Hermetic Synthetic Graph**: Rebuilds the SQLite graph store from committed synthetic CSVs (`data/synthetic/`) in ~3 seconds (`GRAPH_BACKEND=local`). No external cluster required.
 - **Default Demo Mode (`DEMO_MODE=1`)**: every case view, re-run and benchmark endpoint is a replay of `cases/*.json` — no run, no rewrite, no spend. Analyst Q&A is the one live path: answers are cached on disk and capped per IP and per day, so only a genuinely new question reaches Nemotron.
 - **Live Nemotron Calls (Optional)**: Set `NEBIUS_API_KEY` in `docker-compose.yml` and set `DEMO_MODE=0` (see [docs/DEPLOY.md](./docs/DEPLOY.md)).
@@ -277,7 +277,7 @@ cd sentinel-ui
 npx eslint . --max-warnings=0
 npx tsc --noEmit
 
-# 4. Run Playwright browser smoke suite (32/32 passed)
+# 4. Run Playwright browser smoke suite (33/33 passed)
 node e2e/smoke.mjs
 ```
 
@@ -327,7 +327,7 @@ The Next.js analyst console in `sentinel-ui/` was forked and extensively reworke
 
 ### Attribution & Licence Status
 
-> **Attribution & Licence.** The console in `sentinel-ui/` is derived from the "Sentinel v2" analyst console by Team CollabUp (Hacker House Goa 2026, `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). The upstream authors granted written permission to fork, modify and redistribute this derivative as part of Sentinel Graph on **<DATE>** (record: [`docs/UPSTREAM_PERMISSION.md`](docs/UPSTREAM_PERMISSION.md)), under the terms recorded there. The upstream repository carries no LICENSE file; this grant is the recorded permission, and this project's own code remains MIT (`LICENSE`, Copyright 2026 Mohammed Yasin Shaik). Files that are unchanged upstream are listed in `docs/UI_PROVENANCE.md` §4(A).
+> **Attribution & Licence.** The console in `sentinel-ui/` is derived from the "Sentinel v2" analyst console by Team CollabUp (Hacker House Goa 2026, `https://github.com/r-rishit27/hacker_house` @ `7bcea03`). This repository does not claim ownership, permission, or a license for upstream-derived material; the upstream repository carries no LICENSE file. Attribution is retained in [`sentinel-ui/NOTICE.md`](sentinel-ui/NOTICE.md) and [`docs/UI_PROVENANCE.md`](docs/UI_PROVENANCE.md). The project's original code remains MIT (`LICENSE`, Copyright 2026 Mohammed Yasin Shaik).
 
 For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./docs/UI_PROVENANCE.md).
 
@@ -349,7 +349,7 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
   - Captured 7 high-resolution (1536?1024) UI screenshots in `docs/screenshots/`.
   - **2026-10-25 ? Release hardening**: CASE-009's stress amount now equals `TransactionAmt` in the generator, the CSVs and the answer file ($14.50, exposure $23.51, SAR under R6); benchmark and baselines re-run (Arm 1 F1 1.0000, 1,622.8 tokens/case, 12.36 s/case).
     A committed Nemotron recording (`cases/_nemotron_cache.json`, 20 cases, recorded 2026-10-25) lets the hosted demo show real model text without a key, labelled `cached live run (2026-10-25)`.
-    Added approval-token authorization, a CORS allow-list, the rendered `own-ui` fallback branch, a docker-compose CI gate, and the attribution drafts in `docs/ATTRIBUTION_DRAFT.md`.
+    Added approval-token authorization, a CORS allow-list, evaluated the contingency `own-ui` branch, added a docker-compose CI gate, and documented attribution in `sentinel-ui/NOTICE.md` and `docs/UI_PROVENANCE.md`.
 
 ---
 
