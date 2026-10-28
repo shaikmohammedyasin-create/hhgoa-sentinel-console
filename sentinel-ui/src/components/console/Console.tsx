@@ -38,6 +38,10 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
   const [selected, setSelected] = useState(initialCase ?? "");
   const [inboxOpen, setInboxOpen] = useState(params.get("inbox") === "1");
   const [mobileQueueOpen, setMobileQueueOpen] = useState(false);
+  // Presentation mode (?present=1): hides the re-run button and other
+  // spend-triggering controls so a recorded demo cannot trigger Nemotron
+  // calls by accident (C4).
+  const presentMode = params.get("present") === "1";
 
   const casesQuery = useCases();
   const summariesQuery = useInvestigations();
@@ -194,7 +198,7 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
         <div className="relative flex min-w-0 flex-1 flex-col">
           {view === "queue" ? <QueueSummary rows={queue} /> : null}
           {view === "case" && selectedRow ? (
-            <CasePanel row={selectedRow} live={demo.running} openInbox={() => setInboxOpen(true)} />
+            <CasePanel row={selectedRow} live={demo.running} openInbox={() => setInboxOpen(true)} presentMode={presentMode} />
           ) : null}
           {view === "graph" ? (
             <div className="flex h-full flex-col overflow-y-auto">
@@ -398,6 +402,10 @@ function ViewSwitcher({ view, onSelect }: { view: View; onSelect: (v: View) => v
     { id: "graph", label: "graph" },
     { id: "monitor", label: "pack" },
   ];
+  // Ring tab hidden behind NEXT_PUBLIC_SHOW_RING=1 (B7).
+  if (process.env.NEXT_PUBLIC_SHOW_RING === "1") {
+    items.push({ id: "ring", label: "ring" });
+  }
   return (
     <div className="flex items-center gap-0.5" role="group" aria-label="Views">
       {items.map((item) => (

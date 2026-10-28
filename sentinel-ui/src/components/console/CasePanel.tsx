@@ -46,10 +46,12 @@ export function CasePanel({
   row,
   live,
   openInbox,
+  presentMode,
 }: {
   row: QueueRow;
   live: boolean;
   openInbox: () => void;
+  presentMode: boolean;
 }) {
   const [tab, setTab] = useState<Tab>("file");
   const [question, setQuestion] = useState("");
@@ -98,14 +100,16 @@ export function CasePanel({
           </span>
           <span className="flex-1" />
           {live ? <ConsoleChip tone="accent" fill="solid">investigating</ConsoleChip> : null}
-          <button
-            type="button"
-            onClick={() => start.mutate({ caseId: row.case_id, force: true })}
-            disabled={start.isPending}
-            className="rounded-md border border-border bg-surface-2 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg disabled:opacity-50"
-          >
-            {start.isPending ? "running…" : hasAnswer ? "re-run" : "run"}
-          </button>
+          {presentMode ? null : (
+            <button
+              type="button"
+              onClick={() => start.mutate({ caseId: row.case_id, force: true })}
+              disabled={start.isPending}
+              className="rounded-md border border-border bg-surface-2 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg disabled:opacity-50"
+            >
+              {start.isPending ? "running…" : hasAnswer ? "re-run" : "run"}
+            </button>
+          )}
         </div>
         {caseBody?.summary ? (
           <p className="mt-2 border-t border-border pt-2 text-[11.5px] leading-[1.5] text-fg-muted">
