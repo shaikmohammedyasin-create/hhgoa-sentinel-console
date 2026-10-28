@@ -284,7 +284,6 @@ function Masthead({
   onStopDemo: () => void;
 }) {
   const tone = DEMO_SNAPSHOT ? "neutral" : health === "healthy" ? "success" : "warning";
-
   const isLive = Boolean(llmProvenance === "live" || llmStatus?.available);
   const modelName = llmStatus?.model ?? "Nemotron-3";
 
@@ -318,7 +317,7 @@ function Masthead({
             className="font-mono text-[9px] font-semibold"
             style={{ color: health === "healthy" ? "var(--success)" : "var(--danger)" }}
           >
-            {health === "healthy" ? "live" : "offline"}
+            {DEMO_SNAPSHOT ? "static snapshot" : health === "healthy" ? "live" : "offline"}
           </span>
         </div>
         <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5" title={`AI model: ${modelName}`}>
