@@ -146,7 +146,7 @@ export function CasePanel({
           <SarPanel sar={answer?.sar} />
         ) : tab === "nemotron" ? (
           showNemotron ? (
-            <NemotronPanel nemotron={nemotron} />
+            <NemotronPanel nemotron={nemotron} latencyS={answer?.latency_s} />
           ) : (
             <EmptyNote text="No Nemotron advisory block on this answer (model unavailable for this run)." />
           )
@@ -192,6 +192,7 @@ export function CasePanel({
               <span className="font-mono text-[9px] text-fg-subtle">
                 {askProvenance(ask.data.served_by, ask.data.llm_used)}
                 {ask.data.llm_used ? " · llm" : ""}
+                {ask.data.latency_s ? ` · ${ask.data.latency_s.toFixed(1)}s` : ""}
               </span>
             </div>
             <p className="mt-1.5 text-[11.5px] leading-[1.5] text-fg">
@@ -391,7 +392,7 @@ function askProvenance(servedBy: string | null | undefined, llmUsed: boolean | u
   return servedBy;
 }
 
-function NemotronPanel({ nemotron }: { nemotron: NemotronBlock | undefined }) {
+function NemotronPanel({ nemotron, latencyS }: { nemotron: NemotronBlock | undefined; latencyS?: number }) {
   const proposal = nemotron?.model_proposal;
   const policy = nemotron?.policy_decision;
   return (
@@ -403,6 +404,11 @@ function NemotronPanel({ nemotron }: { nemotron: NemotronBlock | undefined }) {
           {nemotron.recorded_at ? (
             <span className="font-mono text-[9px] text-fg-subtle">
               recorded {nemotron.recorded_at}
+            </span>
+          ) : null}
+          {latencyS !== undefined ? (
+            <span className="font-mono text-[9px] text-fg-subtle">
+              · {latencyS.toFixed(2)}s case latency
             </span>
           ) : null}
         </div>

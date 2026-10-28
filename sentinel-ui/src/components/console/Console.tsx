@@ -287,6 +287,27 @@ function Masthead({
   const isLive = Boolean(llmProvenance === "live" || llmStatus?.available);
   const modelName = llmStatus?.model ?? "Nemotron-3";
 
+  // A1 — three honest Nemotron chip states driven by served_by + llmStatus.
+  let chipLabel = "Deterministic fallback";
+  let chipDotColor = "var(--warning)";
+  let chipTextColor = "var(--warning)";
+  if (DEMO_SNAPSHOT || (llmProvenance && llmProvenance.startsWith("cached"))) {
+    const date = (llmProvenance?.match(/\d{4}-\d{2}-\d{2}/)?.[0]) ?? "2026-10-25";
+    chipLabel = `Nemotron: recorded live run, ${date}`;
+    chipDotColor = "var(--fg-subtle)";
+    chipTextColor = "var(--fg-subtle)";
+  } else if (isLive) {
+    chipLabel = "Nemotron live";
+    chipDotColor = "var(--success)";
+    chipTextColor = "var(--success)";
+  }
+  const chipTooltip =
+    isLive
+      ? "Nemotron calls are succeeding against Nebius Token Factory."
+      : llmProvenance?.startsWith("cached")
+        ? "Replaying recorded Nemotron output from a real Nebius Token Factory pass."
+        : "No Nemotron output exists; deterministic rules produced this verdict.";
+
   return (
     <header className="relative shrink-0 border-b border-border bg-surface">
       <div className="flex h-1 bg-runway" />
@@ -320,14 +341,17 @@ function Masthead({
             {DEMO_SNAPSHOT ? "static snapshot" : health === "healthy" ? "live" : "offline"}
           </span>
         </div>
-        <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5" title={`AI model: ${modelName}`}>
+        <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5" title={`${chipTooltip} · Model: ${modelName}`}>
           <span
             className="h-1.5 w-1.5 rounded-full"
-            style={{ background: isLive ? "var(--success)" : "var(--accent)" }}
+            style={{ background: chipDotColor }}
             aria-hidden="true"
           />
-          <span className="font-mono text-[9px] font-medium text-fg-muted">
-            {isLive ? "AI working" : "AI fallback"}
+          <span
+            className="font-mono text-[9px] font-semibold"
+            style={{ color: chipTextColor }}
+          >
+            {chipLabel}
           </span>
           <span className="hidden font-mono text-[9px] text-fg-subtle sm:inline">· {modelName}</span>
         </div>
