@@ -349,6 +349,9 @@ function EvidenceRow({ ev }: { ev: AnswerEvidence }) {
         <p className="text-[11px] leading-[1.45] text-fg">{ev.claim}</p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[9px] text-fg-subtle">
           <span className="uppercase">{ev.source}</span>
+          {ev.simulated ? (
+            <span className="rounded-sm bg-warning-tint px-1 py-px font-semibold text-warning">simulated</span>
+          ) : null}
           <span>{ev.ref}</span>
           {ev.entity_ids.slice(0, 4).map((id, i) => (
             <span key={`${id}-${i}`} className="rounded-sm bg-surface-3 px-1 py-px">{id}</span>
