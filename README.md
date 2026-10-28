@@ -24,7 +24,7 @@ docker compose up --build
 ```
 
 The single-container demo:
-- **Hosted deployment blueprint**: `render.yaml` provisions the FastAPI service named `hhgoa-fraud-api`; deploy `sentinel-ui/` separately only when a verified API origin is configured. This repository does not claim a currently live hosted URL.
+- **Live Hosted Console**: [sentinel-ui-nu.vercel.app](https://sentinel-ui-nu.vercel.app) (Next.js Console on Vercel, FastAPI backend on Render).
 - **One Container, One URL (`:8008`)**: The FastAPI backend and canonical Next.js console (`sentinel-ui`) are co-hosted inside one container.
 - **Hermetic Synthetic Graph**: Rebuilds the SQLite graph store from committed synthetic CSVs (`data/synthetic/`) in ~3 seconds (`GRAPH_BACKEND=local`). No external cluster required.
 - **Default Demo Mode (`DEMO_MODE=1`)**: every case view, re-run and benchmark endpoint is a replay of `cases/*.json` — no run, no rewrite, no spend. Analyst Q&A is the one live path: answers are cached on disk and capped per IP and per day, so only a genuinely new question reaches Nemotron.
@@ -75,7 +75,7 @@ Core architectural pillars:
 - **Local SQLite Graph Store (Default) / Optional TigerGraph**: Graph traversal engine queries device sharing, transaction velocity, card-testing rings, and merchant clusters.
 - **GraphRAG Context Retrieval**: Evidence cards assemble 30-day card histories, cross-account device sharing, and past dispute records.
 - **NVIDIA Nemotron LLMs via Nebius Token Factory**: 4 specialized roles advise the investigation with fraud pattern typologies, verification drafts, and FinCEN SAR narratives.
-- **Governed Policy Engine (Rules R1?R10)**: Deterministic policy engine verifies all actions; the LLM advises, but the policy engine decides.
+- **Governed Policy Engine (Rules R1–R10)**: Deterministic policy engine verifies all actions; the LLM advises, but the policy engine decides.
 - **Explainable Noisy-OR Bayesian Modeling**: Calibrated probability updates across independent evidence channels.
 
 ---
@@ -151,7 +151,7 @@ graph TD
 2. **Graph Expansion**: Router queries 2-hop graph neighborhood (co-used devices, IP subnets, 30-day velocity).
 3. **Nemotron Advisory**: Nemotron Nano inspects evidence cards and proposes a candidate fraud pattern.
 4. **Bayesian Risk Calculation**: Noisy-OR combines prior transaction score with graph risk channels.
-5. **Policy Verification**: Rules engine (R1?R10) validates constraints. If customer verification exists (R1), score overrides down to benign; if multi-card ring exists (R8/R10), escalation triggers.
+5. **Policy Verification**: Rules engine (R1–R10) validates constraints. If customer verification exists (R1), score overrides down to benign; if multi-card ring exists (R8/R10), escalation triggers.
 6. **SAR & Action Dispatch**: If fraud is confirmed, Nemotron Ultra drafts the SAR narrative when Token Factory is configured (a grounded template writes it otherwise), and next-best-actions are queued for execution or approval.
 
 ---
@@ -170,41 +170,41 @@ graph TD
 
 ```
 hhgoa-sentinel-console/
-??? backend/                      # FastAPI backend application
-?   ??? agents/                   # Orchestrator and agent loop
-?   ??? graph/                    # Query router and SQLite graph traversal
-?   ??? llm/                      # Nebius Token Factory client & 4 roles
-?   ??? policies/                 # Deterministic policy engine (R1-R10)
-?   ??? risk/                     # Bayesian Noisy-OR risk modeling
-?   ??? config.py                 # Configuration and environment settings
-?   ??? main.py                   # FastAPI application entrypoint & UI proxy
-??? sentinel-ui/                  # Analyst Console (Next.js 15 Standalone)
-?   ??? src/app/                  # App Router pages (cases, approvals, ring)
-?   ??? src/components/console/   # CasePanel, QueueRail, GraphCanvasView, etc.
-?   ??? src/lib/                  # API client, TanStack Query hooks, contract
-?   ??? e2e/                      # Playwright E2E smoke tests
-?   ??? NOTICE.md                 # Upstream attribution and provenance details
-??? data/
-?   ??? synthetic/                # 100% synthetic CSVs (transactions, identity, cases)
-??? cases/                        # 20-case pack answer files + ground_truth.json
-??? docs/                         # Technical documentation
-?   ??? BENCHMARK.md              # 3-Arm ablation benchmark results
-?   ??? DEMO.md                   # 3-minute walkthrough & showcase cases
-?   ??? DEPLOY.md                 # Single-container & Render deployment guide
-?   ??? FEEDBACK_NOTES.md         # Engineering ledger & measured telemetry
-?   ??? FINAL_REPORT.md           # Session-verified final report
-?   ??? UI_PROVENANCE.md          # Upstream UI provenance & audit log
-?   ??? screenshots/              # 7 high-resolution console screenshots
-??? scripts/                      # Evaluation, benchmark, and screenshot scripts
-??? tigergraph/                   # GSQL queries and schema definitions
-??? tests/                        # Pytest suite (358 passed / 9 skipped)
-??? Dockerfile                    # Multi-stage production container build
-??? docker-compose.yml            # Single-container deployment configuration
-??? render.yaml                   # Hosted Render Blueprint specification
-??? pyproject.toml                # Python project configuration
-??? requirements.txt              # Pinned Python dependencies
-??? LICENSE                       # MIT License (Mohammed Yasin Shaik)
-??? README.md                     # Project documentation
+├── backend/                      # FastAPI backend application
+│   ├── agents/                   # Orchestrator and agent loop
+│   ├── graph/                    # Query router and SQLite graph traversal
+│   ├── llm/                      # Nebius Token Factory client & 4 roles
+│   ├── policies/                 # Deterministic policy engine (R1-R10)
+│   ├── risk/                     # Bayesian Noisy-OR risk modeling
+│   ├── config.py                 # Configuration and environment settings
+│   └── main.py                   # FastAPI application entrypoint & UI proxy
+├── sentinel-ui/                  # Analyst Console (Next.js 15 Standalone)
+│   ├── src/app/                  # App Router pages (cases, approvals, ring)
+│   ├── src/components/console/   # CasePanel, QueueRail, GraphCanvasView, etc.
+│   ├── src/lib/                  # API client, TanStack Query hooks, contract
+│   ├── e2e/                      # Playwright E2E smoke tests
+│   └── NOTICE.md                 # Upstream attribution and provenance details
+├── data/
+│   └── synthetic/                # 100% synthetic CSVs (transactions, identity, cases)
+├── cases/                        # 20-case pack answer files + ground_truth.json
+├── docs/                         # Technical documentation
+│   ├── BENCHMARK.md              # 3-Arm ablation benchmark results
+│   ├── DEMO.md                   # 3-minute walkthrough & showcase cases
+│   ├── DEPLOY.md                 # Single-container & Render deployment guide
+│   ├── FEEDBACK_NOTES.md         # Engineering ledger & measured telemetry
+│   ├── FINAL_REPORT.md           # Session-verified final report
+│   ├── UI_PROVENANCE.md          # Upstream UI provenance & audit log
+│   └── screenshots/              # 7 high-resolution console screenshots
+├── scripts/                      # Evaluation, benchmark, and screenshot scripts
+├── tigergraph/                   # GSQL queries and schema definitions
+├── tests/                        # Pytest suite (358 passed / 9 skipped)
+├── Dockerfile                    # Multi-stage production container build
+├── docker-compose.yml            # Single-container deployment configuration
+├── render.yaml                   # Hosted Render Blueprint specification
+├── pyproject.toml                # Python project configuration
+├── requirements.txt              # Pinned Python dependencies
+├── LICENSE                       # MIT License (Mohammed Yasin Shaik)
+└── README.md                     # Project documentation
 ```
 
 ---
@@ -335,19 +335,19 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
 
 ## 16. What Changed During the Submission Period (from 2026-08-26)
 
-- **2026-08-26 ? Baseline Architecture**: Initial deterministic policy engine (R1?R10) and TigerGraph GSQL graph schema.
-- **2026-10-23 ? NVIDIA Nemotron & Hybrid Governance**:
+- **2026-08-26 — Baseline Architecture**: Initial deterministic policy engine (R1–R10) and TigerGraph GSQL graph schema.
+- **2026-10-23 — NVIDIA Nemotron & Hybrid Governance**:
   - Integrated Nebius Token Factory with NVIDIA Nemotron (Nano 30B, Super 120B, Ultra 550B) across 4 roles with strict "propose, decide" separation.
   - Implemented spend protections: per-IP limiter, 200/day global cap, JSONL audit logging (`/api/llm/status`), and zero-500 fallbacks.
   - Built judge-ready single-container Docker image (`:8008`) and Render Blueprint (`render.yaml`).
   - Rebuilt `sentinel-ui` on production API contract; purged obsolete CSVs.
-- **2026-10-24 ? Stress Testing & Final Submission Hardening**:
+- **2026-10-24 — Stress Testing & Final Submission Hardening**:
   - Enhanced synthetic data generator with overlapping score distributions ($[0.52, 0.74]$ benign, $[0.65, 0.92]$ fraud) and stress scenarios (`CASE-009` ring FN, `CASE-007` emergency FP).
   - 3-Arm evaluation: Graph Agent ($F_1 = 1.0000$) vs Score-Only ($F_1 = 0.9333$) vs Plain LLM ($F_1 = 0.0000$).
   - Full test suite verified at **358 passed, 9 skipped**; `ruff` and `eslint` clean with 0 warnings.
   - Gitleaks scanned the full history: **0 secrets found**.
-  - Captured 7 high-resolution (1536?1024) UI screenshots in `docs/screenshots/`.
-  - **2026-10-25 ? Release hardening**: CASE-009's stress amount now equals `TransactionAmt` in the generator, the CSVs and the answer file ($14.50, exposure $23.51, SAR under R6); benchmark and baselines re-run (Arm 1 F1 1.0000, 1,622.8 tokens/case, 12.36 s/case).
+  - Captured 7 high-resolution (1536×1024) UI screenshots in `docs/screenshots/`.
+  - **2026-10-25 — Release hardening**: CASE-009's stress amount now equals `TransactionAmt` in the generator, the CSVs and the answer file ($14.50, exposure $23.51, SAR under R6); benchmark and baselines re-run (Arm 1 F1 1.0000, 1,622.8 tokens/case, 12.36 s/case).
     A committed Nemotron recording (`cases/_nemotron_cache.json`, 20 cases, recorded 2026-10-25) lets the hosted demo show real model text without a key, labelled `cached live run (2026-10-25)`.
     Added approval-token authorization, a CORS allow-list, evaluated the contingency `own-ui` branch, added a docker-compose CI gate, and documented attribution in `sentinel-ui/NOTICE.md` and `docs/UI_PROVENANCE.md`.
 
@@ -355,6 +355,6 @@ For full commit history and provenance details, see [docs/UI_PROVENANCE.md](./do
 
 ## 17. License
 
-This project is licensed under the **MIT License** ? see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
 
 Copyright (c) 2026 Mohammed Yasin Shaik. All rights reserved.
