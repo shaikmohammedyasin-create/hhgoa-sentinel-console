@@ -37,6 +37,7 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
   const [view, setView] = useState<View>(initialView ?? "case");
   const [selected, setSelected] = useState(initialCase ?? "");
   const [inboxOpen, setInboxOpen] = useState(params.get("inbox") === "1");
+  const [mobileQueueOpen, setMobileQueueOpen] = useState(false);
 
   const casesQuery = useCases();
   const summariesQuery = useInvestigations();
@@ -134,17 +135,59 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
 
       <div className="flex min-h-0 flex-1">
         {(view === "queue" || view === "case" || view === "graph") ? (
-          <QueueRail
-            rows={queue}
-            selected={selected}
-            loading={queueLoading}
-            failed={queueFailed}
-            runningCase={selectedRow?.investigated === false ? selected : null}
-            onSelect={(id) => {
-              setSelected(id);
-              setView("case");
-            }}
-          />
+          <>
+            {/* Sidebar on md+, hidden on mobile */}
+            <div className="hidden min-h-0 md:flex">
+              <QueueRail
+                rows={queue}
+                selected={selected}
+                loading={queueLoading}
+                failed={queueFailed}
+                runningCase={selectedRow?.investigated === false ? selected : null}
+                onSelect={(id) => {
+                  setSelected(id);
+                  setView("case");
+                }}
+              />
+            </div>
+            {/* Mobile queue overlay */}
+            {mobileQueueOpen ? (
+              <div className="fixed inset-0 z-40 md:hidden">
+                <div
+                  className="absolute inset-0 bg-black/20"
+                  onClick={() => setMobileQueueOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="relative z-10 flex h-full w-[min(300px,85vw)] flex-col border-r border-border bg-surface">
+                  <div className="flex shrink-0 items-center justify-between border-b border-border px-3.5 py-2">
+                    <Overline>Case queue</Overline>
+                    <button
+                      type="button"
+                      onClick={() => setMobileQueueOpen(false)}
+                      className="rounded px-1 font-mono text-[10px] text-fg-muted hover:text-fg"
+                      aria-label="Close queue"
+                    >
+                      close ×
+                    </button>
+                  </div>
+                  <div className="min-h-0 flex-1">
+                    <QueueRail
+                      rows={queue}
+                      selected={selected}
+                      loading={queueLoading}
+                      failed={queueFailed}
+                      runningCase={selectedRow?.investigated === false ? selected : null}
+                      onSelect={(id) => {
+                        setSelected(id);
+                        setView("case");
+                        setMobileQueueOpen(false);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </>
         ) : null}
 
         <div className="relative flex min-w-0 flex-1 flex-col">
@@ -177,6 +220,17 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
         </div>
       </div>
 
+      {/* Mobile queue toggle */}
+      {(view === "case" || view === "graph") ? (
+        <button
+          type="button"
+          onClick={() => setMobileQueueOpen(true)}
+          className="fixed bottom-12 left-3 z-30 rounded-lg border border-border bg-surface px-3 py-2 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted shadow-2 md:hidden"
+        >
+          ☰ queue
+        </button>
+      ) : null}
+
       {/* Bottom view switcher */}
       <div className="shrink-0 border-t border-border bg-surface px-3.5 py-1.5">
         <ViewSwitcher
@@ -196,9 +250,9 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
 
       {/* Demo act banner */}
       {demo.running && demo.act ? (
-        <div className="fixed bottom-14 left-3.5 z-50 flex items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 shadow-2">
+        <div className="fixed bottom-14 left-2 right-2 z-50 flex flex-wrap items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 shadow-2 sm:left-3.5 sm:right-auto sm:max-w-md">
           <Overline>{demo.act.title}</Overline>
-          <span className="max-w-[340px] text-[10px] leading-snug text-fg-muted">{demo.act.caption}</span>
+          <span className="max-w-full text-[10px] leading-snug text-fg-muted sm:max-w-[340px]">{demo.act.caption}</span>
           <span className="shrink-0 font-mono text-[9px] text-fg-subtle">
             {demo.index + 1}/{demo.total}
           </span>
@@ -247,7 +301,7 @@ function Masthead({
   return (
     <header className="relative shrink-0 border-b border-border bg-surface">
       <div className="flex h-1 bg-runway" />
-      <div className="flex items-center gap-3 px-3.5 py-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3.5 py-2">
         <span className="flex items-center gap-1.5">
           <span
             className="h-2.5 w-2.5 rounded-full"
@@ -260,7 +314,8 @@ function Masthead({
           />
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em]">Sentinel</span>
         </span>
-        <span className="font-mono text-[9px] text-fg-subtle">
+        {/* Status labels hidden on very small screens to save space */}
+        <span className="hidden font-mono text-[9px] text-fg-subtle sm:inline">
           {DEMO_SNAPSHOT
             ? "static snapshot · recorded run"
             : demoMode
@@ -268,7 +323,7 @@ function Masthead({
               : "live backend"}
         </span>
         <span
-          className="font-mono text-[9px]"
+          className="hidden font-mono text-[9px] sm:inline"
           style={{ color: badgeColor }}
         >
           {badgeLabel}

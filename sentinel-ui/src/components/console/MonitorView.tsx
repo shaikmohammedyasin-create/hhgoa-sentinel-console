@@ -49,7 +49,7 @@ export function MonitorView() {
   const latMax = latencies.length ? Math.max(...latencies) : 0;
 
   return (
-    <div className="absolute inset-x-0 bottom-0 top-0 z-view overflow-y-auto bg-bg px-6 pb-9 pt-5">
+    <div className="absolute inset-x-0 bottom-0 top-0 z-view overflow-y-auto bg-bg px-3 pb-6 pt-4 sm:px-6 sm:pb-9 sm:pt-5">
       <header className="mb-4 flex flex-wrap items-end gap-3.5">
         <div>
           <div className="text-[16px] font-bold leading-tight">The pack, scored</div>
@@ -144,7 +144,7 @@ export function MonitorView() {
             <span className="font-mono text-[9px] text-fg-subtle">{data.results.length} rows</span>
           </header>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[840px] border-collapse text-left">
+            <table className="w-full min-w-[640px] border-collapse text-left lg:min-w-[840px]">
               <thead>
                 <tr className="border-b border-border bg-surface-2">
                   {["Case", "Verdict", "P(fraud)", "Pattern", "Status", "SAR", "Evidence", "Tools", "Latency"].map(

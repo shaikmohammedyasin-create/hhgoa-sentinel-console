@@ -57,7 +57,7 @@ export function QueueRail({
   });
 
   return (
-    <aside className="flex min-h-0 flex-col border-r border-border bg-surface">
+    <aside className="flex h-full min-h-0 w-full flex-col border-r border-border bg-surface md:w-auto md:min-w-[220px]">
       <div className="flex shrink-0 items-baseline justify-between px-3.5 pb-2 pt-3">
         <Overline className="tracking-[0.14em]">Case queue</Overline>
         <span className="font-mono text-[9px] font-medium text-fg-subtle">

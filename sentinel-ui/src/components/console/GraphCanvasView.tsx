@@ -212,7 +212,7 @@ export function GraphCanvasView({ canvas, live }: { canvas: CaseGraph | null; li
 
   if (!canvas || !model || canvas.nodes.length === 0) {
     return (
-      <div className="mx-3 mb-3 rounded-lg border border-dashed border-border bg-surface px-3 py-8 text-center text-caption text-fg-subtle">
+      <div className="mx-1.5 mb-1.5 rounded-lg border border-dashed border-border bg-surface px-3 py-8 text-center text-caption text-fg-subtle sm:mx-3 sm:mb-3">
         No subgraph for this case yet.
       </div>
     );
@@ -224,7 +224,7 @@ export function GraphCanvasView({ canvas, live }: { canvas: CaseGraph | null; li
   const labelSize = Math.min(13, Math.max(9, Math.round(Math.min(W, H) / 62)));
 
   return (
-    <div className="mx-3 mb-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface">
+    <div className="mx-1.5 mb-1.5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface sm:mx-3 sm:mb-3">
       <div ref={paneRef} className="min-h-0 flex-1">
         <svg
           viewBox={`0 0 ${W} ${H}`}
