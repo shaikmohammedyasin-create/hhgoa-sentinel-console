@@ -1,0 +1,11 @@
+.venv/
+.venv/**
+sentinel-ui/.next/
+sentinel-ui/.next/**
+sentinel-ui/node_modules/
+sentinel-ui/node_modules/**
+.env
+.env.*
+data/logs/
+data/logs/**
+EOF
