@@ -16,6 +16,8 @@ export interface HealthOut {
   graph: Record<string, string>;
   app_db: string;
   llm_provider: string;
+  nebius_available?: boolean;
+  last_successful_call?: string | null;
   app_env: string;
   demo_mode: boolean;
   graph_hint?: string | null;
@@ -227,6 +229,7 @@ export interface AnalystAnswer {
   answer: string | null;
   served_by: string | null;
   llm_used: boolean;
+  latency_s?: number | null;
 }
 
 // ── LLM status ───────────────────────────────────────────────────────────────

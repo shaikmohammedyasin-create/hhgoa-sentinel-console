@@ -25,10 +25,31 @@ from backend.logging import get_logger
 
 log = get_logger(__name__)
 
+# Timestamp of the most recent successful call to Token Factory, ISO 8601 UTC.
+# None when no call has ever succeeded in this process. Never contains keys.
+_last_success_ts: str | None = None
+
 
 def available() -> bool:
     """True only when a Token Factory key is configured."""
     return bool(settings.nebius_api_key and settings.nebius_base_url)
+
+
+def last_successful_call() -> str | None:
+    """Return ISO 8601 UTC timestamp of the last successful Token Factory call.
+
+    Checks process memory first, then scans the end of the JSONL call log.
+    Returns None if no call has ever succeeded.
+    """
+    global _last_success_ts
+    if _last_success_ts is not None:
+        return _last_success_ts
+    records = read_logs(limit=200)
+    for r in reversed(records):
+        if r.get("success") and r.get("ts"):
+            _last_success_ts = r["ts"]
+            return _last_success_ts
+    return None
 
 
 def model_nano() -> str:
@@ -83,6 +104,7 @@ def log_summary() -> dict:
         by_role[r.get("role", "?")] = by_role.get(r.get("role", "?"), 0) + 1
     return {
         "available": available(),
+        "last_successful_call": last_successful_call(),
         "calls_logged": calls,
         "successes": ok,
         "failures": calls - ok,
@@ -184,6 +206,8 @@ def chat(role: str, system: str, user: str, model: str | None = None,
                 "success": True, "attempt": attempt,
                 "ts": datetime.now(timezone.utc).isoformat(),
             })
+            global _last_success_ts
+            _last_success_ts = datetime.now(timezone.utc).isoformat()
             log.info("nebius.call_ok", role=role, model=chosen_model,
                      latency_ms=latency_ms, prompt_tokens=usage_out["prompt_tokens"],
                      completion_tokens=usage_out["completion_tokens"])

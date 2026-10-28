@@ -106,6 +106,7 @@ class HealthResponse(BaseModel):
     app_db: str
     llm_provider: str
     nebius_available: bool = False
+    last_successful_call: str | None = None
     graph_mode: str = "sqlite"
     app_env: str
     demo_mode: bool
@@ -147,6 +148,7 @@ def health():
         app_db=db_status,
         llm_provider=settings.llm_provider,
         nebius_available=nebius_client.available(),
+        last_successful_call=nebius_client.last_successful_call(),
         graph_mode=settings.graph_backend,
         app_env=settings.app_env,
         demo_mode=settings.demo_mode,
@@ -778,6 +780,7 @@ class AnalystAnswer(BaseModel):
     answer: str | None
     served_by: str | None = None
     llm_used: bool = False
+    latency_s: float | None = None
 
 
 def _guard_llm_budget(request: Request) -> None:
@@ -856,7 +859,7 @@ def ask_case_question(case_id: str, req: AnalystQuestion, request: Request):
     if answer is not None:
         return AnalystAnswer(case_id=case_id, question=req.question,
                              answer=answer, served_by=settings.nebius_model_ultra,
-                             llm_used=True)
+                             llm_used=True, latency_s=None)
     # Deterministic fallback: ground the refusal in the evidence refs.
     refs = [str(c.get("ref", "")) for c in cards if c.get("ref")][:8]
     fallback = ("Not in evidence. This case's deterministic evidence trail covers: "
