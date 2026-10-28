@@ -118,7 +118,6 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
       <IconSprite />
       <Masthead
         health={health?.status}
-        demoMode={health?.demo_mode}
         llmProvenance={
           selectedAnswer?.nemotron?.served_by ??
           (llmStatus?.available ? "live" : llmStatus ? "deterministic fallback" : undefined)
@@ -267,7 +266,6 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
 
 function Masthead({
   health,
-  demoMode,
   llmProvenance,
   llmStatus,
   openInbox,
@@ -277,7 +275,6 @@ function Masthead({
   onStopDemo,
 }: {
   health: string | undefined;
-  demoMode: boolean | undefined;
   llmProvenance: string | null | undefined;
   llmStatus: { available?: boolean; model?: string; provider?: string } | null | undefined;
   openInbox: () => void;
@@ -287,22 +284,7 @@ function Masthead({
   onStopDemo: () => void;
 }) {
   const tone = DEMO_SNAPSHOT ? "neutral" : health === "healthy" ? "success" : "warning";
-
-  let badgeLabel = "deterministic";
-  let badgeColor = "var(--fg-subtle)";
-  let isLive = false;
-  if (llmProvenance === "live" || llmStatus?.available) {
-    badgeLabel = "live";
-    badgeColor = "var(--success)";
-    isLive = true;
-  } else if (llmProvenance && (llmProvenance.startsWith("cached") || llmProvenance.includes("recorded"))) {
-    badgeLabel = llmProvenance.replace(/^cached\s+/, "");
-    badgeColor = "var(--accent)";
-  } else if (DEMO_SNAPSHOT || demoMode) {
-    badgeLabel = "recorded run";
-    badgeColor = "var(--accent)";
-  }
-
+  const isLive = Boolean(llmProvenance === "live" || llmStatus?.available);
   const modelName = llmStatus?.model ?? "Nemotron-3";
 
   return (
@@ -335,7 +317,7 @@ function Masthead({
             className="font-mono text-[9px] font-semibold"
             style={{ color: health === "healthy" ? "var(--success)" : "var(--danger)" }}
           >
-            {health === "healthy" ? "live" : "offline"}
+            {DEMO_SNAPSHOT ? "static snapshot" : health === "healthy" ? "live" : "offline"}
           </span>
         </div>
         <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5" title={`AI model: ${modelName}`}>
