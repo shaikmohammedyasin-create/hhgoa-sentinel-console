@@ -1,0 +1,17 @@
+name: keepalive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe /health every 10 minutes
+        run: |
+          curl -fsS --max-time 60 "${{ secrets.RENDER_HEALTH_URL }}" || exit 1
+        env:
+          RENDER_HEALTH_URL: ${{ vars.RENDER_HEALTH_URL }}
