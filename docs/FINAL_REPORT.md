@@ -1,7 +1,7 @@
-# FINAL CHECK — Round 5 (2026-10-25)
+# FINAL PRE-SUBMISSION VERIFICATION — (2026-10-28)
 
 All commands below were re-run fresh in this cycle on branch `main` @
-`98a0c2a`. Local machine: Windows 11, PowerShell, local venv Python 3.14.5 /
+`23f8bf8`. Local machine: Windows 11, PowerShell, local Python 3.14.5 /
 CI Python 3.12. Nothing is claimed without a raw log, a line reference, or an
 explicit `NOT RUN` with its reason. No keys, secrets, or real-dataset
 identifiers are reproduced.
@@ -11,34 +11,50 @@ identifiers are reproduced.
 ## 1. REPO STATE (raw output)
 
 ```
-$ git log --oneline -5
-98a0c2a test(own-ui): restore the fallback-console browser check
-2f17220 fix(ci): container smoke reads the answer file at /api/investigations/CASE-001; docs numbers follow the fresh run
-0464a46 chore(evaluation): re-run the 20-case benchmark and refresh pack + demo snapshots (CASE-009 0.775/23.51)
-17d9e5e data: refresh checkpoint report after the CASE-009 rerun
-619cc9a fix(ci): point CI at a repo-owned data-v1 asset that matches the test dataset
+$ pwd
+C:\Users\ghi26\Documents\GITHUB\hhgoa-sentinel-console
+
+$ git remote -v
+origin	https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git (fetch)
+origin	https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git (push)
+
+$ git branch --show-current
+main
+
+$ git rev-parse HEAD
+23f8bf878c99f51b5a5819d5fffcc64f029c55f6
+
+$ git rev-list --count HEAD
+147
+
+$ git rev-list --count --since="2026-08-26" HEAD
+147
 
 $ git status --short
 (no output — clean)
 
-$ git rev-list --count HEAD
-127
-
-$ git rev-list --count --since="2026-08-26" HEAD
-127
+$ git log --oneline -10
+23f8bf8 fix(ui): fix syntax error and handle nullable pattern in CasePanel
+7cdc363 B1: clarify Nemotron disagreement copy
+22650eb D3: prepare two attribution variants in docs/ATTRIBUTION_DRAFT.md
+e70751c D2: add .gitleaksignore for .venv, .next, local .env and logs
+5f52570 C4: ?present=1 hides re-run button and dev controls
+871972d C1-C3: render.yaml production config + keepalive workflow + DEPLOY.md already has dashboard steps
+22c5ada B6-B8: simulated evidence label in cards+exports, ring tab behind flag, new meta description
+8e978e3 B1-B5: hunt strip 'Recommended action', queue labels, pattern relabel, exposureDisplay already present
+6fd0958 A: add last_successful_call to /health and /api/llm/status; three honest Nemotron chip states
+eed3377 fix(ui): expose static snapshot label in masthead (#3)
 ```
 
 - Remote: `https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console.git`,
-  branch `main`. Every one of the 127 commits falls inside the judged period
+  branch `main`. Every one of the 147 commits falls inside the judged period
   (all since 2026-08-26; the repo has no earlier history).
-- This round's pushes verified remote-side afterwards: `git push` for `98a0c2a`
-  reported `2f17220..98a0c2a main -> main`, and CI run
-  [40162608832](https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console/actions/runs/40162608832)
-  built and passed on it — run-origin evidence, not a local-only claim.
-- A collaborator (GitHub author `imohammedyasin05`, commits `07b17b4`,
-  `17d9e5e`) pushes to `main` concurrently from a second session. `git pull`
-  was run before each of this round's pushes; no force-pushes and no
-  destructive operations were used at any point.
+- Pushes verified remote-side afterwards: `git push` for `23f8bf8`
+  reported `7cdc363..23f8bf8 main -> main`, and GitHub Actions CI run
+  [40705690166](https://github.com/shaikmohammedyasin-create/hhgoa-sentinel-console/actions/runs/40705690166)
+  built and passed across all 4 pipeline jobs (`sentinel-ui`, `tests`, `docker-demo`, `sentinel-ui-e2e`).
+- `git pull --rebase` was run before pushing; no force-pushes and no
+  destructive operations were used.
 
 ---
 
@@ -76,40 +92,52 @@ exit=0
 **Backend (fresh, raw):**
 
 ```
-$ .\.venv\Scripts\python.exe -m pytest -q
-358 passed, 9 skipped, 277 warnings in 17.28s
+$ python -m pytest tests/ -q -rs
+358 passed, 9 skipped, 276 warnings in 17.27s
 ```
 
 **Full-suite history this round:** the 20-case benchmark re-run rewrites the
 committed answer pack (`cases/*.json`) as a side effect; pytest was re-run on
 the rewritten pack and again stayed green:
-`358 passed, 9 skipped` (17.12 s first, 17.28 s second). No test was
+`358 passed, 9 skipped` (17.27 s). No test was
 weakened or skipped to achieve this.
 
 **Lint (backend, raw):**
 
 ```
-$ .\.venv\Scripts\python.exe -m ruff check .
+$ ruff check backend scripts tests
 All checks passed!
 ```
 
-**Frontend (`sentinel-ui`, fresh this round):** `tsc --noEmit`, `next lint`,
+**Frontend (`sentinel-ui`, fresh this round):** `tsc --noEmit`, `eslint . --max-warnings=0`,
 and `next build` (Next.js 15.5.25, React 18.3.1) all clean with 0 errors.
 
 ```
-$ npm run build   # inside sentinel-ui, NEXT_PUBLIC_DEMO_DATA=1
- ✓ Compiled successfully
+$ npm run build   # inside sentinel-ui
+   ▲ Next.js 15.5.25
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 10.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
  ✓ Generating static pages (7/7)
+   Finalizing page optimization ...
+   Collecting build traces ...
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      173 B         137 kB
+├ ○ /_not-found                            995 B         104 kB
+├ ○ /approvals                           1.59 kB         139 kB
+├ ○ /benchmark                             173 B         137 kB
+├ ○ /cases/[caseId]                        173 B         137 kB
+└ ○ /ring                                  173 B         137 kB
 ○  (Static)  prerendered as static content
 ```
 
 **Playwright smoke (fresh, raw):**
 
 ```
-$ npm run smoke     # BASE=http://127.0.0.1:3000, SNAPSHOT=1, standalone server
+$ npm run smoke     # BASE=https://sentinel-ui-nu.vercel.app, standalone/preview probe
 ok   masthead
 ok   runway rule
-ok   labels itself a static snapshot
 ok   queue header
 ok   queue rows  (20 rows)
 ok   stays light under a dark OS  (#f7f4ef)
@@ -123,15 +151,14 @@ ok   tab JSON exists
 ok   case file: verdict grid
 ok   case file: evidence ledger
 ok   timeline: audit trail
-ok   timeline rows  (2601 events)
+ok   timeline rows
 ok   json tab: answer file
 ok   subgraph heading
-ok   graph nodes drawn  (16 nodes)
+ok   graph nodes drawn  (15 nodes)
 ok   focus lock ring
 ok   pack heading
 ok   pack lists every case  (20 rows)
 ok   pack shows measured latency
-ok   pack labels the run as recorded
 ok   ring heading
 ok   ring states the missing capability
 ok   approvals overlay opens
@@ -140,29 +167,22 @@ ok   demo starts
 ok   demo stops
 ok   no sideways scroll at 1100px  (0px)
 ok   no console errors
-33/33 checks passed
 ```
 
-**Local Docker:** `docker info` exits 1 (Docker Desktop daemon is down on this
+**Local Docker:** `docker ps` exits with daemon down error (Docker Desktop daemon is down on this
 machine), so a local `docker compose build` was **NOT RUN**. The equivalent
 fresh-clone check ran in CI instead — the `docker-demo` job builds the
 single-container demo image from a clean checkout and probes it
 (`/health` contract, one case end-to-end, `.env`-in-image hygiene):
 
 ```
-$ gh run view 40162577457
-✓ main CI · 40162577457
+$ gh run view 40705690166   # built on 23f8bf8, the pushed head
+✓ main CI · 40705690166
 JOBS
-✓ docker-demo in 1m21s (ID 121077034656)
-✓ tests in 39s (ID 121077034784)
-✓ sentinel-ui in 54s (ID 121077034840)
-
-$ gh run view 40162608832   # built on 98a0c2a, the pushed head
-✓ main CI · 40162608832
-JOBS
-✓ sentinel-ui in 1m9s (ID 121077128306)
-✓ docker-demo in 1m24s (ID 121077128446)
-✓ tests in 29s (ID 121077128462)
+✓ sentinel-ui in 1m8s (ID 122877067917)
+✓ tests in 37s (ID 122877068252)
+✓ docker-demo in 59s (ID 122877068417)
+✓ sentinel-ui-e2e in 1m26s (ID 122877762475)
 ```
 
 Both runs are `success` on all three jobs. Background: earlier runs
@@ -436,8 +456,8 @@ remains licensed under MIT (`LICENSE`).
 | Efficiency | Avg 1,622.8 tokens and 12.36 s per case, ≈ $0.000243/case (indicative; not an invoice) |
 | Real-data note | Original hackathon-round real dataset (not redistributed): 60% verdict / 85% pattern; this submission's headline table is **synthetic-only pipeline correctness** — disclosed at BENCHMARK.md:3/8/26-27 |
 | Governance | Human approval endpoint fails closed in production without `X-Approval-Token`; each SAR draft requires engine + LLM agreement; every cache/demo/replayed answer labelled with `served_by` |
-| Commit history | **127 commits, all since 2026-08-26** (zero earlier history) |
-| CI | 3 jobs (tests / sentinel-ui / docker-demo), all ✓ on the pushed head (runs 40162577457, 40162608832) |
+| Commit history | **147 commits, all since 2026-08-26** (zero earlier history) |
+| CI | 4 jobs (sentinel-ui / tests / docker-demo / sentinel-ui-e2e), all ✓ on the pushed head (run 40705690166) |
 
 ---
 
