@@ -468,12 +468,12 @@ function NemotronPanel({ nemotron, latencyS }: { nemotron: NemotronBlock | undef
           {nemotron?.model_agreed === false ? (
             <div className="mt-2.5 rounded-md border border-warning bg-warning-tint px-3 py-2 text-[10.5px] leading-[1.5] text-warning">
               {nemotron.model_proposal
-                ? `Nemotron proposed ${humanise(nemotron.model_proposal.pattern)} ` +
+                ? `Nemotron proposed ${humanise(nemotron.model_proposal.pattern ?? "")} ` +
                   `(conf ${((nemotron.model_proposal.confidence ?? 0) * 100).toFixed(0)}%); ` +
                   `policy engine retained the deterministic decision. ` +
                   (nemotron.model_override_reason || "")
                 : `No Nemotron proposal was available; the deterministic policy decision stands. ` +
-                  (nemotron.model_override_reason ?? "").replace(
+                  ((nemotron.model_override_reason ?? "").replace(
                     /^No valid model proposal \(model unavailable or output invalid\); /,
                     "",
                   ) || "")}
