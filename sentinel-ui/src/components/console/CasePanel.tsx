@@ -111,18 +111,23 @@ export function CasePanel({
         ) : null}
       </div>
 
-      {/* tabs — horizontally scrollable on narrow screens, min-width so labels stay readable */}
-      <div className="flex shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border bg-surface px-2 pt-1.5">
+      {/* tabs — full-width on mobile; each tab is a tappable strip, scrollable if the row overflows */}
+      <div
+        className="flex shrink-0 items-stretch gap-px overflow-x-auto border-b border-border bg-surface px-1.5 pt-1.5 sm:gap-0.5 sm:px-2"
+        role="tablist"
+        aria-label="Case sections"
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
+            role="tab"
             onClick={() => setTab(t.id)}
-            aria-pressed={tab === t.id}
+            aria-selected={tab === t.id}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-t-md px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] sm:text-[9px] sm:tracking-[0.08em]",
+              "min-w-[4.5rem] shrink-0 whitespace-nowrap rounded-t-md px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.06em]",
               tab === t.id
-                ? "border border-b-0 border-border bg-bg text-fg"
+                ? "border border-b-0 border-accent bg-bg text-fg"
                 : "border border-transparent text-fg-muted hover:text-fg",
             )}
           >
