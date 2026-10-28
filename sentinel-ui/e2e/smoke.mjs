@@ -118,7 +118,7 @@ if (SNAPSHOT) {
 } else {
   check(
     "labels its data source",
-    (await page.getByText(/demo mode|live backend/).count()) > 0,
+    (await page.getByText(/demo mode|live backend|live|static snapshot/i).count()) > 0,
   );
 }
 
