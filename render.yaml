@@ -18,7 +18,7 @@ services:
       # Hosted demo defaults: demo mode on, local synthetic graph, no
       # external LLM calls unless a separate NEBIUS_API_KEY is supplied.
       - key: APP_ENV
-        value: development
+        value: production
       - key: DEMO_MODE
         value: "1"
       - key: GRAPH_BACKEND
@@ -30,7 +30,7 @@ services:
       - key: NEBIUS_API_KEY
         sync: false
       - key: LLM_DAILY_CALL_CAP
-        value: "40"
+        value: "60"
       - key: LLM_CALLS_PER_IP_PER_HOUR
         value: "10"
       - key: NEBIUS_BASE_URL
