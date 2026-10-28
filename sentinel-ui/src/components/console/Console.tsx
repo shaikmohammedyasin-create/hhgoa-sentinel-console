@@ -323,37 +323,37 @@ function Masthead({
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em]">Sentinel</span>
         </span>
 
-        {/* Backend mode */}
-        <span className="hidden font-mono text-[9px] text-fg-subtle md:inline">
-          {DEMO_SNAPSHOT
-            ? "static snapshot"
-            : demoMode
-              ? "demo mode"
-              : "live backend"}
-        </span>
-
-        {/* AI Model Status Badge */}
-        <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5">
+        {/* Backend + AI status badges — always visible */}
+        <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-fg-muted">
+          <span className="font-mono text-[9px] font-medium">Backend:</span>
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ background: health === "healthy" ? "var(--success)" : "var(--danger)" }}
+            aria-hidden="true"
+          />
+          <span
+            className="font-mono text-[9px] font-semibold"
+            style={{ color: health === "healthy" ? "var(--success)" : "var(--danger)" }}
+          >
+            {health === "healthy" ? "live" : "offline"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5" title={`AI model: ${modelName}`}>
           <span
             className="h-1.5 w-1.5 rounded-full"
             style={{ background: isLive ? "var(--success)" : "var(--accent)" }}
             aria-hidden="true"
           />
           <span className="font-mono text-[9px] font-medium text-fg-muted">
-            {modelName}:
+            {isLive ? "AI working" : "AI fallback"}
           </span>
-          <span
-            className="font-mono text-[9px] font-semibold"
-            style={{ color: badgeColor }}
-          >
-            {isLive ? "working" : badgeLabel}
-          </span>
+          <span className="hidden font-mono text-[9px] text-fg-subtle sm:inline">· {modelName}</span>
         </div>
 
         <span className="flex-1" />
 
-        {/* Action buttons */}
-        <span role="group" aria-label="Run controls" className="flex items-center gap-1.5">
+        {/* Action buttons — wrap cleanly on narrow screens */}
+        <span role="group" aria-label="Run controls" className="flex items-center gap-1 sm:gap-1.5">
           <button
             type="button"
             onClick={openInbox}
