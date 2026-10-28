@@ -231,12 +231,12 @@ export function huntState(
     if (p < 0.25) return { label: "TRAIL COLD", glyph: "scope", tone: "success", note };
     return { label: "STALKING", glyph: "scope", tone: "accent", note };
   }
-  if (verdict === "fraud") return { label: "QUARRY LOCKED", glyph: "bolt", tone: "danger", note };
+  if (verdict === "fraud") return { label: "QUARRY LOCKED", glyph: "bolt", tone: "danger", note: `Recommended action: file report (fraud) · ${note}` };
   if (verdict === "legitimate") {
-    return { label: "STOOD DOWN", glyph: "check", tone: "success", note };
+    return { label: "STOOD DOWN", glyph: "check", tone: "success", note: `Recommended action: stand down (no fraud) · ${note}` };
   }
   if (verdict === "uncertain") {
-    return { label: "HELD AT BAY", glyph: "alert", tone: "warning", note };
+    return { label: "HELD AT BAY", glyph: "alert", tone: "warning", note: `Recommended action: escalate to analyst · ${note}` };
   }
   return { label: "NOT YET RUN", glyph: "scope", tone: "neutral", note };
 }

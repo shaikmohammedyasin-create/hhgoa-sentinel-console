@@ -77,7 +77,7 @@ export function CasePanel({
           <ConsoleChip tone={verdictTone(row.verdict)}>{row.verdict ?? "not run"}</ConsoleChip>
           {caseBody?.pattern ? (
             <ConsoleChip tone={caseBody.pattern === "undocumented" ? "warning" : "neutral"}>
-              {caseBody.pattern === "undocumented" ? "Undocumented (R9 Ring)" : humanise(caseBody.pattern)}
+              {caseBody.pattern === "undocumented" ? "Outside typology list — shared-device evidence" : humanise(caseBody.pattern)}
             </ConsoleChip>
           ) : null}
           <span className="flex-1" />
@@ -88,7 +88,10 @@ export function CasePanel({
             <Icon name="alert" size={10} style={{ color: toneVar(sourceTone("graph")) }} />
             {humanise(row.trigger_type)}
           </span>
-          <span>{exposureDisplay(row.exposure_usd, row.verdict)}</span>
+          {row.trigger_text && row.trigger_text.includes("$") ? (
+            <span>Trigger amount: {row.trigger_text.match(/\(\$([\d,]+\.?\d*)\)/)?.[0]?.replace(/[()]/g, "") ?? "—"}</span>
+          ) : null}
+          <span>{/\bring\b|connected card|shared device|coordinated|undocumented/i.test(caseBody?.pattern || "") ? "Ring exposure: " : "Exposure: "}{exposureDisplay(row.exposure_usd, row.verdict)}</span>
           <span className="flex items-center gap-1">
             <Icon name="card" size={10} />
             {row.card_id}
@@ -306,7 +309,7 @@ function WhyGrid({
   const paired: [string, string][] = [
     ["Verdict", verdict],
     ["P(fraud)", fraudProbability.toFixed(3)],
-    ["Pattern", pattern === "undocumented" ? "Undocumented (R9 coordinated ring)" : humanise(pattern)],
+    ["Pattern", pattern === "undocumented" ? "Outside typology list — shared-device evidence" : humanise(pattern)],
     [isRing ? "Ring Exposure" : "Exposure", exposureDisplay(exposureUsd, verdict)],
     ...(triggerMatch ? [["Trigger Amount", triggerMatch[1]] as [string, string]] : []),
     ["Connected cards", String(connectedCards)],
@@ -326,7 +329,7 @@ function WhyGrid({
       </div>
       {pattern === "undocumented" ? (
         <div className="rounded-md border border-border bg-surface-2 p-2.5 text-[10.5px] leading-relaxed text-fg-muted">
-          <span className="font-semibold text-fg">Pattern definition (Policy R9):</span> Coordinated multi-card syndicate sharing a single device profile. Coded as &ldquo;undocumented&rdquo; per institutional policy R9 to avoid forcing multi-card graph topologies into standard single-card typologies.
+          <span className="font-semibold text-fg">Pattern definition (Policy R9):</span> Coordinated multi-card syndicate sharing a single device or browser profile (CASE-009: 17 connected cards on a shared Windows profile; CASE-014: 4 cards on a shared Linux/Chrome profile). Coded &ldquo;undocumented&rdquo; per institutional policy R9 to avoid forcing multi-card graph topologies into standard single-card typologies.
         </div>
       ) : null}
     </div>

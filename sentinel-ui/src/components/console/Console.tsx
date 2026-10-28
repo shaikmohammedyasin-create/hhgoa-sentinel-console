@@ -59,14 +59,15 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
       byCase.set(trigger.case_id, { ...trigger, investigated: false, verdict: null, fraud_probability: null, pattern: null, exposure_usd: null, sar_required: null });
     }
     for (const s of summaries ?? []) {
+      const trigger = byCase.get(s.case_id);
       byCase.set(s.case_id, {
         case_id: s.case_id,
-        opened_at: s.updated_at ?? "",
-        trigger_type: "analyst_request",
-        trigger_text: "",
-        flagged_txn_id: "",
-        card_id: "",
-        customer_id: "",
+        opened_at: s.updated_at ?? trigger?.opened_at ?? "",
+        trigger_type: trigger?.trigger_type ?? "analyst_request",
+        trigger_text: trigger?.trigger_text ?? "",
+        flagged_txn_id: trigger?.flagged_txn_id ?? "",
+        card_id: trigger?.card_id ?? "",
+        customer_id: trigger?.customer_id ?? "",
         risk_score: null,
         investigated: s.investigated,
         verdict: s.verdict,
