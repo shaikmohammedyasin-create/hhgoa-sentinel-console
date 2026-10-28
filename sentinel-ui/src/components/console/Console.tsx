@@ -296,15 +296,15 @@ function Masthead({
   let chipLabel = "Deterministic fallback";
   let chipDotColor = "var(--warning)";
   let chipTextColor = "var(--warning)";
-  if (DEMO_SNAPSHOT || (llmProvenance && llmProvenance.startsWith("cached"))) {
+  if (isLive) {
+    chipLabel = "Nemotron live";
+    chipDotColor = "var(--success)";
+    chipTextColor = "var(--success)";
+  } else if (DEMO_SNAPSHOT || (llmProvenance && llmProvenance.startsWith("cached"))) {
     const date = (llmProvenance?.match(/\d{4}-\d{2}-\d{2}/)?.[0]) ?? "2026-10-25";
     chipLabel = `Nemotron: recorded live run, ${date}`;
     chipDotColor = "var(--fg-subtle)";
     chipTextColor = "var(--fg-subtle)";
-  } else if (isLive) {
-    chipLabel = "Nemotron live";
-    chipDotColor = "var(--success)";
-    chipTextColor = "var(--success)";
   }
   const chipTooltip =
     isLive

@@ -830,7 +830,8 @@ def ask_case_question(case_id: str, req: AnalystQuestion, request: Request):
         case = _reconstruct(payload) if "trigger" in payload else None
     except Exception:
         case = None
-    evidence_list = case.evidence if case is not None else payload.get("evidence", [])
+    case_dict = payload.get("case") if isinstance(payload.get("case"), dict) else payload
+    evidence_list = case.evidence if case is not None else case_dict.get("evidence", [])
     from backend.llm import roles as llm_roles
     if case is not None:
         # Reconstruct path: reuse the orchestrator's card and fact builders.
@@ -841,7 +842,7 @@ def ask_case_question(case_id: str, req: AnalystQuestion, request: Request):
         # Precomputed case-file path: stable EV-xx ids over the raw dicts.
         cards = [
             {
-                "evidence_id": f"EV-{idx + 1:02d}",
+                "evidence_id": item.get("evidence_id") or f"EV-{idx + 1:02d}",
                 "claim": str(item.get("claim", ""))[:400],
                 "source": str(item.get("source", "")),
                 "ref": str(item.get("ref", "") or ""),
@@ -850,10 +851,10 @@ def ask_case_question(case_id: str, req: AnalystQuestion, request: Request):
         ]
         facts = {
             "case_id": case_id,
-            "verdict": str(payload.get("verdict", "")),
-            "pattern": str(payload.get("pattern", "")),
-            "fraud_probability": payload.get("fraud_probability"),
-            "exposure_usd": payload.get("exposure_usd"),
+            "verdict": str(case_dict.get("verdict", "")),
+            "pattern": str(case_dict.get("pattern", "")),
+            "fraud_probability": case_dict.get("fraud_probability"),
+            "exposure_usd": case_dict.get("exposure_usd"),
         }
     answer = llm_roles.analyst_qa(facts, cards, req.question)
     if answer is not None:
