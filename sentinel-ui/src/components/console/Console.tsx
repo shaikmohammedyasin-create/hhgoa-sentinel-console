@@ -123,6 +123,7 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
           selectedAnswer?.nemotron?.served_by ??
           (llmStatus?.available ? "live" : llmStatus ? "deterministic fallback" : undefined)
         }
+        llmStatus={llmStatus ?? undefined}
         openInbox={() => setInboxOpen(true)}
         goMonitor={() => setView("monitor")}
         running={demo.running}
@@ -268,6 +269,7 @@ function Masthead({
   health,
   demoMode,
   llmProvenance,
+  llmStatus,
   openInbox,
   goMonitor,
   running,
@@ -277,6 +279,7 @@ function Masthead({
   health: string | undefined;
   demoMode: boolean | undefined;
   llmProvenance: string | null | undefined;
+  llmStatus: { available?: boolean; model?: string; provider?: string } | null | undefined;
   openInbox: () => void;
   goMonitor: () => void;
   running: boolean;
@@ -287,24 +290,29 @@ function Masthead({
 
   let badgeLabel = "deterministic";
   let badgeColor = "var(--fg-subtle)";
-  if (llmProvenance === "live") {
+  let isLive = false;
+  if (llmProvenance === "live" || llmStatus?.available) {
     badgeLabel = "live";
     badgeColor = "var(--success)";
+    isLive = true;
   } else if (llmProvenance && (llmProvenance.startsWith("cached") || llmProvenance.includes("recorded"))) {
     badgeLabel = llmProvenance.replace(/^cached\s+/, "");
     badgeColor = "var(--accent)";
   } else if (DEMO_SNAPSHOT || demoMode) {
-    badgeLabel = "recorded live run (2026-10-25)";
+    badgeLabel = "recorded run";
     badgeColor = "var(--accent)";
   }
+
+  const modelName = llmStatus?.model ?? "Nemotron-3";
 
   return (
     <header className="relative shrink-0 border-b border-border bg-surface">
       <div className="flex h-1 bg-runway" />
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3.5 py-2">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 px-3 py-2 sm:px-3.5">
+        {/* Brand */}
         <span className="flex items-center gap-1.5">
           <span
-            className="h-2.5 w-2.5 rounded-full"
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ background: toneVar(tone) }}
             aria-label={
               DEMO_SNAPSHOT
@@ -314,21 +322,37 @@ function Masthead({
           />
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em]">Sentinel</span>
         </span>
-        {/* Status labels hidden on very small screens to save space */}
-        <span className="hidden font-mono text-[9px] text-fg-subtle sm:inline">
+
+        {/* Backend mode */}
+        <span className="hidden font-mono text-[9px] text-fg-subtle md:inline">
           {DEMO_SNAPSHOT
-            ? "static snapshot · recorded run"
+            ? "static snapshot"
             : demoMode
-              ? "demo mode · committed cases"
+              ? "demo mode"
               : "live backend"}
         </span>
-        <span
-          className="hidden font-mono text-[9px] sm:inline"
-          style={{ color: badgeColor }}
-        >
-          {badgeLabel}
-        </span>
+
+        {/* AI Model Status Badge */}
+        <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-1.5 py-0.5">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ background: isLive ? "var(--success)" : "var(--accent)" }}
+            aria-hidden="true"
+          />
+          <span className="font-mono text-[9px] font-medium text-fg-muted">
+            {modelName}:
+          </span>
+          <span
+            className="font-mono text-[9px] font-semibold"
+            style={{ color: badgeColor }}
+          >
+            {isLive ? "working" : badgeLabel}
+          </span>
+        </div>
+
         <span className="flex-1" />
+
+        {/* Action buttons */}
         <span role="group" aria-label="Run controls" className="flex items-center gap-1.5">
           <button
             type="button"

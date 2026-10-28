@@ -111,7 +111,7 @@ export function CasePanel({
         ) : null}
       </div>
 
-      {/* tabs — horizontally scrollable on narrow screens */}
+      {/* tabs — horizontally scrollable on narrow screens, min-width so labels stay readable */}
       <div className="flex shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border bg-surface px-2 pt-1.5">
         {TABS.map((t) => (
           <button
@@ -120,7 +120,7 @@ export function CasePanel({
             onClick={() => setTab(t.id)}
             aria-pressed={tab === t.id}
             className={cn(
-              "rounded-t-md px-2.5 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em]",
+              "shrink-0 whitespace-nowrap rounded-t-md px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] sm:text-[9px] sm:tracking-[0.08em]",
               tab === t.id
                 ? "border border-b-0 border-border bg-bg text-fg"
                 : "border border-transparent text-fg-muted hover:text-fg",
