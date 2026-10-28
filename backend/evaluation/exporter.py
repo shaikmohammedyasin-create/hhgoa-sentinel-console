@@ -64,6 +64,7 @@ def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
                     "source": ev.source.value,
                     "ref": ev.ref,
                     "entity_ids": ev.entity_ids,
+                    "simulated": bool(ev.origin == "simulated" or "Customer response (simulated)" in ev.claim),
                 }
                 for ev in case.evidence
             ],
@@ -71,6 +72,7 @@ def case_to_answer(case: InvestigationCase) -> dict[str, Any]:
             "summary": case.summary,
             "written_to_graph": case.written_to_graph,
             "graph_case_id": case.graph_case_id,
+            "simulated": True,
         },
         "evidence_requests": [
             {

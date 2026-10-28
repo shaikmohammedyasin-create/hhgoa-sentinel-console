@@ -112,6 +112,7 @@ export interface AnswerEvidence {
   source: EvidenceSource;
   ref: string;
   entity_ids: string[];
+  simulated?: boolean;
 }
 
 export interface EvidenceRequestOut {
