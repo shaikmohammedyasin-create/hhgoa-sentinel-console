@@ -211,7 +211,19 @@ export function Console({ initialCase, initialView }: { initialCase?: string; in
             </div>
           ) : null}
           {view === "monitor" ? <MonitorView /> : null}
-          {view === "ring" ? <RingView /> : null}
+          {view === "ring" ? (
+            <RingView
+              queue={queue}
+              onSelectCase={(id) => {
+                setSelected(id);
+                setView("case");
+              }}
+              onInspectGraph={(id) => {
+                setSelected(id);
+                setView("graph");
+              }}
+            />
+          ) : null}
 
           {view === "case" ? (
             <CaseFooter
