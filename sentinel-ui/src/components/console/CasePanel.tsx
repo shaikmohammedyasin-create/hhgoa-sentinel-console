@@ -2,16 +2,6 @@
 
 /**
  * One case: its header, and the five ways of reading it.
- *
- * The answer file is `case_to_answer` honest bytes: what the graph said, what
- * the policy engine decided, whether Nemotron agreed, and the optional SAR.
- * The tabs are ordered by how much interpretation each carries, least first —
- * timeline (what happened), case file (what was concluded), SAR (what gets
- * filed), Nemotron (the advisory block) — and a reader who distrusts the
- * prose can walk right and end at the JSON.
- *
- * Q&A posts to `POST /api/cases/{id}/ask`; the footer lists per-role model
- * usage from the answer (model, latency, cache flag when the run was live).
  */
 
 import { useMemo, useState } from "react";
@@ -22,6 +12,7 @@ import { Timeline } from "@/components/console/Timeline";
 import {
   humanise,
   exposureDisplay,
+  extractTriggerAmount,
   money,
   sourceIcon,
   sourceTone,
@@ -65,14 +56,19 @@ export function CasePanel({
   const hasAnswer = Boolean(answer);
   const caseBody = answer?.case;
   const nemotron = answer?.nemotron;
-  // Nemotron is the only tab worth guarding on: everything else is engine output.
-  const showNemotron = Boolean(nemotron?.model_proposal || nemotron?.policy_decision);
 
   const p = caseBody?.fraud_probability ?? row.fraud_probability ?? 0;
 
+  const triggerEvidence = caseBody?.evidence?.find(
+    (e) => e.ref === "trigger:risk_score" || e.ref?.startsWith("trigger") || e.claim?.toLowerCase().startsWith("trigger")
+  );
+  const triggerAmt =
+    extractTriggerAmount(row.trigger_text) ??
+    extractTriggerAmount(triggerEvidence?.claim) ??
+    extractTriggerAmount(caseBody?.summary);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-bg">
-      {/* header */}
       <div className="shrink-0 border-b border-border bg-surface px-3 py-2.5 sm:px-3.5 sm:py-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-[13px] font-bold tracking-[0.02em]">{row.case_id}</span>
@@ -90,8 +86,10 @@ export function CasePanel({
             <Icon name="alert" size={10} style={{ color: toneVar(sourceTone("graph")) }} />
             {humanise(row.trigger_type)}
           </span>
-          {row.trigger_text && row.trigger_text.includes("$") ? (
-            <span>Trigger amount: {row.trigger_text.match(/\(\$([\d,]+\.?\d*)\)/)?.[0]?.replace(/[()]/g, "") ?? "—"}</span>
+          {triggerAmt ? (
+            <span>Trigger amount: {triggerAmt}</span>
+          ) : row.trigger_text ? (
+            <span>Trigger amount: —</span>
           ) : null}
           <span>{/\bring\b|connected card|shared device|coordinated|undocumented/i.test(caseBody?.pattern || "") ? "Ring exposure: " : "Exposure: "}{exposureDisplay(row.exposure_usd, row.verdict)}</span>
           <span className="flex items-center gap-1">
@@ -118,7 +116,6 @@ export function CasePanel({
         ) : null}
       </div>
 
-      {/* tabs — full-width on mobile; each tab is a tappable strip, scrollable if the row overflows */}
       <div
         className="flex shrink-0 items-stretch gap-px overflow-x-auto border-b border-border bg-surface px-1.5 pt-1.5 sm:gap-0.5 sm:px-2"
         role="tablist"
@@ -143,7 +140,6 @@ export function CasePanel({
         ))}
       </div>
 
-      {/* body */}
       <div className="min-h-0 flex-1 overflow-y-auto p-3.5">
         {tab === "timeline" ? (
           <Timeline caseId={row.case_id} events={timeline} isLoading={!hasAnswer} />
@@ -152,11 +148,7 @@ export function CasePanel({
         ) : tab === "sar" ? (
           <SarPanel sar={answer?.sar} />
         ) : tab === "nemotron" ? (
-          showNemotron ? (
-            <NemotronPanel nemotron={nemotron} latencyS={answer?.latency_s} />
-          ) : (
-            <EmptyNote text="No Nemotron advisory block on this answer (model unavailable for this run)." />
-          )
+          <NemotronPanel nemotron={nemotron} latencyS={answer?.latency_s} />
         ) : (
           <JsonPanel
             text={answer ? JSON.stringify(answer, null, 2) : "No answer file yet."}
@@ -166,7 +158,6 @@ export function CasePanel({
         )}
       </div>
 
-      {/* Q&A */}
       <div className="shrink-0 border-t border-border bg-surface p-2.5 sm:p-3">
         <form
           onSubmit={(e) => {
@@ -202,7 +193,7 @@ export function CasePanel({
                 {ask.data.latency_s ? ` · ${ask.data.latency_s.toFixed(1)}s` : ""}
               </span>
             </div>
-            <p className="mt-1.5 text-[11.5px] leading-[1.5] text-fg">
+            <p className="mt-1.5 text-[11px] leading-[1.5] text-fg">
               {ask.data.answer ?? "No answer was produced."}
             </p>
           </div>
@@ -214,7 +205,6 @@ export function CasePanel({
         ) : null}
       </div>
 
-      {/* footer */}
       {nemotron?.model_usage ? (
         <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border bg-surface-2 px-3.5 py-1.5 font-mono text-[9px] text-fg-subtle">
           {Object.entries(nemotron.model_usage).map(([role, usage]) => (
@@ -253,7 +243,7 @@ export function CasePanel({
 
 function EmptyNote({ text }: { text: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-surface px-4 py-10 text-center text-caption text-fg-subtle">
+    <div className="rounded-md border border-dashed border-border bg-surface px-4 py-10 text-center text-caption text-fg-subtle">
       {text}
     </div>
   );
@@ -274,6 +264,7 @@ function CaseFile({ answer, loading }: { answer: AnswerCase | undefined; loading
           connectedCards={body.connected_card_ids.length}
           affectedTxns={body.affected_txn_ids.length}
           summary={body.summary}
+          triggerText={body.evidence?.find(e => e.ref === "trigger:risk_score")?.claim}
         />
       </Panel>
       <Panel title={`Evidence · ${body.evidence.length}`} bodyClassName="p-3 space-y-2">
@@ -299,6 +290,7 @@ function WhyGrid({
   connectedCards,
   affectedTxns,
   summary,
+  triggerText,
 }: {
   verdict: AnswerCase["verdict"];
   fraudProbability: number;
@@ -307,15 +299,16 @@ function WhyGrid({
   connectedCards: number;
   affectedTxns: number;
   summary?: string;
+  triggerText?: string;
 }) {
   const isRing = /\bring\b|connected card|shared device|coordinated|undocumented/i.test(pattern || "");
-  const triggerMatch = /\((\$[\d,]+(?:\.\d+)?)\)/.exec(summary || "");
+  const triggerAmt = extractTriggerAmount(triggerText) ?? extractTriggerAmount(summary);
   const paired: [string, string][] = [
     ["Verdict", verdict],
     ["P(fraud)", fraudProbability.toFixed(3)],
     ["Pattern", pattern === "undocumented" ? "Outside typology list — shared-device evidence" : humanise(pattern)],
     [isRing ? "Ring Exposure" : "Exposure", exposureDisplay(exposureUsd, verdict)],
-    ...(triggerMatch ? [["Trigger Amount", triggerMatch[1]] as [string, string]] : []),
+    ...(triggerAmt ? [["Trigger Amount", triggerAmt] as [string, string]] : []),
     ["Connected cards", String(connectedCards)],
     ["Affected txns", String(affectedTxns)],
   ];
@@ -332,7 +325,7 @@ function WhyGrid({
         ))}
       </div>
       {pattern === "undocumented" ? (
-        <div className="rounded-md border border-border bg-surface-2 p-2.5 text-[10.5px] leading-relaxed text-fg-muted">
+        <div className="rounded-md border border-border bg-surface-2 p-2.5 text-[10.5px] leading-[1.5] text-fg-muted">
           <span className="font-semibold text-fg">Pattern definition (Policy R9):</span> Coordinated multi-card syndicate sharing a single device or browser profile (CASE-009: 17 connected cards on a shared Windows profile; CASE-014: 4 cards on a shared Linux/Chrome profile). Coded &ldquo;undocumented&rdquo; per institutional policy R9 to avoid forcing multi-card graph topologies into standard single-card typologies.
         </div>
       ) : null}
@@ -342,7 +335,7 @@ function WhyGrid({
 
 function EvidenceRow({ ev }: { ev: AnswerEvidence }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-3 py-2.5">
+    <div className="flex items-start gap-2.5 rounded-md border border-border bg-surface-2 px-3 py-2.5">
       <Icon
         name={sourceIcon(ev.source)}
         size={13}
@@ -391,22 +384,44 @@ function SarPanel({ sar }: { sar: SarOut | undefined }) {
   );
 }
 
-/** Human label for the Ask answer provenance. */
-function askProvenance(servedBy: string | null | undefined, llmUsed: boolean | undefined): string {
-  if (!servedBy) return llmUsed ? "live" : "rules";
-  if (servedBy.startsWith("cached")) return servedBy;
-  if (servedBy === "deterministic-fallback" || servedBy === "deterministic fallback") {
-    return "deterministic fallback";
+export function NemotronBanner({ nemotron }: { nemotron: NemotronBlock | undefined }) {
+  const proposal = nemotron?.model_proposal;
+  const policyPattern = nemotron?.policy_decision?.pattern;
+  const proposalPattern = proposal?.pattern;
+
+  // No valid model proposal only when the proposal is missing
+  if (!proposal || !proposalPattern) {
+    return (
+      <div className="rounded-md border border-warning bg-warning-tint px-3 py-2.5 text-[10.5px] leading-[1.5] text-warning">
+        No valid model proposal
+      </div>
+    );
   }
-  if (servedBy.startsWith("nvidia/") || servedBy.toLowerCase().includes("nemotron")) return "live";
-  return servedBy;
+
+  // When a valid proposal exists and its pattern equals the policy pattern, show "Policy agreed"
+  if (policyPattern && proposalPattern.trim().toLowerCase() === policyPattern.trim().toLowerCase()) {
+    return (
+      <div className="rounded-md border border-success bg-success-tint px-3 py-2.5 text-[10.5px] leading-[1.5] text-success">
+        Policy agreed
+      </div>
+    );
+  }
+
+  // Show "overruled" only when they differ
+  return (
+    <div className="rounded-md border border-warning bg-warning-tint px-3 py-2.5 text-[10.5px] leading-[1.5] text-warning">
+      Overruled
+    </div>
+  );
 }
 
 function NemotronPanel({ nemotron, latencyS }: { nemotron: NemotronBlock | undefined; latencyS?: number }) {
   const proposal = nemotron?.model_proposal;
   const policy = nemotron?.policy_decision;
+
   return (
     <div className="space-y-3">
+      <NemotronBanner nemotron={nemotron} />
       {nemotron?.served_by ? (
         <div className="flex flex-wrap items-baseline gap-2 rounded-md border border-border bg-surface-2 px-3 py-2">
           <Overline>Nemotron provenance</Overline>
@@ -417,7 +432,7 @@ function NemotronPanel({ nemotron, latencyS }: { nemotron: NemotronBlock | undef
             </span>
           ) : null}
           {latencyS !== undefined ? (
-            <span className="font-mono text-[9px] text-fg-subtle">
+            <span className="font-mono text-[10px] text-fg-subtle">
               · {latencyS.toFixed(2)}s case latency
             </span>
           ) : null}
@@ -440,7 +455,9 @@ function NemotronPanel({ nemotron, latencyS }: { nemotron: NemotronBlock | undef
           </div>
           <p className="mt-2.5 text-[11.5px] leading-[1.5] text-fg-muted">{proposal.rationale}</p>
         </Panel>
-      ) : null}
+      ) : (
+        <EmptyNote text="No Nemotron advisory block on this answer (model unavailable for this run)." />
+      )}
 
       {policy ? (
         <Panel
@@ -463,20 +480,6 @@ function NemotronPanel({ nemotron, latencyS }: { nemotron: NemotronBlock | undef
                   {humanise(a)}
                 </span>
               ))}
-            </div>
-          ) : null}
-          {nemotron?.model_agreed === false ? (
-            <div className="mt-2.5 rounded-md border border-warning bg-warning-tint px-3 py-2 text-[10.5px] leading-[1.5] text-warning">
-              {nemotron.model_proposal
-                ? `Nemotron proposed ${humanise(nemotron.model_proposal.pattern ?? "")} ` +
-                  `(conf ${((nemotron.model_proposal.confidence ?? 0) * 100).toFixed(0)}%); ` +
-                  `policy engine retained the deterministic decision. ` +
-                  (nemotron.model_override_reason || "")
-                : `No Nemotron proposal was available; the deterministic policy decision stands. ` +
-                  ((nemotron.model_override_reason ?? "").replace(
-                    /^No valid model proposal \(model unavailable or output invalid\); /,
-                    "",
-                  ) || "")}
             </div>
           ) : null}
         </Panel>
@@ -509,7 +512,7 @@ function JsonPanel({ text, copied, onCopy }: { text: string; copied: boolean; on
         <button
           type="button"
           onClick={onCopy}
-          className="font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-fg-muted hover:text-fg"
+          className="font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-fg-muted hover:text-fg"
         >
           {copied ? "copied" : "copy"}
         </button>
@@ -524,4 +527,14 @@ function JsonPanel({ text, copied, onCopy }: { text: string; copied: boolean; on
       </pre>
     </div>
   );
+}
+
+function askProvenance(servedBy: string | null | undefined, llmUsed: boolean | undefined): string {
+  if (!servedBy) return llmUsed ? "live" : "rules";
+  if (servedBy.startsWith("cached")) return servedBy;
+  if (servedBy === "deterministic-fallback" || servedBy === "deterministic fallback") {
+    return "deterministic fallback";
+  }
+  if (servedBy.startsWith("nvidia/") || servedBy.toLowerCase().includes("nemotron")) return "live";
+  return servedBy;
 }

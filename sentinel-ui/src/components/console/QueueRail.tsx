@@ -14,7 +14,7 @@
 
 import { Icon } from "@/components/console/icons";
 import { ConsoleChip, Dial, Overline } from "@/components/console/parts";
-import { exposureDisplay, toneVar, triggerIcon, triggerTone, verdictTone } from "@/components/console/vm";
+import { exposureDisplay, extractTriggerAmount, toneVar, triggerIcon, triggerTone, verdictTone } from "@/components/console/vm";
 import type { QueueRow } from "@/lib/hhgoa";
 import { cn } from "@/lib/cn";
 
@@ -28,9 +28,7 @@ import { cn } from "@/lib/cn";
  */
 /** Extract a $x.xx trigger amount from the trigger_text, if present. */
 function triggerAmount(text: string | undefined): string | null {
-  if (!text) return null;
-  const m = text.match(/\(\$([\d,]+\.?\d*)\)/);
-  return m ? `$${m[1]}` : null;
+  return extractTriggerAmount(text);
 }
 
 export function attentionScore(row: QueueRow): number {

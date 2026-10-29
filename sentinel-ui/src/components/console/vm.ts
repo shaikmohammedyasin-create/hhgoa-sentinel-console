@@ -186,6 +186,13 @@ export function money(value: number | null | undefined): string {
   });
 }
 
+/** Extract a formatted dollar amount (e.g. "$211.25") from text or trigger evidence. */
+export function extractTriggerAmount(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const m = text.match(/\$([\d,]+(?:\.\d+)?)/);
+  return m ? m[0] : null;
+}
+
 export function exposureDisplay(
   value: number | null | undefined,
   verdict?: string | null,

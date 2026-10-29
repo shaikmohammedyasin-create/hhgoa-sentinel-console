@@ -105,7 +105,7 @@ async function open(group, name, label = name) {
   return true;
 }
 
-await page.goto(BASE, { waitUntil: "networkidle" });
+await page.goto(BASE, { waitUntil: "domcontentloaded" });
 
 // ── the masthead, and what it claims ─────────────────────────────────────────
 check("masthead", (await page.locator("header").getByText("Sentinel", { exact: true }).count()) === 1);
@@ -168,6 +168,39 @@ async function openTab(label) {
 if (await openTab("Case file")) {
   check("case file: verdict grid", await seen(page.getByText("P(fraud)")));
   check("case file: evidence ledger", await seen(page.getByText(/Evidence/)));
+  check("case file: trigger amount displayed", (await page.getByText(/Trigger Amount/i).count()) > 0);
+  check("header: trigger amount filled", (await page.getByText(/Trigger amount: \$\d+/).count()) > 0);
+}
+
+// Nemotron: advisory proposal, policy decision, and banner states
+if (await openTab("Nemotron")) {
+  // First case (CASE-001) has proposal (card_testing) != policy (none) -> Overruled
+  check("nemotron banner: overruled on differing patterns", await seen(page.getByText(/^Overruled$/)));
+
+  // Select CASE-006 where model proposal == policy decision (card_not_present_fraud) -> Policy agreed
+  const case006 = page.locator("aside ul li button", { hasText: "CASE-006" }).first();
+  if (await case006.count() > 0) {
+    await case006.click();
+    await page.waitForTimeout(500);
+    await openTab("Nemotron");
+    check("nemotron banner: policy agreed on matching patterns", await seen(page.getByText(/^Policy agreed$/)));
+  }
+
+  // Select CASE-004 where model proposal is missing -> No valid model proposal
+  const case004 = page.locator("aside ul li button", { hasText: "CASE-004" }).first();
+  if (await case004.count() > 0) {
+    await case004.click();
+    await page.waitForTimeout(500);
+    await openTab("Nemotron");
+    check("nemotron banner: no valid model proposal when missing", await seen(page.getByText(/^No valid model proposal$/)));
+  }
+
+  // Switch back to CASE-001
+  const case001 = page.locator("aside ul li button", { hasText: "CASE-001" }).first();
+  if (await case001.count() > 0) {
+    await case001.click();
+    await page.waitForTimeout(500);
+  }
 }
 
 // Timeline: the backend's audit trail, one row per event.
@@ -214,10 +247,10 @@ if (SNAPSHOT) {
 }
 
 // ── the ring screen states the absence (code retained, route preserved) ─────
-await page.goto(`${BASE}/ring`, { waitUntil: "networkidle" });
+await page.goto(`${BASE}/ring`, { waitUntil: "domcontentloaded" });
 check("ring heading", await seen(page.getByText("Ring discovery")));
 check("ring states the missing capability", await seen(page.getByText("Not available in this API")));
-await page.goto(BASE, { waitUntil: "networkidle" });
+await page.goto(BASE, { waitUntil: "domcontentloaded" });
 
 // ── the approvals overlay ────────────────────────────────────────────────────
 await open(controls, "inbox");

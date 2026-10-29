@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -39,7 +39,7 @@ const page = await context.newPage();
 const BASE = "http://localhost:3000";
 
 console.log("Navigating to", BASE);
-await page.goto(BASE, { waitUntil: "networkidle" });
+await page.goto(BASE, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(2000);
 
 const views = page.locator("nav").first();
@@ -63,6 +63,7 @@ async function openTab(name) {
 
 // Select a completed case, e.g. CASE-014 or first case with FRAUD
 console.log("Selecting case...");
+await page.waitForSelector("aside ul li button", { timeout: 15000 }).catch(() => {});
 const fraudCaseBtn = page.locator("aside ul li button", { hasText: "CASE-014" }).first();
 if (await fraudCaseBtn.count() > 0) {
   await fraudCaseBtn.click();
